@@ -119,7 +119,7 @@
             column.unreadCount = 0
         }
 
-        if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'merge' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
+        if (column.algorithm.type === 'default' || column.algorithm.type === 'custom' || column.algorithm.type === 'officialList' || column.algorithm.type === 'merge' || column.algorithm.type === 'cloudList' || column.algorithm.type === 'myPost' || column.algorithm.type === 'myMedia') {
             const shouldMaintainPosition = !column.settings?.refreshToTop;
             const scrollEl: HTMLElement = getScrollElement();
 

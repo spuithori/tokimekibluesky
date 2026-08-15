@@ -308,7 +308,7 @@
           return await handleSoloLoadMore(loaded, complete);
       }
 
-      if (column.algorithm?.type === 'merge' && !column.data?.cursor && columnState.getFeed(column.id).length > 0) {
+      if ((column.algorithm?.type === 'merge' || column.algorithm?.type === 'cloudList') && !column.data?.cursor && columnState.getFeed(column.id).length > 0) {
           complete();
           return;
       }

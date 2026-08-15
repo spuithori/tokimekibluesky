@@ -35,7 +35,7 @@
     <Bell {color} {strokeWidth} />
 {:else if type === "custom"}
     <Newspaper {color} {strokeWidth} />
-{:else if type === "list" || type === "officialList"}
+{:else if type === "list" || type === "cloudList" || type === "officialList"}
     <List {color} {strokeWidth} />
 {:else if type === "bookmark" || type === "cloudBookmark" || type === "officialBookmark"}
     <Bookmark {color} {strokeWidth} />

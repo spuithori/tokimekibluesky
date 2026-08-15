@@ -9,6 +9,7 @@ import type { PasswordSession, SessionData } from '$lib/password-session';
 import { interpretLabelValueDefinitions } from '$lib/atproto-moderation';
 import { listRecords as listRecordsFromPds } from '$lib/util';
 import { getMergedTimeline } from '$lib/merge/mergeFetch';
+import { getCloudListTimeline } from '$lib/merge/cloudListFetch';
 
 type timelineOpt = {
     limit: number,
@@ -242,6 +243,79 @@ export class Agent {
         });
     }
 
+    async getCloudLists(): Promise<{ lists: Array<{ id: number; name: string; text?: string }> }> {
+        return this.callWithProxy('tech.tokimeki.list.getLists', {
+            owner: this.did() as string,
+        });
+    }
+
+    async getCloudList(id: number | string): Promise<{ list: { id: number; name: string; text?: string }; members: string[] }> {
+        return this.callWithProxy('tech.tokimeki.list.getList', {
+            owner: this.did() as string,
+            id: id,
+        });
+    }
+
+    async addCloudList(list: { id?: number; name: string; text?: string; members?: string[] }): Promise<{ list: { id: number; name: string; text?: string } }> {
+        return this.callWithProxy('tech.tokimeki.list.addList', undefined, {
+            method: 'POST',
+            data: {
+                list: {
+                    id: list.id,
+                    owner: this.did() as string,
+                    name: list.name,
+                    text: list.text,
+                    members: list.members,
+                }
+            }
+        });
+    }
+
+    async deleteCloudList(id: number): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.list.deleteList', undefined, {
+            method: 'POST',
+            data: {
+                list: {
+                    id: id,
+                    owner: this.did() as string,
+                }
+            }
+        });
+    }
+
+    async addCloudListMember(listId: number, did: string): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.list.addListMember', undefined, {
+            method: 'POST',
+            data: {
+                member: {
+                    list: listId,
+                    owner: this.did() as string,
+                    did: did,
+                }
+            }
+        });
+    }
+
+    async deleteCloudListMember(listId: number, did: string): Promise<unknown> {
+        return this.callWithProxy('tech.tokimeki.list.deleteListMember', undefined, {
+            method: 'POST',
+            data: {
+                member: {
+                    list: listId,
+                    owner: this.did() as string,
+                    did: did,
+                }
+            }
+        });
+    }
+
+    async getRelatedCloudList(did: string): Promise<{ lists: number[] }> {
+        return this.callWithProxy('tech.tokimeki.list.getRelatedList', {
+            owner: this.did() as string,
+            did: did,
+        });
+    }
+
     async getTimeline(timelineOpt: timelineOpt = {limit: 20, cursor: '', type: 'default', lang: 'en'}, signal?: AbortSignal): Promise<any> {
         try {
             let res;
@@ -276,6 +350,8 @@ export class Agent {
                 }, {headers: {'Accept-Language': timelineOpt.lang}, signal});
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors, timelineOpt.count);
+            case 'cloudList':
+                return await getCloudListTimeline(this, timelineOpt, signal);
             case 'merge':
                 return await getMergedTimeline(this, timelineOpt, signal);
             case 'officialList':

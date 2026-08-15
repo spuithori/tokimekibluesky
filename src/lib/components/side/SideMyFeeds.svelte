@@ -18,6 +18,7 @@
     let customFeeds = $state([]);
     let officialLists = $state([]);
     let cloudBookmarks = $state([]);
+    let cloudLists = $state([]);
     let bookmarks = liveQuery(() => db.bookmarks.toArray());
     let loaded = $state(false);
 
@@ -63,6 +64,24 @@
         }
     }
 
+    async function updateCloudLists() {
+        const accountId = await getAccountIdByDidFromDb(_agent.did());
+        const account = await accountsDb.accounts.get(accountId);
+        const lists = account?.cloudLists;
+        cloudLists = lists || [];
+
+        try {
+            const result = await _agent.getCloudLists();
+            cloudLists = result.lists;
+
+            await accountsDb.accounts.update(accountId, {
+                cloudLists: $state.snapshot(cloudLists),
+            });
+        } catch (e) {
+            cloudLists = [];
+        }
+    }
+
     function getFeedUrl(uri, genre = 'feed') {
         if (!uri) {
             return false;
@@ -97,7 +116,7 @@
     }
 
     onMount(async () => {
-        await Promise.all([updateFeeds(), updateLists(), updateCloudBookmarks()]);
+        await Promise.all([updateFeeds(), updateLists(), updateCloudBookmarks(), updateCloudLists()]);
         loaded = true;
     })
 </script>
@@ -132,6 +151,16 @@
 
         {#if (currentTab === 'lists' || currentTab === 'all')}
             <div class="side-feeds-list" data-category="lists">
+                {#if cloudLists?.length}
+                    {#each cloudLists as list}
+                        <li class="side-feeds-list__item">
+                            <a class="side-feeds-list__link" href="/list-cloud/{list.id}" onclick={handleSelect}>
+                                <List color="var(--text-color-1)" size="20"></List>
+                                {list.name}</a>
+                        </li>
+                    {/each}
+                {/if}
+
                 {#if officialLists.length}
                     {#each officialLists as list}
                         <li class="side-feeds-list__item">

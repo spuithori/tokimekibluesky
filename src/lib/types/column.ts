@@ -5,7 +5,7 @@ export type { searchFilters };
 export type { MergeSource };
 
 export type currentAlgorithm = {
-    type: 'default' | 'custom' | 'list' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorReplies' | 'authorReposts' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime' | 'merge',
+    type: 'default' | 'custom' | 'list' | 'cloudList' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorReplies' | 'authorReposts' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime' | 'merge',
     algorithm?: string,
     name?: string,
     list?: object,

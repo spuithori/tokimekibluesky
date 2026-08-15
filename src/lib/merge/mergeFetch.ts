@@ -17,7 +17,7 @@ const POOL_SLOTS = 2;
 
 const poolSlots = new WeakMap<object, MergePool[]>();
 
-function takePool(ref: object, fingerprint: string, cursor: string): MergePool | null {
+export function takePool(ref: object, fingerprint: string, cursor: string): MergePool | null {
     const slots = poolSlots.get(ref);
     if (!slots) {
         return null;
@@ -29,7 +29,7 @@ function takePool(ref: object, fingerprint: string, cursor: string): MergePool |
     return slots.splice(i, 1)[0];
 }
 
-function storePool(ref: object, pool: MergePool): void {
+export function storePool(ref: object, pool: MergePool): void {
     if (!pool.issuedCursor) {
         return;
     }

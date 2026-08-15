@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {bookmarkModal, cloudBookmarkModal, listModal, officialListModal} from "$lib/stores";
+    import {bookmarkModal, cloudBookmarkModal, cloudListModal, listModal, officialListModal} from "$lib/stores";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import Bell from '@lucide/svelte/icons/bell';
     import Bookmark from '@lucide/svelte/icons/bookmark';
@@ -13,8 +13,10 @@
     import UserRound from '@lucide/svelte/icons/user-round';
     import MessageCircle from '@lucide/svelte/icons/message-circle';
     import BookType from '@lucide/svelte/icons/book-type';
+    import CloudUpload from '@lucide/svelte/icons/cloud-upload';
+    import {_} from "tokimeki-i18n";
 
-    let { items, _agent, onadd } = $props();
+    let { items, _agent, onadd, migratableIds = undefined, onmigrate = undefined } = $props();
 
     function addColumn(column) {
         onadd?.(column);
@@ -29,9 +31,28 @@
                     <Newspaper size="20" color="var(--text-color-1)"></Newspaper>
                 {:else if (column.algorithm.type === 'list')}
                     <List size="20" color="var(--text-color-1)"></List>
+                    {#if (onmigrate && migratableIds?.has(String(column.algorithm.algorithm)))}
+                        <button
+                                class="algo-nav-migrate"
+                                onclick={() => {onmigrate(column.algorithm.algorithm)}}
+                                aria-label={$_('migrate_to_cloud_list')}
+                                title={$_('migrate_to_cloud_list')}
+                        >
+                            <CloudUpload size="18" color="var(--primary-color)"></CloudUpload>
+                        </button>
+                    {/if}
                     <button
                             class="algo-nav-edit"
                             onclick={() => {listModal.set({open: true, data: column.algorithm.algorithm })}}
+                            aria-label="Edit list"
+                    >
+                        <IconColumnsEdit></IconColumnsEdit>
+                    </button>
+                {:else if (column.algorithm.type === 'cloudList')}
+                    <List size="20" color="var(--text-color-1)"></List>
+                    <button
+                            class="algo-nav-edit"
+                            onclick={() => {cloudListModal.set({open: true, data: column.algorithm.algorithm })}}
                             aria-label="Edit list"
                     >
                         <IconColumnsEdit></IconColumnsEdit>
@@ -155,5 +176,15 @@
         top: 0;
         bottom: 0;
         margin: auto;
+    }
+
+    .algo-nav-migrate {
+        position: absolute;
+        right: 76px;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+        display: grid;
+        place-content: center;
     }
 </style>

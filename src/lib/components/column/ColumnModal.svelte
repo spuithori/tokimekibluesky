@@ -10,6 +10,7 @@
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
     import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
     import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
+    import CloudListObserver from "$lib/components/list/CloudListObserver.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import Modal from "$lib/components/ui/Modal.svelte";
     import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
@@ -60,6 +61,15 @@
     }
 
     function handleCloudBookmarkClose(clear: boolean, id: number) {
+        unique = Symbol();
+    }
+
+    function handleCloudListClose(clear: boolean, id: number) {
+        if (clear && id) {
+            columns.columns
+                .filter(_column => _column.algorithm.type === 'cloudList' && Number(_column.algorithm.algorithm) === Number(id))
+                .forEach(_column => columns.remove(_column.id));
+        }
         unique = Symbol();
     }
 
@@ -152,6 +162,7 @@
 
     <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
     <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
+    <CloudListObserver close={handleCloudListClose} _agent={$agents.get(currentAccount)}></CloudListObserver>
     <ListObserver onclose={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
     <OfficialListObserver _agent={$agents.get(currentAccount)} onclose={handleOfficialListClose}></OfficialListObserver>
 {/if}

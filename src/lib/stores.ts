@@ -48,6 +48,11 @@ export const listModal = writable({
     data: undefined,
 })
 
+export const cloudListModal = writable<{open: boolean, data: number | string | undefined}>({
+    open: false,
+    data: undefined,
+})
+
 export const officialListModal = writable({
     open: false,
     uri: '',

@@ -1,6 +1,8 @@
 <script lang="ts">
   import {defaultDeckSettings} from "$lib/components/deck/defaultDeckSettings";
-  import {agent, bookmarkModal, cloudBookmarkModal, listModal, officialListModal, userLists} from "$lib/stores";
+  import {agent, bookmarkModal, cloudBookmarkModal, cloudListModal, listModal, officialListModal, userLists} from "$lib/stores";
+  import {toast} from "svelte-sonner";
+  import {migrateLocalList, migrateLocalLists, unmigratedLocalLists as filterUnmigratedLocalLists} from "$lib/localListMigration";
   import {_} from "tokimeki-i18n";
   import {liveQuery} from "dexie";
   import {accountsDb, db} from "$lib/db";
@@ -158,9 +160,12 @@
   let savedFeeds = $state([]);
   let officialLists = $state([]);
   let cloudBookmarks = $state([]);
+  let cloudLists = $state([]);
   let feedColumnsRefreshing = $state(true);
   let officialListColumnsRefreshing = $state(true);
   let cloudBookmarkColumnRefreshing = $state(true);
+  let cloudListColumnRefreshing = $state(true);
+  let migrating = $state(false);
   
   function buildBookmarkColumns(bookmarks) {
       if (!bookmarks) {
@@ -315,6 +320,111 @@
       }))
   }
 
+  async function updateCloudLists() {
+      const agent = _agent;
+      const accountId = await getAccountIdByDidFromDb(agent.did());
+      const account = await accountsDb.accounts.get(accountId);
+      const lists = account?.cloudLists;
+      cloudLists = lists || [];
+
+      try {
+          const result = await agent.getCloudLists();
+          cloudLists = result.lists;
+
+          await accountsDb.accounts.update(accountId, {
+              cloudLists: $state.snapshot(cloudLists),
+          });
+      } catch (e) {
+          console.error(e);
+      }
+
+      cloudListColumnRefreshing = false;
+  }
+
+  function buildCloudListColumns(lists) {
+      if (!lists) {
+          return [];
+      }
+
+      return lists.map(list => ({
+          id: self.crypto.randomUUID(),
+          algorithm: {
+              type: 'cloudList',
+              algorithm: list.id,
+              name: list.name,
+          },
+          style: 'default',
+          settings: defaultDeckSettings,
+          did: _agent.did(),
+          handle: _agent.handle(),
+          data: {
+              feed: [],
+              cursor: '',
+          }
+      }))
+  }
+
+  const unmigratedLocalLists = $derived(filterUnmigratedLocalLists($userLists, _agent.did()));
+  const migratableListIds = $derived(new Set(unmigratedLocalLists.map(list => String(list.id))));
+
+  function persistLocalLists() {
+      userLists.update(lists => {
+          localStorage.setItem('lists', JSON.stringify(lists));
+          return lists;
+      });
+  }
+
+  async function refreshCloudListsAfterMigration() {
+      cloudListColumnRefreshing = true;
+      await updateCloudLists();
+  }
+
+  async function handleMigrateAll() {
+      if (migrating) {
+          return;
+      }
+
+      migrating = true;
+
+      const { success, failed } = await migrateLocalLists(_agent, unmigratedLocalLists);
+      persistLocalLists();
+
+      if (success) {
+          toast.success($_('migrate_local_lists_success'));
+      }
+      if (failed) {
+          toast.error($_('migrate_local_lists_failed'));
+      }
+
+      await refreshCloudListsAfterMigration();
+      migrating = false;
+  }
+
+  async function handleMigrateOne(listId) {
+      if (migrating) {
+          return;
+      }
+
+      const list = unmigratedLocalLists.find(item => String(item.id) === String(listId));
+      if (!list) {
+          return;
+      }
+
+      migrating = true;
+
+      try {
+          await migrateLocalList(_agent, list);
+          persistLocalLists();
+          toast.success($_('migrate_local_lists_success'));
+          await refreshCloudListsAfterMigration();
+      } catch (e) {
+          console.error(e);
+          toast.error($_('migrate_local_lists_failed'));
+      }
+
+      migrating = false;
+  }
+
   function buildCloudBookmarkColumns(bookmarks) {
       if (!bookmarks) {
           return [];
@@ -339,7 +449,7 @@
   }
 
   onMount(async () => {
-      await Promise.all([updateLists(), updateFeeds(), updateCloudBookmarks()]);
+      await Promise.all([updateLists(), updateFeeds(), updateCloudBookmarks(), updateCloudLists()]);
   })
 
   const bookmarkColumns = $derived(buildBookmarkColumns($bookmarks));
@@ -347,6 +457,7 @@
   const feedColumns = $derived(buildFeedColumns(savedFeeds));
   const officialListColumns = $derived(buildOfficialListColumns(officialLists));
   const cloudBookmarkColumns = $derived(buildCloudBookmarkColumns(cloudBookmarks));
+  const cloudListColumns = $derived(buildCloudListColumns(cloudLists));
 </script>
 
 <div>
@@ -382,6 +493,29 @@
             <ColumnListAdder {_agent} items={cloudBookmarkColumns} {onadd}></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_bookmark')}</p>
+        {/if}
+    </div>
+
+    <div class="column-adder-group">
+        <div class="column-adder-group__heading">
+            <p class="column-adder-group__title">{$_('list_cloud')}</p>
+            <a href="https://docs.tokimeki.blue/ja/usage/list" target="_blank" rel="noopener" class="column-adder-group__help"><HelpCircle size="18" color="var(--text-color-3)"></HelpCircle></a>
+
+            {#if (cloudListColumnRefreshing)}
+                <LoadingSpinner padding="0" size="14"></LoadingSpinner>
+            {/if}
+
+            <button class="column-adder-group__add" onclick={() => {cloudListModal.set({open: true, data: undefined})}}>{$_('new_create')}</button>
+        </div>
+
+        {#if (cloudListColumns.length)}
+            <ColumnListAdder {_agent} items={cloudListColumns} {onadd}></ColumnListAdder>
+        {:else}
+            <p class="column-adder-text">{$_('there_is_no_cloud_list')}</p>
+        {/if}
+
+        {#if (unmigratedLocalLists.length)}
+            <button class="column-adder-migrate" onclick={handleMigrateAll} disabled={migrating}>{$_('migrate_local_lists')} ({unmigratedLocalLists.length})</button>
         {/if}
     </div>
 
@@ -428,7 +562,7 @@
         </div>
 
         {#if (localListColumns.length)}
-            <ColumnListAdder {_agent} items={localListColumns} {onadd}></ColumnListAdder>
+            <ColumnListAdder {_agent} items={localListColumns} {onadd} migratableIds={migratableListIds} onmigrate={handleMigrateOne}></ColumnListAdder>
         {:else}
             <p class="column-adder-text">{$_('there_is_no_local_list')}</p>
         {/if}
@@ -482,5 +616,19 @@
     .column-adder-text {
         font-size: 14px;
         color: var(--text-color-3);
+    }
+
+    .column-adder-migrate {
+        margin-top: 8px;
+        font-size: 13px;
+        color: var(--primary-color);
+
+        &:hover {
+            text-decoration: underline;
+        }
+
+        &:disabled {
+            opacity: .5;
+        }
     }
 </style>

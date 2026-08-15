@@ -88,6 +88,7 @@ export interface Account {
     feeds?: any[],
     lists?: any[],
     cloudBookmarks?: any[],
+    cloudLists?: any[],
     isOAuth?: boolean,
     oauthDid?: string,
 }
