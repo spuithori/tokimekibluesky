@@ -12,6 +12,13 @@ export interface XrpcCallOptions {
 	encoding?: string;
 }
 
+type XrpcFailureListener = (status?: number) => void;
+let failureListener: XrpcFailureListener | undefined;
+
+export function setXrpcFailureListener(listener: XrpcFailureListener | undefined): void {
+	failureListener = listener;
+}
+
 export class XrpcClient {
 	private _fetch: FetchHandler;
 	private _appViewProxy: string;
@@ -55,13 +62,20 @@ export class XrpcClient {
 			headers['atproto-accept-labelers'] = this._labelerDids.map(d => `${d};redact`).join(', ');
 		}
 
-		const res = await this._fetch(path, {
-			method: 'GET',
-			headers,
-			signal: opts?.signal,
-		});
+		let res: Response;
+		try {
+			res = await this._fetch(path, {
+				method: 'GET',
+				headers,
+				signal: opts?.signal,
+			});
+		} catch (e) {
+			if (!opts?.signal?.aborted) failureListener?.();
+			throw e;
+		}
 
 		if (!res.ok) {
+			if (res.status >= 500) failureListener?.(res.status);
 			const body = await res.json().catch(() => ({}));
 			const err: any = new Error(body.message || `XRPC ${nsid} failed: ${res.status}`);
 			err.status = res.status;
@@ -116,14 +130,21 @@ export class XrpcClient {
 			body = JSON.stringify(data);
 		}
 
-		const res = await this._fetch(path, {
-			method: 'POST',
-			headers,
-			body,
-			signal: opts?.signal,
-		});
+		let res: Response;
+		try {
+			res = await this._fetch(path, {
+				method: 'POST',
+				headers,
+				body,
+				signal: opts?.signal,
+			});
+		} catch (e) {
+			if (!opts?.signal?.aborted) failureListener?.();
+			throw e;
+		}
 
 		if (!res.ok) {
+			if (res.status >= 500) failureListener?.(res.status);
 			const errBody = await res.json().catch(() => ({}));
 			const err: any = new Error(errBody.message || `XRPC ${nsid} failed: ${res.status}`);
 			err.status = res.status;

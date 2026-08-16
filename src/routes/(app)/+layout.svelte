@@ -42,6 +42,8 @@
     import { sideState } from "$lib/classes/sideState.svelte";
     import TokBackground from "$lib/components/utils/TokBackground.svelte";
     import UpdateBanner from "$lib/components/utils/UpdateBanner.svelte";
+    import BskyStatusBanner from "$lib/components/utils/BskyStatusBanner.svelte";
+    import { bskyStatusState } from "$lib/classes/bskyStatusState.svelte";
     import { setPostState } from "$lib/classes/postState.svelte";
     import { imageState } from "$lib/classes/imageState.svelte";
     import { comicReaderState } from "$lib/classes/comicReaderState.svelte";
@@ -314,6 +316,19 @@
     });
 
     $effect(() => {
+        if (!appState.ready) {
+            return;
+        }
+        bskyStatusState.boot();
+
+        return on(document, "visibilitychange", () => {
+            if (!document.hidden) {
+                bskyStatusState.checkIfStale();
+            }
+        });
+    });
+
+    $effect(() => {
         const offError = on(window, "error", (event: ErrorEvent) => {
             recordError(event.error ?? event.message, "window");
         });
@@ -443,6 +458,10 @@
     <ProfileStatusObserver></ProfileStatusObserver>
     <LinkWarningModal></LinkWarningModal>
     <UpdateBanner></UpdateBanner>
+
+    {#if bskyStatusState.isVisible}
+        <BskyStatusBanner></BskyStatusBanner>
+    {/if}
 
     {#if sideState.isTokStart}
         <TokBackground></TokBackground>
