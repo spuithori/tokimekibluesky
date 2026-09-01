@@ -2,6 +2,8 @@
     import {_} from 'tokimeki-i18n';
     import { compressImage, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import Modal from "$lib/components/ui/Modal.svelte";
+    import { ImageEditor } from 'tokimeki-image-editor';
+    import { settings } from '$lib/stores';
 
     let { profile, _agent, onclose, onupdate } = $props();
 
@@ -24,14 +26,19 @@
     let avatarBase64 = $state('');
     let bannerBase64 = $state('');
 
-    async function onAvatarSelected(e) {
+    let cropTarget: 'avatar' | 'banner' | null = $state(null);
+    let cropFile: File | null = $state(null);
+
+    function onAvatarSelected(e) {
         const file = e.target?.files[0] || undefined;
+        e.target.value = '';
 
         if (!file) {
             return false;
         }
 
-        avatar = await fileUpload(file, 'avatar');
+        cropFile = file;
+        cropTarget = 'avatar';
     }
 
     async function onAvatarDeleted(error, file) {
@@ -39,14 +46,33 @@
         currentAvatar = null;
     }
 
-    async function onBannerSelected(e) {
+    function onBannerSelected(e) {
         const file = e.target?.files[0] || undefined;
+        e.target.value = '';
 
         if (!file) {
             return false;
         }
 
-        banner = await fileUpload(file, 'banner');
+        cropFile = file;
+        cropTarget = 'banner';
+    }
+
+    async function handleCropComplete(dataUrl: string, blobObj: {blob: Blob, width: number, height: number}) {
+        const target = cropTarget;
+        cropTarget = null;
+        cropFile = null;
+
+        if (target === 'avatar') {
+            avatar = await fileUpload(blobObj.blob, 'avatar');
+        } else if (target === 'banner') {
+            banner = await fileUpload(blobObj.blob, 'banner');
+        }
+    }
+
+    function handleCropCancel() {
+        cropTarget = null;
+        cropFile = null;
     }
 
     async function onBannerDeleted(error, file) {
@@ -206,6 +232,25 @@
   </div>
 </Modal>
 
+{#if cropFile && cropTarget}
+  <dialog class="crop-dialog" {@attach (el: HTMLDialogElement) => { if (!el.open) el.showModal(); }} onclose={handleCropCancel}>
+    <ImageEditor
+        initialImage={cropFile}
+        width={1200}
+        height={700}
+        theme={$settings?.design?.darkmode ? 'dark' : 'light'}
+        isStandalone={false}
+        cropOptions={{
+            cropOnly: true,
+            aspectRatio: cropTarget === 'avatar' ? 1 : 3,
+            circularGuide: cropTarget === 'avatar',
+        }}
+        onComplete={handleCropComplete}
+        onCancel={handleCropCancel}
+    ></ImageEditor>
+  </dialog>
+{/if}
+
 <style lang="postcss">
   .edit-buttons {
       display: flex;
@@ -286,5 +331,26 @@
 
   .edit-input {
     display: none;
+  }
+
+  .crop-dialog {
+      width: 100dvw;
+      height: 100dvh;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background-color: #1a1a1af2;
+      backdrop-filter: blur(10px);
+
+      &[open] {
+          display: grid;
+          place-items: center;
+      }
+
+      &::backdrop {
+          background-color: transparent;
+      }
   }
 </style>
