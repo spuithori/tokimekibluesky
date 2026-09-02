@@ -16,7 +16,6 @@
   import Clapperboard from '@lucide/svelte/icons/clapperboard';
   import Layers from '@lucide/svelte/icons/layers';
   import Database from '@lucide/svelte/icons/database';
-  import Orbit from '@lucide/svelte/icons/orbit';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -101,9 +100,6 @@
           case 'viewer':
               goto('/atproto-viewer/' + $agent.did());
               break;
-          case 'atmosphere':
-              goto('/atmosphere');
-              break;
       }
   }
 
@@ -162,8 +158,6 @@
           <Clapperboard color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Clapperboard>
         {:else if (item === 'viewer')}
           <Database color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Database>
-        {:else if (item === 'atmosphere')}
-          <Orbit color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Orbit>
         {/if}
       </button>
     </li>

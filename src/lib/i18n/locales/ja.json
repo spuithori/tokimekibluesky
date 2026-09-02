@@ -934,6 +934,8 @@
     "viewer": "レコード探索",
     "atmosphere": "アプリ",
     "atmosphere_lead": "Bluesky と同じアカウントで、そのまま使えるアプリやサービスです。同じアカウントでログインするだけで、ブログや便利ツール、ゲームなどあらゆるサービスを利用できます。",
+    "atmosphere_banner_lead": "Bluesky アプリストア",
+    "atmosphere_banner_cta": "見てみる",
     "atmosphere_made_by_tokimeki": "Made by TOKIMEKI",
     "atmosphere_community": "コミュニティ",
     "atmosphere_community_lead": "サービス提供者自身が登録し、所有確認が検証されたアプリ・サービスです。TOKIMEKIは安全性を検証していません。",

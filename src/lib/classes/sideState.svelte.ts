@@ -1,7 +1,7 @@
-export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast' | 'columns' | 'topic' | 'tokmek' | 'workspace' | 'viewer' | 'atmosphere';
+export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast' | 'columns' | 'topic' | 'tokmek' | 'workspace' | 'viewer';
 const DEFAULT_ITEMS: SideItem[] = ['workspace', 'feeds', 'search', 'profile'];
-const REMOVED_ITEMS = ['diary'];
-export const ALL_ITEMS: SideItem[] = ['workspace', 'feeds', 'chat', 'notifications', 'search', 'topic', 'profile', 'bluecast', 'tokmek', 'refresher', 'scroll-top', 'columns', 'viewer', 'atmosphere'];
+const REMOVED_ITEMS = ['diary', 'atmosphere'];
+export const ALL_ITEMS: SideItem[] = ['workspace', 'feeds', 'chat', 'notifications', 'search', 'topic', 'profile', 'bluecast', 'tokmek', 'refresher', 'scroll-top', 'columns', 'viewer'];
 
 class SideState {
     items: SideItem[] = $state(DEFAULT_ITEMS);

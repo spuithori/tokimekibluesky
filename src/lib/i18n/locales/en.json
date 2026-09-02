@@ -935,6 +935,8 @@
     "viewer": "ATP Records",
     "atmosphere": "Apps",
     "atmosphere_lead": "Apps and services you can use as they are, with the same account as Bluesky. Just sign in with that account to use all kinds of services, from blogs and handy tools to games.",
+    "atmosphere_banner_lead": "Bluesky app store",
+    "atmosphere_banner_cta": "Take a look",
     "atmosphere_made_by_tokimeki": "Made by TOKIMEKI",
     "atmosphere_community": "Community",
     "atmosphere_community_lead": "Apps and services registered by their own providers, with verified ownership.",

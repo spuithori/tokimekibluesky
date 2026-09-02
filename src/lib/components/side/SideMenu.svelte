@@ -26,7 +26,8 @@
     import Clapperboard from '@lucide/svelte/icons/clapperboard';
     import Layers from '@lucide/svelte/icons/layers';
     import Database from '@lucide/svelte/icons/database';
-    import Orbit from '@lucide/svelte/icons/orbit';
+    import ArrowRight from '@lucide/svelte/icons/arrow-right';
+    import { atmospherePresets } from '$lib/atmosphere/presets';
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
@@ -90,6 +91,21 @@
     }
 </script>
 
+{#snippet appsBanner()}
+  <a class="apps-banner" href="/atmosphere" onclick={onclose}>
+    <div class="apps-banner__fan">
+      {#each atmospherePresets as preset (preset.id)}
+        <img class="apps-banner__icon" src={preset.icon} alt="" width="34" height="34" decoding="async">
+      {/each}
+    </div>
+    <div class="apps-banner__body">
+      <p class="apps-banner__title">{$_('atmosphere')} <small>Atmosphere</small></p>
+      <p class="apps-banner__lead">{$_('atmosphere_banner_lead')}</p>
+    </div>
+    <span class="apps-banner__cta">{$_('atmosphere_banner_cta')}<ArrowRight size="14"></ArrowRight></span>
+  </a>
+{/snippet}
+
 <div use:floatingRef></div>
 
 <dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
@@ -111,6 +127,10 @@
         </div>
       </dd>
     </dl>
+
+    <div class="only-mobile">
+      {@render appsBanner()}
+    </div>
 
     <ul class="side-items-list">
       {#each ALL_ITEMS as item}
@@ -141,8 +161,6 @@
             <Clapperboard size="18" color="var(--nav-secondary-icon-color)"></Clapperboard>
           {:else if (item === 'viewer')}
             <Database size="18" color="var(--nav-secondary-icon-color)"></Database>
-          {:else if (item === 'atmosphere')}
-            <Orbit size="18" color="var(--nav-secondary-icon-color)"></Orbit>
           {/if}
 
           <button class="side-items-list__button" onclick={() => {onaction(item)}}>
@@ -227,6 +245,10 @@
           </label>
         </div>
       </div>
+    </div>
+
+    <div class="side-menu-item">
+      {@render appsBanner()}
     </div>
   </div>
 </dialog>
@@ -339,6 +361,142 @@
           bottom: 0;
           left: -7.5px;
           margin: auto;
+      }
+  }
+
+  .apps-banner {
+      --apps-banner-to: color-mix(in srgb, var(--primary-color) 82%, #000);
+      --apps-banner-ink: #fff;
+      display: block;
+      width: 168px;
+      margin-top: 12px;
+      padding: 14px 12px 12px;
+      border-radius: var(--border-radius-4);
+      background: linear-gradient(150deg, var(--primary-color), var(--apps-banner-to));
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08);
+      color: var(--apps-banner-ink);
+      text-decoration: none;
+      transition: box-shadow .15s ease;
+
+      @supports (color: oklch(from red l c h)) {
+          --apps-banner-to: oklch(from var(--primary-color) calc(l - 0.1) c h);
+          --apps-banner-ink: oklch(from var(--primary-color) clamp(0.16, calc((0.7 - l) * 100), 1) 0 h);
+      }
+
+      @media (max-width: 767px) {
+          display: grid;
+          grid-template-columns: auto minmax(0, 1fr);
+          align-items: center;
+          gap: 10px;
+          width: 180px;
+          margin: 12px 0 0;
+          padding: 8px 10px 8px 12px;
+      }
+
+      &:hover {
+          box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08), 0 4px 12px var(--box-shadow-color-1);
+      }
+
+      &__fan {
+          position: relative;
+          width: 142px;
+          height: 46px;
+          margin: 0 auto 10px;
+
+          @media (max-width: 767px) {
+              width: 46px;
+              height: 22px;
+              margin: 0;
+          }
+      }
+
+      &__icon {
+          position: absolute;
+          top: 4px;
+          left: var(--x);
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          background-color: #fff;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+          transform: rotate(var(--r)) translateY(var(--y));
+
+          &:nth-child(1) { --x: 0; --r: -18deg; --y: 8px; }
+          &:nth-child(2) { --x: 27px; --r: -9deg; --y: 2px; }
+          &:nth-child(3) { --x: 54px; --r: 0deg; --y: 0; z-index: 1; }
+          &:nth-child(4) { --x: 81px; --r: 9deg; --y: 2px; }
+          &:nth-child(5) { --x: 108px; --r: 18deg; --y: 8px; }
+          &:nth-child(n + 6) { display: none; }
+
+          @media (max-width: 767px) {
+              top: 0;
+              left: calc(var(--i) * 12px);
+              width: 22px;
+              height: 22px;
+              border-radius: 6px;
+              box-shadow: 0 0 0 1.5px var(--primary-color), 0 1px 3px rgba(0, 0, 0, .2);
+              transform: none;
+              z-index: var(--i);
+
+              &:nth-child(1) { --i: 0; }
+              &:nth-child(2) { --i: 1; }
+              &:nth-child(3) { --i: 2; }
+              &:nth-child(n + 4) { display: none; }
+          }
+      }
+
+      &__body {
+          min-width: 0;
+      }
+
+      &__title {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+          font-size: 14px;
+          font-weight: bold;
+          line-height: 1.2;
+
+          @media (max-width: 767px) {
+              font-size: 13px;
+          }
+
+          small {
+              font-size: 10px;
+              font-weight: normal;
+              letter-spacing: .02em;
+              opacity: .8;
+
+              @media (max-width: 767px) {
+                  display: none;
+              }
+          }
+      }
+
+      &__lead {
+          margin: 5px 0 8px;
+          font-size: 11.5px;
+          line-height: 1.5;
+          opacity: .8;
+
+          @media (max-width: 767px) {
+              margin: 1px 0 0;
+              font-size: 10px;
+              line-height: 1.3;
+              white-space: nowrap;
+          }
+      }
+
+      &__cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 12px;
+          font-weight: bold;
+
+          @media (max-width: 767px) {
+              display: none;
+          }
       }
   }
 
