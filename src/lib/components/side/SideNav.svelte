@@ -16,7 +16,7 @@
   import Clapperboard from '@lucide/svelte/icons/clapperboard';
   import Layers from '@lucide/svelte/icons/layers';
   import Database from '@lucide/svelte/icons/database';
-  import NotebookPen from '@lucide/svelte/icons/notebook-pen';
+  import Orbit from '@lucide/svelte/icons/orbit';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
   import { fly } from 'svelte/transition';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
@@ -98,11 +98,11 @@
             await goto('/profile/did:plc:z72i7hdynmk6r22z27h6tvur/feed/thevids');
             sideState.isTokStart = true;
             break;
-          case 'diary':
-            window.open('https://diary.tokimeki.blue/', '_blank', 'noopener');
-            break;
           case 'viewer':
               goto('/atproto-viewer/' + $agent.did());
+              break;
+          case 'atmosphere':
+              goto('/atmosphere');
               break;
       }
   }
@@ -160,10 +160,10 @@
           <Square color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Square>
         {:else if (item === 'tokmek')}
           <Clapperboard color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Clapperboard>
-        {:else if (item === 'diary')}
-          <NotebookPen color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></NotebookPen>
         {:else if (item === 'viewer')}
           <Database color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Database>
+        {:else if (item === 'atmosphere')}
+          <Orbit color="var(--nav-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Orbit>
         {/if}
       </button>
     </li>

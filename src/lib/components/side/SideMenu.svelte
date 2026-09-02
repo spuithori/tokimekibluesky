@@ -26,7 +26,7 @@
     import Clapperboard from '@lucide/svelte/icons/clapperboard';
     import Layers from '@lucide/svelte/icons/layers';
     import Database from '@lucide/svelte/icons/database';
-    import NotebookPen from '@lucide/svelte/icons/notebook-pen';
+    import Orbit from '@lucide/svelte/icons/orbit';
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
@@ -139,10 +139,10 @@
             <Mic size="18" color="var(--nav-secondary-icon-color)"></Mic>
           {:else if (item === 'tokmek')}
             <Clapperboard size="18" color="var(--nav-secondary-icon-color)"></Clapperboard>
-          {:else if (item === 'diary')}
-            <NotebookPen size="18" color="var(--nav-secondary-icon-color)"></NotebookPen>
           {:else if (item === 'viewer')}
             <Database size="18" color="var(--nav-secondary-icon-color)"></Database>
+          {:else if (item === 'atmosphere')}
+            <Orbit size="18" color="var(--nav-secondary-icon-color)"></Orbit>
           {/if}
 
           <button class="side-items-list__button" onclick={() => {onaction(item)}}>

@@ -8,6 +8,7 @@ import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 import Database from '@lucide/svelte/icons/database';
 import Layers from '@lucide/svelte/icons/layers';
 import Heart from '@lucide/svelte/icons/heart';
+import Orbit from '@lucide/svelte/icons/orbit';
 
 /**
  * Data-driven settings navigation. The settings layout renders these instead of
@@ -32,5 +33,6 @@ export const settingsNav: SettingsNavItem[] = [
     { id: 'push-notification', label: 'settings_push_notification', href: '/settings/push-notification', icon: BellRing },
     { id: 'schedule', label: 'schedule_post_title', href: '/settings/schedule', icon: CalendarClock },
     { id: 'data', label: 'settings_data_management', href: '/settings/data', icon: Database },
+    { id: 'atmosphere', label: 'atmosphere', href: '/atmosphere', icon: Orbit },
     { id: 'about', label: 'settings_about', href: '/settings/about', icon: Heart, placement: 'bottom' },
 ];

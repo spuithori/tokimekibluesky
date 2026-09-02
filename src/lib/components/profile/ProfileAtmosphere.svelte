@@ -3,6 +3,7 @@
     import Database from '@lucide/svelte/icons/database';
     import Info from '@lucide/svelte/icons/info';
   import SquareArrowOutUpRight from '@lucide/svelte/icons/square-arrow-out-up-right';
+  import Orbit from '@lucide/svelte/icons/orbit';
   import {onMount} from "svelte";
   import {_} from "tokimeki-i18n";
   import AtmosphereAboutModal from "$lib/components/profile/AtmosphereAboutModal.svelte";
@@ -113,6 +114,10 @@
     {/if}
   </div>
 
+  <a href="/atmosphere" class="atmos-store-button" aria-label="Atmosphere">
+    <Orbit size={20} color="var(--text-color-1)" />
+  </a>
+
   <a href="/atproto-viewer/{did}" class="atmos-viewer-button">
     <Database size={20} color="var(--text-color-1)" />
   </a>
@@ -215,6 +220,20 @@
     height: 30px;
     bottom: 4px;
     right: 38px;
+
+    &:hover {
+      opacity: .7;
+    }
+  }
+
+  .atmos-store-button {
+    display: grid;
+    place-content: center;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    bottom: 4px;
+    right: 72px;
 
     &:hover {
       opacity: .7;

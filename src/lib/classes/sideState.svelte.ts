@@ -1,6 +1,7 @@
-export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast' | 'columns' | 'topic' | 'tokmek' | 'diary' | 'workspace' | 'viewer';
+export type SideItem = 'feeds' | 'chat' | 'notifications' | 'search' | 'profile' | 'refresher' | 'scroll-top' | 'releaseJunk' | 'bluecast' | 'columns' | 'topic' | 'tokmek' | 'workspace' | 'viewer' | 'atmosphere';
 const DEFAULT_ITEMS: SideItem[] = ['workspace', 'feeds', 'search', 'profile'];
-export const ALL_ITEMS: SideItem[] = ['workspace', 'feeds', 'chat', 'notifications', 'search', 'topic', 'profile', 'bluecast', 'tokmek', 'diary', 'refresher', 'scroll-top', 'columns', 'viewer'];
+const REMOVED_ITEMS = ['diary'];
+export const ALL_ITEMS: SideItem[] = ['workspace', 'feeds', 'chat', 'notifications', 'search', 'topic', 'profile', 'bluecast', 'tokmek', 'refresher', 'scroll-top', 'columns', 'viewer', 'atmosphere'];
 
 class SideState {
     items: SideItem[] = $state(DEFAULT_ITEMS);
@@ -13,6 +14,8 @@ class SideState {
         if (!Array.isArray(this.items)) {
             this.items = DEFAULT_ITEMS;
         }
+
+        this.items = this.items.filter((item) => !REMOVED_ITEMS.includes(item));
     }
 
     pin(item: SideItem) {
