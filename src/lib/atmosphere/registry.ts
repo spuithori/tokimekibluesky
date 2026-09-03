@@ -2,7 +2,7 @@ import { resolveDidDocument, getPdsEndpoint } from '$lib/oauth/resolver';
 
 export const ATMOSPHERE_API_URL = 'https://api.tokimeki.tech';
 export const ATMOSPHERE_SERVICE_COLLECTION = 'tech.tokimeki.atmosphere.service';
-export const ATMOSPHERE_DNS_TXT_PREFIX = '_atmosphere';
+export const ATMOSPHERE_DNS_TXT_PREFIX = '_tokimeki';
 export const ATMOSPHERE_CATEGORIES = [
     'social', 'messaging', 'blog', 'art', 'photo', 'video', 'music', 'feeds',
     'bookmarks', 'polls', 'tools', 'developer', 'games', 'community', 'other',

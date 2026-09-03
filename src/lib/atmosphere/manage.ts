@@ -239,13 +239,12 @@ export function hostOfUrl(url: string): string {
     }
 }
 
-export function ownershipHints(url: string, did: string): { host: string; dnsName: string; dnsValue: string; wellKnownUrl: string } {
+export function ownershipHints(url: string, did: string): { host: string; dnsName: string; dnsValue: string } {
     const host = hostOfUrl(url);
     return {
         host,
         dnsName: `${ATMOSPHERE_DNS_TXT_PREFIX}.${host}`,
         dnsValue: `did=${did}`,
-        wellKnownUrl: `https://${host}/.well-known/atproto-did`,
     };
 }
 

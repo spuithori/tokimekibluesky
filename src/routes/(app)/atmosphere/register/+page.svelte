@@ -352,30 +352,15 @@
                 <p class="verify-panel__title"><ShieldCheck size="18" color="var(--primary-color)" /> {$_('atmosphere_verify_title')}</p>
                 <p class="verify-panel__text">{$_('atmosphere_verify_intro').replace('{host}', hints.host)}</p>
 
-                <ol class="verify-panel__methods">
-                  <li>
-                    <p class="verify-panel__method">{$_('atmosphere_verify_dns')}</p>
-                    <div class="verify-panel__code">
-                      <code>{hints.dnsName}</code>
-                      <span class="verify-panel__sep">TXT</span>
-                      <code>{hints.dnsValue}</code>
-                      <button class="register-icon-button" type="button" onclick={() => copyUri(hints.dnsValue)} aria-label={$_('atmosphere_copy_uri')}>
-                        <Copy size="14" color="var(--text-color-3)" />
-                      </button>
-                    </div>
-                  </li>
-                  <li>
-                    <p class="verify-panel__method">{$_('atmosphere_verify_wellknown')}</p>
-                    <div class="verify-panel__code">
-                      <code>{hints.wellKnownUrl}</code>
-                      <span class="verify-panel__sep">→</span>
-                      <code>{did}</code>
-                    </div>
-                  </li>
-                  <li>
-                    <p class="verify-panel__method">{$_('atmosphere_verify_auto')}</p>
-                  </li>
-                </ol>
+                <div class="verify-panel__code">
+                  <code>{hints.dnsName}</code>
+                  <span class="verify-panel__sep">TXT</span>
+                  <code>{hints.dnsValue}</code>
+                  <button class="register-icon-button" type="button" onclick={() => copyUri(hints.dnsValue)} aria-label={$_('atmosphere_copy_uri')}>
+                    <Copy size="14" color="var(--text-color-3)" />
+                  </button>
+                </div>
+                <p class="verify-panel__note">{$_('atmosphere_verify_multi')}</p>
 
                 <div class="verify-panel__actions">
                   <button class="button button--sm" type="button" disabled={submitting !== null} onclick={() => submitListing(service)}>{$_('atmosphere_submit_retry')}</button>
@@ -799,17 +784,11 @@
           color: var(--text-color-2);
       }
 
-      &__methods {
-          margin: 12px 0 0 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          font-size: 13px;
-          color: var(--text-color-2);
-      }
-
-      &__method {
-          line-height: 1.5;
+      &__note {
+          margin-top: 10px;
+          font-size: 12px;
+          line-height: 1.6;
+          color: var(--text-color-3);
       }
 
       &__code {
@@ -817,7 +796,7 @@
           flex-wrap: wrap;
           align-items: center;
           gap: 6px;
-          margin-top: 4px;
+          margin-top: 12px;
 
           code {
               padding: 2px 8px;
