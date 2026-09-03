@@ -97,10 +97,10 @@ describe('screenshotViews', () => {
 });
 
 describe('handleFromDidDocument / servicePath', () => {
-    it('extracts the at:// handle and builds an encoded detail path', () => {
+    it('extracts the at:// handle and builds a detail path with the raw did', () => {
         expect(handleFromDidDocument({ alsoKnownAs: ['https://x', 'at://alice.example'] })).toBe('alice.example');
         expect(handleFromDidDocument({})).toBeNull();
-        expect(servicePath('did:plc:abc', '3kabc')).toBe('/atmosphere/did%3Aplc%3Aabc/3kabc');
+        expect(servicePath('did:plc:abc', '3kabc')).toBe('/atmosphere/did:plc:abc/3kabc');
     });
 });
 

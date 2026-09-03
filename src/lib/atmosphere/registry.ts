@@ -125,7 +125,7 @@ export function serviceUri(did: string, rkey: string): string {
 }
 
 export function servicePath(did: string, rkey: string): string {
-    return `/atmosphere/${encodeURIComponent(did)}/${encodeURIComponent(rkey)}`;
+    return `/atmosphere/${did}/${encodeURIComponent(rkey)}`;
 }
 
 export function isSafeHttpUrl(url: unknown): url is string {

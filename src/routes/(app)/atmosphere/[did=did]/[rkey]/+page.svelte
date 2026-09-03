@@ -12,7 +12,7 @@
 
   const adminDids = new Set((env.PUBLIC_ATMOSPHERE_ADMIN_DIDS ?? '').split(',').map((item) => item.trim()).filter(Boolean));
 
-  const did = $derived(page.params.did ?? '');
+  const did = $derived(decodeURIComponent(page.params.did ?? ''));
   const rkey = $derived(page.params.rkey ?? '');
   const isAdmin = $derived(!!$agent && adminDids.has($agent.did() as string));
 
