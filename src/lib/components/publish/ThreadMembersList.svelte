@@ -6,13 +6,9 @@
   let members = $state([]);
   let target = $derived(uri.split('/')[2]);
 
-  function addData(feed) {
-      if (!members.some(member => member.did === feed.post.author.did) && feed.post.author.did !== target && feed.post.author.did !== _agent.did()) {
-          members = [...members, feed.post.author];
-      }
-
-      if (feed.parent) {
-          addData(feed.parent);
+  function addAuthor(author: any) {
+      if (author && !members.some(member => member.did === author.did) && author.did !== target && author.did !== _agent.did()) {
+          members = [...members, author];
       }
   }
 
@@ -23,10 +19,11 @@
           return false;
       }
 
-      const res = await _agent.xrpc.get('app.bsky.feed.getPostThread', {uri: uri});
+      const res = await _agent.xrpc.get('app.bsky.unspecced.getPostThreadV2', {anchor: uri, above: true, below: 0});
+      const parents = (res?.thread ?? []).filter((item: any) => item.depth < 0 && item.value?.post).reverse();
 
-      if (res?.thread.parent) {
-          addData(res.thread.parent);
+      for (const parent of parents) {
+          addAuthor(parent.value.post.author);
       }
   }
 

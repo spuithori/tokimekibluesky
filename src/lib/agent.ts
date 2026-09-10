@@ -614,11 +614,6 @@ export class Agent {
         return res.likes;
     }
 
-    async getFeed(uri: string, depth: number = 0) {
-        const res = await this.xrpc.get('app.bsky.feed.getPostThread', { uri, depth });
-        return res.thread;
-    }
-
     async getNotificationCount(priority: boolean = false) {
         const res = await this.xrpc.get('app.bsky.notification.getUnreadCount', priority ? { priority: true } : {});
         return res.count;

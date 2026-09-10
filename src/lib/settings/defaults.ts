@@ -118,6 +118,7 @@ export function createDefaultSettings(): Settings {
             hideMention: 'all',
             hideQuote: false,
             simpleReply: false,
+            threadSort: 'top',
         },
         moderation: {
             contentLabels: {

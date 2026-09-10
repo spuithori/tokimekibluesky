@@ -67,6 +67,8 @@
             postUri?: string;
             authorDid?: string;
         };
+        postNumber?: { index: number; count: number };
+        badge?: string;
         children?: import("svelte").Snippet;
     }
 
@@ -80,6 +82,8 @@
         pulseTranslate = $bindable(false),
         isHide = $bindable(),
         threadContext,
+        postNumber,
+        badge,
         children,
     }: Props = $props();
 
@@ -308,6 +312,13 @@
 
 </script>
 
+{#snippet postNumberBadge()}
+    {#if postNumber}<span
+        class="thread-post-number"
+        aria-label={$_("thread_post_number", { index: postNumber.index, count: postNumber.count })}
+    >{postNumber.index}/{postNumber.count}</span>{/if}
+{/snippet}
+
 <div class="timeline__image">
     {#if $settings?.design.postsLayout !== "minimum"}
         <Avatar
@@ -350,6 +361,10 @@
                     strokeWidth="2.25"
                 ></CircleCheck>
             </span>
+        {/if}
+
+        {#if badge}
+            <span class="timeline__badge">{badge}</span>
         {/if}
 
         <p class="timeline__date">
@@ -418,13 +433,11 @@
         {/if}
 
         {#if !skyblurText}
-            <p class="timeline__text" dir="auto">
-                <TimelineText
+            <p class="timeline__text" dir="auto"><TimelineText
                     record={post.record}
                     {_agent}
                     handle={post?.author?.handle}
-                ></TimelineText>
-            </p>
+                ></TimelineText>{@render postNumberBadge()}</p>
 
             {#if post?.record?.["uk.skyblur.post.uri"]}
                 <button class="skyblur-show" onclick={handleSkyblurShow}>
@@ -433,16 +446,14 @@
                 </button>
             {/if}
         {:else}
-            <p class="timeline__text" dir="auto">
-                <TimelineText
+            <p class="timeline__text" dir="auto"><TimelineText
                     record={{
                         ...post.record,
                         text: skyblurText,
                     }}
                     {_agent}
                     handle={post?.author?.handle}
-                ></TimelineText>
-            </p>
+                ></TimelineText>{@render postNumberBadge()}</p>
         {/if}
 
         {#if isSkyblurAdditional}

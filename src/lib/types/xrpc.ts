@@ -11,7 +11,8 @@ import type {
     ProfileViewDetailed,
     RepoRecordEnvelope,
     StarterPackView,
-    ThreadViewPost,
+    ThreadItemV2,
+    ThreadSort,
     BlobRef,
 } from "$lib/types/atproto";
 import type {ChatMessageView, ConvoView} from "$lib/components/chat/chatTypes";
@@ -46,9 +47,13 @@ export interface XrpcGetMap {
         params: { starterPack: string };
         output: { starterPack: StarterPackView };
     };
-    'app.bsky.feed.getPostThread': {
-        params: { uri: string; depth?: number; parentHeight?: number };
-        output: { thread: ThreadViewPost; threadgate?: Extensible };
+    'app.bsky.unspecced.getPostThreadV2': {
+        params: { anchor: string; above?: boolean; below?: number; branchingFactor?: number; sort?: ThreadSort };
+        output: { thread: ThreadItemV2[]; threadgate?: Extensible; hasOtherReplies: boolean };
+    };
+    'app.bsky.unspecced.getPostThreadOtherV2': {
+        params: { anchor: string };
+        output: { thread: ThreadItemV2[] };
     };
     'app.bsky.feed.getTimeline': {
         params: { algorithm?: string; limit?: number; cursor?: string };

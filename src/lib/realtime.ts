@@ -136,13 +136,21 @@ export class RealtimeClient {
 
 async function getRecord(_agent, uri, repost = undefined, retryCount = 0) {
     try {
-        const res = await _agent.xrpc.get('app.bsky.feed.getPostThread', {depth: 0, parentHeight: 1, uri: uri});
-        let thread = res.thread;
+        const res = await _agent.xrpc.get('app.bsky.unspecced.getPostThreadV2', {anchor: uri, above: true, below: 0});
+        const items: any[] = res?.thread ?? [];
+        const post = items.find((item: any) => item.depth === 0)?.value?.post;
 
-        if (thread?.parent?.post && thread?.post?.record?.reply) {
+        if (!post) {
+            throw new Error('Post not found: ' + uri);
+        }
+
+        const parentPost = items.find((item: any) => item.depth === -1)?.value?.post;
+        const thread: any = { post };
+
+        if (parentPost && post?.record?.reply) {
             thread.reply = {
-                parent: thread.parent.post,
-                root: thread?.post?.record?.reply?.root,
+                parent: parentPost,
+                root: post.record.reply.root,
             }
         }
 

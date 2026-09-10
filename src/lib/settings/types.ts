@@ -1,4 +1,5 @@
 import type { reactionButtons } from '$lib/types/settings';
+import type { ThreadSort } from '$lib/types/atproto';
 
 /**
  * Canonical settings value type. This is the single source of truth for the
@@ -86,6 +87,7 @@ export interface TimelineSettings {
     hideMention: ReplyHideLevel;
     hideQuote: boolean;
     simpleReply: boolean;
+    threadSort: ThreadSort;
 }
 
 /**

@@ -52,6 +52,8 @@
         isPinned = false,
         column = undefined,
         index = 0,
+        postNumber = undefined,
+        badge = undefined,
         children
     } = $props();
 
@@ -109,7 +111,6 @@
 
     let isHide: boolean = $state(false);
     let isReplyHide: boolean = $state(false);
-    let isMuteOpen = $state(false);
 
     detectPostMuteFilter();
     detectRepostMuteFilter();
@@ -465,12 +466,12 @@
                 }
             });
 
-            const _post = await _agent.getFeed(data.post.uri);
+            const refreshed = await _agent.xrpc.get('app.bsky.feed.getPosts', {uris: [data.post.uri]});
 
             pulseDetach.set({
                 uri: data.post.uri,
                 unDetach: unDetach,
-                embed: _post.post.embed,
+                embed: refreshed.posts?.[0]?.embed,
             });
 
             toast.success(unDetach ? $_('success_un_detach') : $_('success_detach'))
@@ -588,7 +589,7 @@
       {/if}
 
       <div class="timeline__column">
-        <TimelineContent post={data.post} reason={data?.reason} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide {pulseTranslate} {threadContext}>
+        <TimelineContent post={data.post} reason={data?.reason} {_agent} {isMedia} {isSingle} {isTranslated} bind:isHide {pulseTranslate} {threadContext} {postNumber} {badge}>
           {@render children?.()}
         </TimelineContent>
       </div>
@@ -777,13 +778,6 @@
         </ConfirmModal>
       {/if}
 
-      {#if (isThread && data?.post?.author?.viewer?.muted && !isMuteOpen)}
-        <div class="thread-notice">
-          <p class="thread-notice__text">{$_('muted_user_thread')}</p>
-
-          <button class="button button--sm" onclick={() => {isMuteOpen = true}}>{$_('show_button')}</button>
-        </div>
-      {/if}
     </article>
   {/if}
 {/if}

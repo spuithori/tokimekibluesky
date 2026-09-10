@@ -37,8 +37,8 @@
 
   async function getPostLikeViewer(_agent: Agent) {
       try {
-          const res = await _agent.xrpc.get('app.bsky.feed.getPostThread', {uri: post.uri});
-          return res?.thread?.post?.viewer?.like;
+          const res = await _agent.xrpc.get('app.bsky.feed.getPosts', {uris: [post.uri]});
+          return res?.posts?.[0]?.viewer?.like;
       } catch (e) {
           throw new Error('Failed to get post like viewer');
       }

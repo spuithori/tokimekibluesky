@@ -15,6 +15,7 @@
     import {animateLayout} from "$lib/animations/flip";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
+    import ArrowDownWideNarrow from '@lucide/svelte/icons/arrow-down-wide-narrow';
     import Filter from '@lucide/svelte/icons/filter';
     import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
@@ -36,6 +37,8 @@
     import {initialSoloState, soloFeedKey} from "$lib/merge/mergeSolo";
     import {startPointerDrag} from "$lib/pointerDrag";
     import {insertionIndexAt, quadrantZone, type DropPreview, type Quad} from "$lib/attachments/sortable.svelte";
+    import {normalizeThreadSort, THREAD_SORTS} from "$lib/components/thread/threadV2";
+    import type {ThreadSort} from "$lib/types/atproto";
 
     interface Props {
         index: number;
@@ -79,6 +82,8 @@
             : column?.algorithm?.type === 'authorReposts' ? 'reposts'
             : column?.settings?.timeline?.hideRepost === 'none' ? 'filtered'
             : 'all');
+
+    const threadSort = $derived(normalizeThreadSort($settings.timeline?.threadSort));
 
     if (column && !column.data) {
         column.data = {
@@ -369,6 +374,16 @@
         }
     }
 
+    function setThreadSort(sort: ThreadSort) {
+        if (sort === threadSort) {
+            return;
+        }
+
+        $settings.timeline.threadSort = sort;
+        resetColumnForRefresh(column, columnState);
+        unique = Symbol();
+    }
+
     function setAuthorMode(mode: 'all' | 'filtered' | 'replies' | 'reposts') {
         if (mode === authorMode) {
             return;
@@ -483,6 +498,21 @@
                         <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('filtered')}} class:profile-posts-nav__button--active={authorMode === 'filtered'}>{$_('profile_posts_nav_filtered')}</button>
                         <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('replies')}} class:profile-posts-nav__button--active={authorMode === 'replies'}>{$_('profile_posts_nav_reply')}</button>
                         <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('reposts')}} class:profile-posts-nav__button--active={authorMode === 'reposts'}>{$_('profile_posts_nav_repost')}</button>
+                    </dd>
+                </dl>
+            {:else if (column?.algorithm?.type === 'thread')}
+                <dl class="profile-posts-nav">
+                    <dt class="profile-posts-nav__name">
+                        <ArrowDownWideNarrow size="20" color="var(--text-color-3)"></ArrowDownWideNarrow>
+                    </dt>
+                    <dd class="profile-posts-nav__content">
+                        {#each THREAD_SORTS as sort (sort)}
+                            <button
+                                    class="profile-posts-nav__button"
+                                    class:profile-posts-nav__button--active={threadSort === sort}
+                                    onclick={() => {setThreadSort(sort)}}
+                            >{$_(`thread_sort_${sort}`)}</button>
+                        {/each}
                     </dd>
                 </dl>
             {/if}

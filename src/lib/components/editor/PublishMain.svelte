@@ -215,17 +215,17 @@
         isLinkCardAdding = true;
 
         try {
-            const data = await _agent.xrpc.get('app.bsky.feed.getPostThread', {uri: bskyUrlToAtUri(uri)});
-            const _post = data?.thread?.post;
+            const data = await _agent.xrpc.get('app.bsky.feed.getPosts', {uris: [bskyUrlToAtUri(uri)]});
+            const _post = data?.posts?.[0];
 
-            if (data?.thread?.post?.viewer?.embeddingDisabled) {
+            if (_post?.viewer?.embeddingDisabled) {
                 toast.error('この投稿は引用禁止設定になっています。');
                 isLinkCardAdding = false;
                 return false;
             }
 
             if (_post) {
-                post.quotePost = data?.thread?.post;
+                post.quotePost = _post;
             }
         } catch (e) {
             toast.error('Error!' + e);

@@ -79,11 +79,25 @@ export type FeedViewPost = {
     reason?: FeedReason;
 } & Extensible;
 
-export type ThreadViewPost = {
+export type ThreadSort = 'newest' | 'oldest' | 'top';
+
+export type ThreadItemValue = {
     $type?: string;
-    post: PostView;
-    parent?: Extensible;
-    replies?: Extensible[];
+    post?: PostView;
+    author?: Extensible;
+    moreParents?: boolean;
+    moreReplies?: number;
+    opThread?: boolean;
+    opThreadPostIndex?: number;
+    opThreadPostCount?: number;
+    hiddenByThreadgate?: boolean;
+    mutedByViewer?: boolean;
+} & Extensible;
+
+export type ThreadItemV2 = {
+    uri: string;
+    depth: number;
+    value: ThreadItemValue;
 } & Extensible;
 
 export type FeedPage = {

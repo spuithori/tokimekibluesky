@@ -32,7 +32,7 @@ export function createThreadOpener() {
                 did: _agent.did(),
                 handle: _agent.handle(),
                 data: {
-                    feed: [feedViewItem],
+                    feed: [{ uri: post.uri, depth: 0, post }],
                     cursor: '',
                 }
             });
