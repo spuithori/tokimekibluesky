@@ -12,8 +12,8 @@
   );
 </script>
 
-<div class="thread-row thread-row--tombstone" class:thread-row--nested={row.visualDepth >= 2} data-row-key={row.key} style:--indent={row.visualDepth > 1 ? row.visualDepth - 1 : 0}>
-  <ThreadGuides guide={row.guide} elbow={row.visualDepth >= 2} {oncollapse}></ThreadGuides>
+<div class="thread-row thread-row--tombstone" class:thread-row--nested={row.indent >= 1} data-row-key={row.key} style:--indent={row.indent}>
+  <ThreadGuides guide={row.guide} {oncollapse}></ThreadGuides>
   <article class="timeline-hidden-item thread-tombstone">
     <p class="timeline-hidde-item__text">{label}</p>
   </article>

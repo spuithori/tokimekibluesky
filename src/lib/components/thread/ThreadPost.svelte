@@ -32,11 +32,11 @@
   class:thread-row--anchor={row.role === 'anchor'}
   class:thread-row--parent={row.role === 'parent'}
   class:thread-row--op={row.isOp}
-  class:thread-row--nested={row.visualDepth >= 2}
+  class:thread-row--nested={row.indent >= 1}
   data-row-key={row.key}
-  style:--indent={row.visualDepth > 1 ? row.visualDepth - 1 : 0}
+  style:--indent={row.indent}
 >
-  <ThreadGuides guide={row.guide} elbow={row.visualDepth >= 2} {oncollapse}></ThreadGuides>
+  <ThreadGuides guide={row.guide} {oncollapse}></ThreadGuides>
 
   <TimelineItem
     data={row.item}

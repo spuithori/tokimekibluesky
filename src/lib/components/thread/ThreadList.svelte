@@ -65,7 +65,7 @@
   });
 
   onDestroy(() => {
-    if (virtualList && ownColumn?.data) {
+    if (virtualList && ownColumn?.data && feed.length > 0) {
       const snapshot = virtualList.getHeightSnapshot();
       ownColumn.data._heightCache = snapshot.entries;
       ownColumn.data._heightCacheWidth = snapshot.width;
@@ -132,11 +132,14 @@
   }
 
   let pendingAnchor: { key: string; offset: number } | null = null;
+  let prevKeys: string[] = [];
 
   $effect.pre(() => {
-    void rows;
+    const keys = rows.map(row => row.key);
     untrack(() => {
-      pendingAnchor = hasScrolledToAnchor && virtualList && scrollContainer ? firstVisibleRow() : null;
+      const changed = keys.length !== prevKeys.length || keys.some((key, i) => key !== prevKeys[i]);
+      pendingAnchor = changed && hasScrolledToAnchor && virtualList && scrollContainer ? firstVisibleRow() : null;
+      prevKeys = keys;
     });
   });
 
@@ -144,14 +147,49 @@
     void rows;
     const anchor = pendingAnchor;
     pendingAnchor = null;
-    if (!anchor) return;
     untrack(() => {
-      const index = rows.findIndex(row => row.key === anchor.key);
-      if (index >= 0) {
-        settleRowAt(index, anchor.offset);
+      if (anchor) {
+        restoreRow(anchor);
       }
+      scheduleEndFiller();
     });
   });
+
+  async function restoreRow(anchor: { key: string; offset: number }): Promise<void> {
+    const index = rows.findIndex(row => row.key === anchor.key);
+    if (index < 0 || !virtualList || !scrollContainer) return;
+    await tick();
+    await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+    if (!virtualList || !scrollContainer) return;
+    const element = virtualList.getItemElement(index);
+    if (element) {
+      const residual = element.getBoundingClientRect().top - containerTop() - anchor.offset;
+      if (Math.abs(residual) > 1) {
+        setScrollTopFor(scrollContainer, isWindowScroll, getScrollTopFor(scrollContainer, isWindowScroll) + residual);
+      }
+      return;
+    }
+    await settleRowAt(index, anchor.offset);
+  }
+
+  let endFiller = $state(0);
+  let endFillerFrame = 0;
+
+  function scheduleEndFiller() {
+    if (endFillerFrame) return;
+    endFillerFrame = requestAnimationFrame(() => {
+      endFillerFrame = 0;
+      updateEndFiller();
+    });
+  }
+
+  function updateEndFiller() {
+    if (!virtualList || !scrollContainer || rows.length === 0) return;
+    const total = virtualList.getTreeDiagnostics().total;
+    const anchorY = virtualList.getPositionForIndex(Math.max(0, anchorIndex));
+    const viewport = isWindowScroll ? window.innerHeight : scrollContainer.clientHeight;
+    endFiller = Math.max(0, Math.round(viewport - topMargin - (total - anchorY)));
+  }
 
   $effect(() => {
     const targetIdx = anchorIndex;
@@ -159,6 +197,10 @@
     if (targetIdx < 0) return;
     if (targetIdx === 0) {
       hasScrolledToAnchor = true;
+      if (!initialScrollState && getScrollTopFor(scrollContainer, isWindowScroll) > 0) {
+        virtualList.scrollToIndex(0);
+      }
+      scheduleEndFiller();
       return;
     }
 
@@ -190,6 +232,8 @@
 
         setScrollTopFor(scrollContainer, isWindowScroll, getScrollTopFor(scrollContainer, isWindowScroll) + targetTop);
       }
+
+      scheduleEndFiller();
     }
 
     performScrollAdjustment();
@@ -203,6 +247,7 @@
   class:thread-list--minimum={$settings.design?.postsLayout === 'minimum'}
   class:thread-list--bubble={$settings.design?.bubbleTimeline}
   class:end-filler={rows.length > 1}
+  style:--thread-end-filler="{endFiller}px"
   bind:this={parent}
 >
   <VirtualList
@@ -237,7 +282,7 @@
       &::after {
           content: '';
           display: block;
-          height: calc(94vh - 120px - var(--root-client-height, 0px));
+          height: var(--thread-end-filler, 0px);
       }
   }
 </style>

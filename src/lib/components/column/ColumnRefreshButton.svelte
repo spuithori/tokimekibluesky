@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
     import Radio from '@lucide/svelte/icons/radio';
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
     import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
@@ -265,7 +266,7 @@
                 unique = Symbol();
             }
         } else if (column.algorithm.type === 'thread') {
-            columnState.clearFeed(column.id);
+            resetColumnForRefresh(column, columnState);
             unique = Symbol();
         } else {
             columnState.clearFeed(column.id);

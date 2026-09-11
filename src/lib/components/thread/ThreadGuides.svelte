@@ -4,13 +4,9 @@
 
   let {
     guide,
-    elbow = false,
-    tick = false,
     oncollapse,
   }: {
     guide: ThreadGuide;
-    elbow?: boolean;
-    tick?: boolean;
     oncollapse?: (uri: string) => void;
   } = $props();
 
@@ -34,14 +30,18 @@
   {/if}
 {/each}
 
-{#if elbow && guide.columns.length}
+{#if guide.elbow && guide.columns.length}
   <span class="thread-guide thread-guide--elbow" data-level={parentLevel} style:--level={parentLevel}></span>
 {/if}
 
 {#if guide.top}
-  <span class="thread-guide thread-guide--top"></span>
-  {#if tick}
+  {#if guide.tick}
+    {#if guide.bottom}
+      <span class="thread-guide thread-guide--top"></span>
+    {/if}
     <span class="thread-guide thread-guide--tick"></span>
+  {:else}
+    <span class="thread-guide thread-guide--top"></span>
   {/if}
 {/if}
 

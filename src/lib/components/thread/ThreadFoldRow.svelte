@@ -8,8 +8,8 @@
   let { row, onfold, oncollapse }: { row: ThreadFoldRow; onfold: (row: ThreadFoldRow) => void; oncollapse?: (uri: string) => void } = $props();
 </script>
 
-<div class="thread-row thread-row--control thread-row--fold" class:thread-row--nested={row.visualDepth >= 2} data-row-key={row.key} style:--indent={row.visualDepth > 1 ? row.visualDepth - 1 : 0}>
-  <ThreadGuides guide={row.guide} elbow={row.visualDepth >= 2} tick={row.visualDepth < 2} {oncollapse}></ThreadGuides>
+<div class="thread-row thread-row--control thread-row--fold" class:thread-row--nested={row.indent >= 1} data-row-key={row.key} style:--indent={row.indent}>
+  <ThreadGuides guide={row.guide} {oncollapse}></ThreadGuides>
   <button class="thread-control thread-fold" data-mode={row.mode} onclick={() => {onfold(row)}}>
     {#if row.mode === 'open'}
       <ChevronUp size="16"></ChevronUp>

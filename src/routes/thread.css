@@ -10,6 +10,7 @@
     --thread-line-x-nested: calc(var(--thread-avatar-nested) / 2);
     --thread-elbow: 12px;
     --thread-radius: 10px;
+    --thread-label-gap: 6px;
     --thread-indent-first: calc(var(--thread-line-x0) + var(--thread-elbow));
     --thread-indent: calc(var(--thread-line-x-nested) + var(--thread-elbow));
 
@@ -59,6 +60,11 @@
         --avatar-size: var(--thread-avatar-nested);
         --avatar-gap: var(--thread-gap-nested);
         --row-line-x: var(--thread-line-x-nested);
+
+        .timeline__item {
+            --avatar-size: var(--thread-avatar-nested);
+            --avatar-gap: var(--thread-gap-nested);
+        }
     }
 
     &--anchor {
@@ -75,12 +81,21 @@
 
     &--control {
         --thread-avatar-center: 50%;
-        --thread-elbow-extend: var(--thread-line-x);
+        --thread-elbow-extend: calc(var(--thread-avatar) + var(--thread-gap) - var(--thread-label-gap));
         display: flex;
         align-items: center;
         min-height: 44px;
         padding-left: calc(var(--row-indent) + var(--thread-avatar) + var(--thread-gap));
-        border-bottom: var(--timeline-border-width, 1px) solid var(--timeline-border-color, var(--border-color-1));
+
+        &::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: var(--timeline-border-width, 1px);
+            background-color: var(--timeline-border-color, var(--border-color-1));
+        }
     }
 
     &--tombstone {
@@ -103,7 +118,7 @@
     width: var(--thread-line-width);
     background-color: var(--thread-line-color);
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
 
     &--top,
     &--bottom {
@@ -130,7 +145,7 @@
     &--elbow,
     &--tick {
         width: auto;
-        height: var(--thread-avatar-center);
+        height: calc(var(--thread-avatar-center) + var(--thread-line-width) / 2);
         top: 0;
         background: none;
         border-left: var(--thread-line-width) solid var(--thread-line-color);
@@ -146,8 +161,9 @@
 
     &--tick {
         left: calc(var(--row-indent) + var(--row-line-x) - var(--thread-line-width) / 2);
-        width: calc(var(--thread-avatar) + var(--thread-gap) - var(--row-line-x) - 8px);
+        width: calc(var(--thread-avatar) + var(--thread-gap) - var(--row-line-x) + var(--thread-line-width) / 2 - var(--thread-label-gap));
     }
+
 }
 
 .thread-guide-hit {
@@ -159,7 +175,7 @@
     padding: 0;
     background: transparent;
     cursor: pointer;
-    z-index: 1;
+    z-index: 2;
 
     &:hover .thread-guide,
     &:focus-visible .thread-guide {
@@ -183,7 +199,7 @@
     width: var(--thread-avatar);
     cursor: pointer;
     background: transparent;
-    z-index: 1;
+    z-index: 2;
 }
 
 .thread-row:has(.thread-gutter:hover) .thread-guide--bottom {

@@ -35,11 +35,11 @@
   class="thread-row thread-row--control"
   class:thread-row--read-more={row.kind === 'readMore'}
   class:thread-row--read-more-up={row.kind === 'readMoreUp'}
-  class:thread-row--nested={row.visualDepth >= 2}
+  class:thread-row--nested={row.indent >= 1}
   data-row-key={row.key}
-  style:--indent={row.visualDepth > 1 ? row.visualDepth - 1 : 0}
+  style:--indent={row.indent}
 >
-  <ThreadGuides guide={row.guide} elbow={row.kind === 'readMore' && row.visualDepth >= 2} tick={row.kind === 'readMore' && row.visualDepth < 2} {oncollapse}></ThreadGuides>
+  <ThreadGuides guide={row.guide} {oncollapse}></ThreadGuides>
   <a {href} class="thread-control thread-read-more" class:thread-control--loading={loading} onclick={handleClick}>
     {#if row.kind === 'readMore' && row.continuesThread}
       {$_('read_more_thread_continue', {index: row.nextIndex, count: row.total})}

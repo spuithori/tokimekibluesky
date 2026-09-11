@@ -42,5 +42,5 @@
 {:else if row.kind === 'readMore' || row.kind === 'readMoreUp'}
   <ThreadReadMoreRow {row} loading={row.kind === 'readMore' && !!expanding?.has(row.uri)} {onreadmore} {onopen} {oncollapse}></ThreadReadMoreRow>
 {:else if row.kind === 'showOther'}
-  <ThreadShowOtherRow loading={isOtherLoading} {onshowother}></ThreadShowOtherRow>
+  <ThreadShowOtherRow {row} loading={isOtherLoading} {onshowother} {oncollapse}></ThreadShowOtherRow>
 {/if}

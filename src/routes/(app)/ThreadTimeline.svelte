@@ -14,7 +14,8 @@
     THREAD_BELOW,
     THREAD_BRANCHING_FACTOR,
   } from "$lib/components/thread/threadV2";
-  import {buildThreadRows, type FoldMode, type ThreadFoldRow, type ThreadReadMoreRow} from "$lib/components/thread/threadRows";
+  import {buildThreadRows, DEFAULT_MAX_INDENT, MOBILE_MAX_INDENT, type FoldMode, type ThreadFoldRow, type ThreadReadMoreRow} from "$lib/components/thread/threadRows";
+  import {MediaQuery} from "svelte/reactivity";
 
   interface Props {
     index: any;
@@ -39,10 +40,12 @@
   const folds = new SvelteMap<string, FoldMode>();
 
   const view = $derived($settings.design?.threaded ? 'tree' : 'linear');
+  const narrow = new MediaQuery('(max-width: 767px)');
   const built = $derived(buildThreadRows(
     columnState.getFeed(column.id),
     { folds, hasOtherReplies, otherShown: isOtherShown },
     view,
+    { maxIndent: narrow.current ? MOBILE_MAX_INDENT : DEFAULT_MAX_INDENT },
   ));
 
   const abort = new AbortController();

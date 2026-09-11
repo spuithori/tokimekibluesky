@@ -1,9 +1,11 @@
 import type { PostView } from '$lib/types/atproto';
-import { subtreeEnds, THREAD_BELOW, type ThreadFeedItem } from './threadV2';
+import { subtreeEnds, type ThreadFeedItem } from './threadV2';
 
 export type ThreadView = 'linear' | 'tree';
 
 export type FoldMode = 'none' | 'side' | 'all';
+
+export type ThreadRelation = 'root' | 'flat' | 'nested' | 'detached';
 
 export interface ThreadRowState {
     folds: ReadonlyMap<string, FoldMode>;
@@ -11,11 +13,17 @@ export interface ThreadRowState {
     otherShown: boolean;
 }
 
+export interface ThreadRowOptions {
+    maxIndent?: number;
+}
+
 export type ThreadGuideColumn = 'pass' | 'end' | 'none';
 
 export interface ThreadGuide {
     top: boolean;
     bottom: boolean;
+    elbow: boolean;
+    tick: boolean;
     columns: ThreadGuideColumn[];
     owners: string[];
 }
@@ -23,7 +31,8 @@ export interface ThreadGuide {
 interface RowBase {
     key: string;
     depth: number;
-    visualDepth: number;
+    indent: number;
+    relation: ThreadRelation;
     guide: ThreadGuide;
 }
 
@@ -81,19 +90,12 @@ export interface ThreadRowsResult {
     anchorIndex: number;
 }
 
-function visualDepthOf(depth: number, scope: number | null): number {
-    if (depth <= 0) {
-        return 0;
-    }
-    if (scope === null) {
-        return 1;
-    }
-    const relative = depth - scope + 1;
-    return relative < 0 ? 0 : relative > THREAD_BELOW ? THREAD_BELOW : relative;
-}
+export const DEFAULT_MAX_INDENT = 5;
+
+export const MOBILE_MAX_INDENT = 3;
 
 function emptyGuide(): ThreadGuide {
-    return { top: false, bottom: false, columns: [], owners: [] };
+    return { top: false, bottom: false, elbow: false, tick: false, columns: [], owners: [] };
 }
 
 function hasPostNumber(item: ThreadFeedItem): boolean {
@@ -112,13 +114,6 @@ function rootAuthorDid(feed: readonly ThreadFeedItem[]): string | undefined {
     return top && !(top.post!.record as { reply?: unknown }).reply ? top.post!.author.did : undefined;
 }
 
-interface Emitted {
-    row: ThreadRow;
-    ownerIndex: number;
-    linked: boolean;
-    scope: number | null;
-}
-
 function normalizeFeed(feed: readonly ThreadFeedItem[]): readonly ThreadFeedItem[] {
     for (const item of feed) {
         if (typeof item.depth !== 'number' || typeof item.uri !== 'string') {
@@ -132,14 +127,25 @@ function normalizeFeed(feed: readonly ThreadFeedItem[]): readonly ThreadFeedItem
     return feed;
 }
 
-export function buildThreadRows(rawFeed: readonly ThreadFeedItem[], state: ThreadRowState, view: ThreadView): ThreadRowsResult {
+interface Emitted {
+    row: ThreadRow;
+    ownerIndex: number;
+    own: boolean;
+}
+
+export function buildThreadRows(rawFeed: readonly ThreadFeedItem[], state: ThreadRowState, view: ThreadView, options?: ThreadRowOptions): ThreadRowsResult {
     const feed = normalizeFeed(rawFeed);
     const n = feed.length;
+    const maxIndent = options?.maxIndent ?? DEFAULT_MAX_INDENT;
     const end = subtreeEnds(feed);
     const opDid = rootAuthorDid(feed);
+    const parentOf = new Int32Array(n).fill(-1);
+    const childrenCache = new Map<number, number[]>();
     const emitted: Emitted[] = [];
     const rowIndexOfItem = new Int32Array(n).fill(-1);
-    const parentOf = new Int32Array(n).fill(-1);
+    const relationOf: ThreadRelation[] = new Array(n).fill('root');
+    const indentOf = new Int32Array(n);
+    const otherPending = state.hasOtherReplies && !state.otherShown;
 
     {
         const open: number[] = [];
@@ -153,99 +159,131 @@ export function buildThreadRows(rawFeed: readonly ThreadFeedItem[], state: Threa
         }
     }
 
+    const anchorFeedIndex = feed.findIndex(item => item.depth === 0);
+    const rootIndex = anchorFeedIndex >= 0 && isThreadRoot(anchorFeedIndex) ? anchorFeedIndex : -1;
+
+    function isThreadRoot(index: number): boolean {
+        const item = feed[index];
+        if (parentOf[index] >= 0 || item.moreParents === true) {
+            return false;
+        }
+        const record = item.post?.record as { reply?: unknown } | undefined;
+        return !record?.reply;
+    }
+
+    function visibleSiblingCount(parent: number): number {
+        return childrenOf(parent).length + (otherPending && parent === anchorFeedIndex ? 1 : 0);
+    }
+
     function childrenOf(index: number): number[] {
-        const out: number[] = [];
-        for (let j = index + 1; j <= end[index]; j = end[j] + 1) {
-            out.push(j);
+        let cached = childrenCache.get(index);
+        if (!cached) {
+            cached = [];
+            for (let j = index + 1; j <= end[index]; j = end[j] + 1) {
+                cached.push(j);
+            }
+            childrenCache.set(index, cached);
         }
-        return out;
+        return cached;
     }
 
-    function foldModeOf(index: number, children: number[]): FoldMode {
+    function foldModeOf(index: number, hasSide: boolean): FoldMode {
+        const explicit = state.folds.get(feed[index].uri);
+        if (explicit === 'all') {
+            return 'all';
+        }
+        if (view !== 'linear' || !hasSide) {
+            return 'none';
+        }
+        return explicit ?? (feed[index].depth === 0 ? 'none' : 'side');
+    }
+
+    function relationFor(index: number, parent: number, forceNested: boolean): ThreadRelation {
         const item = feed[index];
-        const explicit = state.folds.get(item.uri);
-        if (explicit) {
-            return explicit;
+        if (parent < 0) {
+            return 'root';
         }
-        if (view === 'linear' && item.opThread && item.depth >= 1 && children.some(j => !feed[j].opThread)) {
-            return 'side';
+        if (item.depth <= 0 || item.opThread === true) {
+            return 'flat';
         }
-        return 'none';
+        if (forceNested) {
+            return 'nested';
+        }
+        if (parent === rootIndex) {
+            return 'detached';
+        }
+        if (view === 'tree') {
+            return 'nested';
+        }
+        return visibleSiblingCount(parent) === 1 ? 'flat' : 'nested';
     }
 
-    function linkedToParent(item: ThreadFeedItem): boolean {
-        return item.depth <= 0 || item.depth >= 2 || item.opThread === true;
+    function pushControl(row: ThreadRow, ownerIndex: number): void {
+        emitted.push({ row, ownerIndex, own: false });
     }
 
-    function pushFold(index: number, mode: 'side' | 'all' | 'open', count: number, scope: number | null): void {
+    function pushFold(index: number, mode: 'side' | 'all' | 'open', count: number): void {
         const item = feed[index];
-        emitted.push({
-            row: {
-                kind: 'fold',
-                key: `fold:${item.uri}`,
-                uri: item.uri,
-                post: item.post!,
-                mode,
-                count,
-                depth: item.depth,
-                visualDepth: visualDepthOf(item.depth + 1, scope),
-                guide: emptyGuide(),
-            },
-            ownerIndex: index,
-            linked: true,
-            scope,
-        });
+        pushControl({
+            kind: 'fold',
+            key: `fold:${item.uri}`,
+            uri: item.uri,
+            post: item.post!,
+            mode,
+            count,
+            depth: item.depth,
+            indent: indentOf[index],
+            relation: 'flat',
+            guide: emptyGuide(),
+        }, index);
     }
 
-    function pushReadMore(index: number, deferred: boolean, scope: number | null): void {
+    function pushReadMore(index: number, deferred: boolean): void {
         const item = feed[index];
         const continuesThread = item.opThread === true
             && item.opThreadPostIndex !== undefined
             && item.opThreadPostCount !== undefined
             && item.opThreadPostIndex < item.opThreadPostCount;
-        emitted.push({
-            row: {
-                kind: 'readMore',
-                key: `more:${item.uri}`,
-                uri: item.uri,
-                post: item.post!,
-                count: item.moreReplies!,
-                deferred,
-                continuesThread,
-                nextIndex: continuesThread ? item.opThreadPostIndex! + 1 : undefined,
-                total: continuesThread ? item.opThreadPostCount : undefined,
-                depth: item.depth,
-                visualDepth: visualDepthOf(item.depth + 1, scope),
-                guide: emptyGuide(),
-            },
-            ownerIndex: index,
-            linked: true,
-            scope,
-        });
+        pushControl({
+            kind: 'readMore',
+            key: `more:${item.uri}`,
+            uri: item.uri,
+            post: item.post!,
+            count: item.moreReplies!,
+            deferred,
+            continuesThread,
+            nextIndex: continuesThread ? item.opThreadPostIndex! + 1 : undefined,
+            total: continuesThread ? item.opThreadPostCount : undefined,
+            depth: item.depth,
+            indent: deferred ? Math.min(indentOf[index] + 1, maxIndent) : indentOf[index],
+            relation: deferred ? 'nested' : 'flat',
+            guide: emptyGuide(),
+        }, index);
     }
 
-    function emit(index: number, scope: number | null): void {
+    function emit(index: number, parent: number, forceNested: boolean): void {
         const item = feed[index];
+        const relation = relationFor(index, parent, forceNested);
+        const indent = relation === 'nested' ? Math.min(indentOf[parent] + 1, maxIndent) : parent >= 0 ? indentOf[parent] : 0;
+        relationOf[index] = relation;
+        indentOf[index] = indent;
 
         if (item.moreParents && item.post && emitted.length === 0) {
-            emitted.push({
-                row: {
-                    kind: 'readMoreUp',
-                    key: `up:${item.uri}`,
-                    uri: item.uri,
-                    post: item.post,
-                    depth: item.depth,
-                    visualDepth: visualDepthOf(item.depth, scope),
-                    guide: emptyGuide(),
-                },
-                ownerIndex: index,
-                linked: true,
-                scope,
-            });
+            pushControl({
+                kind: 'readMoreUp',
+                key: `up:${item.uri}`,
+                uri: item.uri,
+                post: item.post,
+                depth: item.depth,
+                indent,
+                relation: 'flat',
+                guide: emptyGuide(),
+            }, index);
         }
 
+        rowIndexOfItem[index] = emitted.length;
+
         if (!item.post) {
-            rowIndexOfItem[index] = emitted.length;
             emitted.push({
                 row: {
                     kind: 'tombstone',
@@ -253,23 +291,22 @@ export function buildThreadRows(rawFeed: readonly ThreadFeedItem[], state: Threa
                     item,
                     reason: item.blocked ? 'blocked' : item.noUnauthenticated ? 'noUnauthenticated' : 'notFound',
                     depth: item.depth,
-                    visualDepth: visualDepthOf(item.depth, scope),
+                    indent,
+                    relation,
                     guide: emptyGuide(),
                 },
                 ownerIndex: index,
-                linked: linkedToParent(item),
-                scope,
+                own: true,
             });
             return;
         }
 
         const children = childrenOf(index);
-        const mode = foldModeOf(index, children);
         const side = children.filter(j => !feed[j].opThread);
         const chain = children.filter(j => feed[j].opThread);
-        const hasSideFold = view === 'linear' && item.opThread && item.depth >= 1 && side.length > 0;
+        const hasSide = item.opThread === true && item.depth >= 0 && index !== rootIndex && side.length > 0;
+        const mode = foldModeOf(index, hasSide);
 
-        rowIndexOfItem[index] = emitted.length;
         emitted.push({
             row: {
                 kind: 'post',
@@ -283,151 +320,172 @@ export function buildThreadRows(rawFeed: readonly ThreadFeedItem[], state: Threa
                 fold: mode,
                 canCollapse: item.depth >= 1 && (children.length > 0 || (item.moreReplies ?? 0) > 0),
                 depth: item.depth,
-                visualDepth: visualDepthOf(item.depth, scope),
+                indent,
+                relation,
                 guide: emptyGuide(),
             },
             ownerIndex: index,
-            linked: linkedToParent(item),
-            scope,
+            own: true,
         });
 
         if (mode === 'all' && (children.length > 0 || (item.moreReplies ?? 0) > 0)) {
-            pushFold(index, 'all', end[index] - index + (item.moreReplies ?? 0), scope);
+            pushFold(index, 'all', end[index] - index + (item.moreReplies ?? 0));
             return;
         }
 
-        if (hasSideFold) {
+        if (hasSide && view === 'linear') {
             if (mode === 'side') {
-                pushFold(index, 'side', side.length, scope);
+                pushFold(index, 'side', side.length);
                 for (const j of chain) {
-                    emit(j, scope);
+                    emit(j, index, false);
                 }
             } else {
-                pushFold(index, 'open', side.length, scope);
+                pushFold(index, 'open', side.length);
                 for (const j of side) {
-                    emit(j, item.depth);
+                    emit(j, index, true);
                 }
                 for (const j of chain) {
-                    emit(j, scope);
+                    emit(j, index, false);
                 }
+            }
+        } else if (hasSide) {
+            for (const j of side) {
+                emit(j, index, true);
+            }
+            for (const j of chain) {
+                emit(j, index, false);
             }
         } else {
             for (const j of children) {
-                emit(j, scope);
+                emit(j, index, false);
             }
         }
 
-        if ((item.moreReplies ?? 0) > 0 && item.depth > 0) {
+        if ((item.moreReplies ?? 0) > 0 && item.depth >= 0 && index !== rootIndex) {
             const deferred = children.length > 0;
-            if (!deferred || scope !== null) {
-                pushReadMore(index, deferred, scope);
+            if (!deferred || view === 'tree') {
+                pushReadMore(index, deferred);
             }
         }
     }
 
-    const rootScope = view === 'tree' ? 1 : null;
     for (let i = 0; i < n; i = end[i] + 1) {
-        emit(i, rootScope);
+        emit(i, -1, false);
     }
 
-    if (state.hasOtherReplies && !state.otherShown) {
+    if (otherPending) {
+        const attached = anchorFeedIndex >= 0 && anchorFeedIndex !== rootIndex && feed[anchorFeedIndex].post !== undefined;
+        const nested = attached && childrenOf(anchorFeedIndex).length > 0;
         emitted.push({
-            row: { kind: 'showOther', key: 'other', depth: 1, visualDepth: 1, guide: emptyGuide() },
-            ownerIndex: -1,
-            linked: false,
-            scope: null,
+            row: {
+                kind: 'showOther',
+                key: 'other',
+                depth: 1,
+                indent: nested ? Math.min(indentOf[anchorFeedIndex] + 1, maxIndent) : attached ? indentOf[anchorFeedIndex] : 0,
+                relation: nested ? 'nested' : attached ? 'flat' : 'detached',
+                guide: emptyGuide(),
+            },
+            ownerIndex: attached ? anchorFeedIndex : -1,
+            own: false,
         });
     }
 
     const rows = emitted.map(entry => entry.row);
     const count = rows.length;
-    const lastLinkedRow = new Int32Array(n).fill(-1);
+    const spanEnd = new Int32Array(n).fill(-1);
+
+    function linksUp(index: number): boolean {
+        const relation = relationOf[index];
+        return relation === 'flat' || relation === 'nested';
+    }
 
     for (let r = count - 1; r >= 0; r--) {
         const entry = emitted[r];
-        if (entry.ownerIndex < 0 || !entry.linked) {
+        if (entry.ownerIndex < 0) {
             continue;
         }
-        let a = entry.row.kind === 'post' || entry.row.kind === 'tombstone' ? parentOf[entry.ownerIndex] : entry.ownerIndex;
-        while (a >= 0) {
-            if (lastLinkedRow[a] < r) {
-                lastLinkedRow[a] = r;
+        let a: number;
+        if (entry.own) {
+            if (!linksUp(entry.ownerIndex)) {
+                continue;
             }
-            if (!linkedToParent(feed[a])) {
+            a = parentOf[entry.ownerIndex];
+        } else {
+            a = entry.ownerIndex;
+        }
+        while (a >= 0) {
+            if (spanEnd[a] < r) {
+                spanEnd[a] = r;
+            }
+            if (!linksUp(a)) {
                 break;
             }
             a = parentOf[a];
         }
     }
 
-    function spanContinues(index: number, r: number): boolean {
-        let a = index;
+    function ancestorAtIndent(start: number, indent: number): number {
+        let a = start;
         while (a >= 0) {
-            if (lastLinkedRow[a] > r) {
-                return true;
+            if (indentOf[a] === indent) {
+                return a;
             }
-            if (!linkedToParent(feed[a])) {
-                return false;
+            if (!linksUp(a)) {
+                return -1;
             }
             a = parentOf[a];
         }
-        return false;
+        return -1;
     }
 
     for (let r = 0; r < count; r++) {
         const entry = emitted[r];
         const row = entry.row;
-        if (row.kind === 'showOther') {
-            continue;
-        }
-        if (row.kind === 'readMoreUp') {
-            row.guide.bottom = true;
+        if (entry.ownerIndex < 0) {
             continue;
         }
 
-        const own = row.kind === 'post' || row.kind === 'tombstone';
         const owner = entry.ownerIndex;
-        const parent = own ? parentOf[owner] : owner;
-        const parentAbove = parent >= 0 && rowIndexOfItem[parent] >= 0 && rowIndexOfItem[parent] < r;
+        const guide = row.guide;
 
-        const scope = entry.scope;
+        if (entry.own) {
+            guide.top = row.relation === 'flat';
+            guide.elbow = row.relation === 'nested';
+            guide.bottom = spanEnd[owner] > r;
+        } else if (row.kind === 'readMoreUp') {
+            guide.bottom = true;
+            continue;
+        } else {
+            guide.tick = row.relation === 'flat';
+            guide.top = row.relation === 'flat';
+            guide.elbow = row.relation === 'nested';
+            guide.bottom = row.relation === 'flat' && spanEnd[owner] > r;
+        }
 
-        if (scope === null || row.visualDepth <= 1) {
-            row.guide.top = entry.linked && parentAbove;
-            row.guide.bottom = own
-                ? lastLinkedRow[owner] > r || (scope === null && entry.linked && parent >= 0 && spanContinues(parent, r))
-                : spanContinues(owner, r);
+        if (row.indent === 0) {
             continue;
         }
-
-        row.guide.bottom = own && lastLinkedRow[owner] > r;
-
-        const chainAncestors: number[] = [];
-        let a = own ? parentOf[owner] : owner;
-        while (a >= 0 && feed[a].depth >= scope) {
-            chainAncestors.push(a);
-            a = parentOf[a];
-        }
-        chainAncestors.reverse();
 
         const columns: ThreadGuideColumn[] = [];
         const owners: string[] = [];
-        for (let level = 1; level < row.visualDepth; level++) {
-            const ancestor = chainAncestors[level - 1];
-            if (ancestor === undefined) {
+        const base = entry.own ? parentOf[owner] : owner;
+        const baseLinks = entry.own ? linksUp(owner) : row.relation !== 'detached';
+        for (let level = 0; level < row.indent; level++) {
+            const ancestor = baseLinks ? ancestorAtIndent(base, level) : -1;
+            if (ancestor < 0) {
                 columns.push('none');
                 owners.push('');
                 continue;
             }
-            const branch = chainAncestors[level];
-            const branchEnd = Math.max(r, branch === undefined ? (own ? lastLinkedRow[owner] : -1) : lastLinkedRow[branch]);
-            const continues = lastLinkedRow[ancestor] > branchEnd;
-            const isParentColumn = level === row.visualDepth - 1;
+            const branch = level + 1 < row.indent ? ancestorAtIndent(base, level + 1) : -1;
+            const branchEnd = branch >= 0 ? Math.max(r, spanEnd[branch]) : Math.max(r, entry.own ? spanEnd[owner] : r);
+            const continues = spanEnd[ancestor] > branchEnd;
+            const isParentColumn = level === row.indent - 1;
             columns.push(continues ? 'pass' : isParentColumn ? 'end' : 'none');
             owners.push(feed[ancestor].uri);
         }
-        row.guide.columns = columns;
-        row.guide.owners = owners;
+        guide.columns = columns;
+        guide.owners = owners;
     }
 
     const anchorIndex = rows.findIndex(row => row.kind === 'post' && row.role === 'anchor');
