@@ -746,13 +746,6 @@
         {/snippet}
       </Menu>
 
-      {#if ($settings?.general.devMode)}
-        <div class="timeline-dev">
-          <p>langs: {data.post.record?.langs ?? ' '}</p>
-          <p>via: {data.post.record?.via ?? ' '}</p>
-        </div>
-      {/if}
-
       {#if (isDialogRender)}
         <ConfirmModal
                 onok={() => {deletePost(data.post.uri)}}

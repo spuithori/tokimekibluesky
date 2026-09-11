@@ -31,6 +31,7 @@
     } from "$lib/localTranslate";
     import { settingsState } from "$lib/classes/settingsState.svelte";
     import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
+    import TimelineChips from "$lib/components/post/TimelineChips.svelte";
     import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import { toast } from "svelte-sonner";
@@ -126,7 +127,7 @@
         return () => controller.abort();
     };
     let warnLabels = $state([]);
-    let warnBehavior: "cover" | "inform" = $state("cover");
+    let warnBehavior = $state<"cover" | "inform">("cover");
     let timeDistanceToNow = $derived.by(() => {
         const date = new Date(post.indexedAt);
         if (getNextUpdateDelay(date) !== null) {
@@ -182,6 +183,13 @@
 
     let isWarn: "content" | "media" | null = detectWarn(moderateData) || null;
     isHide = detectHide(moderateData, contentContext, isHide, post);
+    const informLabels = isWarn === "content" && warnBehavior === "inform" ? warnLabels : [];
+    const devLangs = $derived(
+        $settings?.general?.devMode && Array.isArray(post.record?.langs) ? post.record.langs : [],
+    );
+    const devVia = $derived(
+        $settings?.general?.devMode && typeof post.record?.via === "string" ? post.record.via : "",
+    );
 
     function detectWarn(moderateData) {
         if (!moderateData) {
@@ -427,9 +435,12 @@
             warnBehavior !== "inform"}
         {@attach autoTranslateAttachment}
     >
-        {#if isWarn === "content"}
-            <TimelineWarn labels={warnLabels} behavior={warnBehavior}
-            ></TimelineWarn>
+        {#if isWarn === "content" && warnBehavior !== "inform"}
+            <TimelineWarn labels={warnLabels}></TimelineWarn>
+        {/if}
+
+        {#if informLabels.length || devLangs.length || devVia}
+            <TimelineChips labels={informLabels} langs={devLangs} via={devVia}></TimelineChips>
         {/if}
 
         {#if !skyblurText}
