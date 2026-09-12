@@ -109,6 +109,51 @@ export function createOAuthSession(
         return dpopKeyPair;
     }
 
+    const knownNonces = new Map<string, string | undefined>();
+    const nonceLoads = new Map<string, Promise<void>>();
+
+    async function loadNonce(origin: string): Promise<void> {
+        if (knownNonces.has(origin)) return;
+        let load = nonceLoads.get(origin);
+        if (!load) {
+            load = getDPoPNonce(origin)
+                .then((nonce) => {
+                    if (!knownNonces.has(origin)) {
+                        knownNonces.set(origin, nonce);
+                    }
+                })
+                .finally(() => {
+                    nonceLoads.delete(origin);
+                });
+            nonceLoads.set(origin, load);
+        }
+        await load;
+    }
+
+    async function rememberNonce(origin: string, nonce: string): Promise<void> {
+        if (knownNonces.get(origin) === nonce) return;
+        knownNonces.set(origin, nonce);
+        await putDPoPNonce(origin, nonce);
+    }
+
+    let athToken: string | null = null;
+    let athPromise: Promise<string> | null = null;
+
+    function getAth(): Promise<string> {
+        if (!athPromise || athToken !== accessToken) {
+            const token = accessToken;
+            const promise = computeAth(token);
+            athToken = token;
+            athPromise = promise;
+            promise.catch(() => {
+                if (athPromise === promise) {
+                    athPromise = null;
+                }
+            });
+        }
+        return athPromise;
+    }
+
     function isExpired(): boolean {
         return Date.now() >= expiresAt - REFRESH_BUFFER;
     }
@@ -231,9 +276,10 @@ export function createOAuthSession(
             method = input.method;
         }
 
-        let ath = await computeAth(accessToken);
+        let ath = await getAth();
         const origin = new URL(url).origin;
-        let nonce = await getDPoPNonce(origin);
+        await loadNonce(origin);
+        let nonce = knownNonces.get(origin);
         let didRefresh = false;
 
         for (let attempt = 0; attempt < 4; attempt++) {
@@ -258,7 +304,7 @@ export function createOAuthSession(
             const responseNonce = res.headers.get('DPoP-Nonce');
             if (responseNonce) {
                 nonce = responseNonce;
-                await putDPoPNonce(origin, responseNonce);
+                await rememberNonce(origin, responseNonce);
             }
 
             if (res.status === 401) {
@@ -272,7 +318,7 @@ export function createOAuthSession(
                     didRefresh = true;
                     try {
                         await requestRefresh();
-                        ath = await computeAth(accessToken);
+                        ath = await getAth();
                         continue;
                     } catch {
                         return res;

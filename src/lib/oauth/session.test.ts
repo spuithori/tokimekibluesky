@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { createOAuthSession } from './session';
 import { refreshToken } from './server';
-import { getSession } from './store';
+import { getSession, getDPoPNonce, putDPoPNonce } from './store';
+import { computeAth, createDPoPProof } from './dpop';
+
+const { nonceStore } = vi.hoisted(() => ({ nonceStore: new Map<string, string>() }));
 
 vi.mock('./dpop', () => ({
     importKeyPair: vi.fn(async () => ({})),
@@ -24,17 +27,40 @@ vi.mock('./store', () => ({
     putSession: vi.fn(async () => {}),
     deleteSession: vi.fn(async () => {}),
     getSession: vi.fn(),
-    putDPoPNonce: vi.fn(async () => {}),
-    getDPoPNonce: vi.fn(async () => undefined),
+    putDPoPNonce: vi.fn(async (origin: string, nonce: string) => { nonceStore.set(origin, nonce); }),
+    getDPoPNonce: vi.fn(async (origin: string) => nonceStore.get(origin)),
 }));
 
 vi.mock('$lib/errorLog', () => ({
     recordError: vi.fn(),
 }));
 
+beforeEach(() => {
+    nonceStore.clear();
+    vi.mocked(computeAth).mockImplementation(async () => 'ath');
+});
+
 afterEach(() => {
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+});
+
+const PDS_ORIGIN = 'https://pds.example';
+
+function proofArgs() {
+    return vi.mocked(createDPoPProof).mock.calls.map(([args]) => ({ nonce: args.nonce, ath: args.ath }));
+}
+
+function stubFetchSequence(responses: Array<() => Response>) {
+    const fetchMock = vi.fn(async () => responses[Math.min(fetchMock.mock.calls.length - 1, responses.length - 1)]());
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+}
+
+const ok = (nonce?: string) => () => new Response('{}', { status: 200, headers: nonce ? { 'DPoP-Nonce': nonce } : {} });
+const useNonce = (nonce: string) => () => new Response('{}', {
+    status: 401,
+    headers: { 'WWW-Authenticate': 'DPoP error="use_dpop_nonce"', 'DPoP-Nonce': nonce },
 });
 
 function storedSession(overrides: Record<string, unknown> = {}): any {
@@ -215,5 +241,169 @@ describe('OAuth session persist resilience', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
 
         expect(vi.mocked(putSession).mock.calls.length).toBe(3);
+    });
+});
+
+describe('OAuth session DPoP nonce equivalence', () => {
+    it('retries once with the fresh nonce when the stored nonce is stale, without touching refresh', async () => {
+        nonceStore.set(PDS_ORIGIN, 'n1');
+        const stored = storedSession();
+        const fetchMock = stubFetchSequence([useNonce('n2'), ok('n2')]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        const res = await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(res.status).toBe(200);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(proofArgs().map(p => p.nonce)).toEqual(['n1', 'n2']);
+        expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
+        expect(session.dead).toBe(false);
+        expect(nonceStore.get(PDS_ORIGIN)).toBe('n2');
+    });
+
+    it('carries the nonce received on one request into the next request without a retry', async () => {
+        const stored = storedSession();
+        const fetchMock = stubFetchSequence([ok('n1'), ok('n1')]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(proofArgs().map(p => p.nonce)).toEqual([undefined, 'n1']);
+        expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
+    });
+
+    it('gives up after four nonce challenges without refreshing or killing the session', async () => {
+        const stored = storedSession();
+        const fetchMock = stubFetchSequence([useNonce('n1'), useNonce('n2'), useNonce('n3'), useNonce('n4')]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await expect(session.fetchHandler('/xrpc/app.bsky.feed.getTimeline')).rejects.toThrow('DPoP nonce retry exhausted');
+
+        expect(fetchMock).toHaveBeenCalledTimes(4);
+        expect(proofArgs().map(p => p.nonce)).toEqual([undefined, 'n1', 'n2', 'n3']);
+        expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
+        expect(session.dead).toBe(false);
+    });
+
+    it('sends no nonce and writes nothing when the server never issues one', async () => {
+        const stored = storedSession();
+        const fetchMock = stubFetchSequence([ok(), ok()]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(proofArgs().map(p => p.nonce)).toEqual([undefined, undefined]);
+        expect(vi.mocked(putDPoPNonce)).not.toHaveBeenCalled();
+    });
+
+    it('signs the retry after a refresh with the ath of the new access token', async () => {
+        vi.mocked(computeAth).mockImplementation(async (token: string) => `ath:${token}`);
+        const stored = storedSession();
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+        vi.mocked(refreshToken).mockResolvedValue({ access_token: 'new-token', refresh_token: 'r2', expires_in: 3600 } as any);
+        stubFetchSequence([
+            () => new Response('{}', { status: 401, headers: { 'WWW-Authenticate': 'DPoP error="invalid_token"' } }),
+            ok(),
+        ]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        const res = await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(res.status).toBe(200);
+        expect(proofArgs().map(p => p.ath)).toEqual(['ath:old-token', 'ath:new-token']);
+        expect(vi.mocked(refreshToken)).toHaveBeenCalledTimes(1);
+    });
+
+    it('signs with the adopted token when another tab rotated the session first', async () => {
+        vi.mocked(computeAth).mockImplementation(async (token: string) => `ath:${token}`);
+        const stored = storedSession({ expiresAt: Date.now() - 1000 });
+        vi.mocked(getSession).mockResolvedValue(storedSession({
+            accessToken: 'tab-b-token',
+            refreshToken: 'r9',
+            expiresAt: Date.now() + 3600_000,
+        }));
+        stubFetchSequence([ok()]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        const res = await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(res.status).toBe(200);
+        expect(proofArgs().map(p => p.ath)).toEqual(['ath:tab-b-token']);
+        expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
+    });
+});
+
+describe('OAuth session DPoP hot-path cost', () => {
+    it('reads the stored nonce at most once per origin across sequential requests', async () => {
+        nonceStore.set(PDS_ORIGIN, 'n1');
+        const stored = storedSession();
+        stubFetchSequence([ok('n1')]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(vi.mocked(getDPoPNonce)).toHaveBeenCalledTimes(1);
+        expect(proofArgs().map(p => p.nonce)).toEqual(['n1', 'n1', 'n1']);
+    });
+
+    it('reads the stored nonce once even when the first requests run in parallel', async () => {
+        nonceStore.set(PDS_ORIGIN, 'n1');
+        const stored = storedSession();
+        stubFetchSequence([ok('n1')]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await Promise.all([
+            session.fetchHandler('/xrpc/app.bsky.feed.getTimeline'),
+            session.fetchHandler('/xrpc/app.bsky.notification.getUnreadCount'),
+            session.fetchHandler('/xrpc/app.bsky.actor.getProfile'),
+        ]);
+
+        expect(vi.mocked(getDPoPNonce)).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(computeAth)).toHaveBeenCalledTimes(1);
+        expect(proofArgs().map(p => p.nonce)).toEqual(['n1', 'n1', 'n1']);
+    });
+
+    it('writes the nonce only when the server rotates it', async () => {
+        const stored = storedSession();
+        stubFetchSequence([ok('n1'), ok('n1'), ok('n2')]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(vi.mocked(putDPoPNonce).mock.calls).toEqual([[PDS_ORIGIN, 'n1'], [PDS_ORIGIN, 'n2']]);
+        expect(nonceStore.get(PDS_ORIGIN)).toBe('n2');
+    });
+
+    it('computes ath only when the access token changes', async () => {
+        vi.mocked(computeAth).mockImplementation(async (token: string) => `ath:${token}`);
+        const stored = storedSession();
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+        vi.mocked(refreshToken).mockResolvedValue({ access_token: 'new-token', refresh_token: 'r2', expires_in: 3600 } as any);
+        stubFetchSequence([
+            ok(),
+            ok(),
+            () => new Response('{}', { status: 401, headers: { 'WWW-Authenticate': 'DPoP error="invalid_token"' } }),
+            ok(),
+            ok(),
+        ]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+        await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(vi.mocked(computeAth).mock.calls.map(([token]) => token)).toEqual(['old-token', 'new-token']);
+        expect(proofArgs().map(p => p.ath)).toEqual([
+            'ath:old-token', 'ath:old-token', 'ath:old-token', 'ath:new-token', 'ath:new-token',
+        ]);
     });
 });
