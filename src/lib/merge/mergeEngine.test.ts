@@ -15,7 +15,7 @@ import {
     type MergeCursorState,
     type MergeSource,
 } from './mergeEngine';
-import { getMergedTimeline, seedMergePool } from './mergeFetch';
+import { getMergedTimeline, seedMergePool, takeSourceRemainder } from './mergeFetch';
 
 const BASE = Date.parse('2026-01-01T00:00:00.000Z');
 
@@ -513,5 +513,94 @@ describe('seedMergePool', () => {
         expect(seed.feed[0].isDivider).toBeUndefined();
         expect(seed.feed[0].memoryCursor).toBeUndefined();
         expect(seed.feed[0].__sourceId).toBe('a');
+    });
+});
+
+describe('head pool retention', () => {
+    function pagesOf() {
+        return {
+            'at://feed/a': {
+                '': { feed: [post('a1', 100), post('a2', 80), post('a3', 60)], cursor: 'a-next' },
+                'a-next': { feed: [post('a4', 40)], cursor: undefined },
+            },
+            'at://feed/b': {
+                '': { feed: [post('b1', 90), post('b2', 70), post('b3', 50)], cursor: 'b-next' },
+                'b-next': { feed: [post('b4', 30)], cursor: undefined },
+            },
+        };
+    }
+
+    function agentOf(pages = pagesOf()) {
+        const calls: Array<{ feedId: string, cursor: string }> = [];
+        return {
+            calls,
+            getTimelineByAlgo(opt: any) {
+                const feedId = opt.algorithm.algorithm;
+                const cursor = opt.cursor ?? '';
+                calls.push({ feedId, cursor });
+                const page = (pages as any)[feedId]?.[cursor];
+                return Promise.resolve(page ?? { feed: [], cursor: undefined });
+            },
+        };
+    }
+
+    it('serves the second page from the head pool with zero source fetches and the same output as a rebuild', async () => {
+        const sources = [src('a'), src('b')];
+
+        const pooled = agentOf();
+        const algorithm = { type: 'merge', sources };
+        const head = await getMergedTimeline(pooled, { limit: 2, cursor: '', algorithm });
+        expect(uris(head.feed)).toEqual(['a1', 'b1']);
+        const callsAfterHead = pooled.calls.length;
+        const second = await getMergedTimeline(pooled, { limit: 2, cursor: head.cursor, algorithm });
+
+        const rebuilt = agentOf();
+        const freshAlgorithm = { type: 'merge', sources };
+        const rebuiltHead = await getMergedTimeline(rebuilt, { limit: 2, cursor: '', algorithm: freshAlgorithm });
+        const rebuiltSecond = await getMergedTimeline(rebuilt, { limit: 2, cursor: rebuiltHead.cursor, algorithm: { type: 'merge', sources } });
+
+        expect(rebuiltHead.cursor).toBe(head.cursor);
+        expect(uris(second.feed)).toEqual(['a2', 'b2']);
+        expect(uris(second.feed)).toEqual(uris(rebuiltSecond.feed));
+        expect(second.cursor).toBe(rebuiltSecond.cursor);
+        expect(pooled.calls.length).toBe(callsAfterHead);
+        expect(rebuilt.calls.length).toBeGreaterThan(callsAfterHead);
+    });
+
+    it('keeps the deep continuation pool alive across repeated head refreshes', async () => {
+        const sources = [src('a'), src('b')];
+        const agent = agentOf();
+        const algorithm = { type: 'merge', sources };
+
+        const head = await getMergedTimeline(agent, { limit: 2, cursor: '', algorithm });
+        const second = await getMergedTimeline(agent, { limit: 2, cursor: head.cursor, algorithm });
+        expect(uris(second.feed)).toEqual(['a2', 'b2']);
+
+        await getMergedTimeline(agent, { limit: 2, cursor: '', algorithm });
+        await getMergedTimeline(agent, { limit: 2, cursor: '', algorithm });
+        const callsBeforeThird = agent.calls.length;
+
+        const third = await getMergedTimeline(agent, { limit: 2, cursor: second.cursor, algorithm });
+        expect(uris(third.feed)).toEqual(['a3']);
+        expect(agent.calls.length).toBe(callsBeforeThird);
+
+        const latestHeadSecond = await getMergedTimeline(agent, { limit: 2, cursor: head.cursor, algorithm });
+        expect(uris(latestHeadSecond.feed)).toEqual(['a2', 'b2']);
+        expect(agent.calls.length).toBe(callsBeforeThird);
+    });
+
+    it('exposes the unemitted head remainder to decomposition for every source', async () => {
+        const sources = [src('a'), src('b')];
+        const agent = agentOf();
+        const algorithm = { type: 'merge', sources };
+
+        const head = await getMergedTimeline(agent, { limit: 2, cursor: '', algorithm });
+
+        const a = takeSourceRemainder(algorithm, sources, head.cursor, 0);
+        const b = takeSourceRemainder(algorithm, sources, head.cursor, 1);
+        expect(a && uris(a.items)).toEqual(['a2', 'a3']);
+        expect(a?.cursor).toBe('a-next');
+        expect(b && uris(b.items)).toEqual(['b2', 'b3']);
+        expect(b?.cursor).toBe('b-next');
     });
 });

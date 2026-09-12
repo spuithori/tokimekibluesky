@@ -29,6 +29,10 @@ export function takePool(ref: object, fingerprint: string, cursor: string): Merg
     return slots.splice(i, 1)[0];
 }
 
+function isHeadPool(pool: MergePool): boolean {
+    return pool.seq === 1;
+}
+
 export function storePool(ref: object, pool: MergePool): void {
     if (!pool.issuedCursor) {
         return;
@@ -38,9 +42,18 @@ export function storePool(ref: object, pool: MergePool): void {
         slots = [];
         poolSlots.set(ref, slots);
     }
+    if (isHeadPool(pool)) {
+        const existing = slots.findIndex(isHeadPool);
+        if (existing !== -1) {
+            slots.splice(existing, 1);
+        }
+        slots.push(pool);
+        return;
+    }
     slots.unshift(pool);
-    if (slots.length > POOL_SLOTS) {
-        slots.length = POOL_SLOTS;
+    const continuation = slots.filter(p => !isHeadPool(p));
+    if (continuation.length > POOL_SLOTS) {
+        slots.splice(slots.indexOf(continuation[continuation.length - 1]), 1);
     }
 }
 
@@ -156,7 +169,9 @@ export async function getMergedTimeline(agent: any, timelineOpt: any, signal?: A
                 src.failures = 2;
             }
         }
-        return emitBatch(pool, sources, limit);
+        const result = emitBatch(pool, sources, limit);
+        storePool(algorithm, pool);
+        return result;
     }
 
     if (!anySuccess && emittableCount(pool) === 0) {
