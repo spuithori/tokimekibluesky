@@ -265,6 +265,7 @@ describe('居座り機構: カラムのdid/駆動agentが変わってもフィ�
     it('孤児期間に書かれた本垢postsは、サブ垢agentが後から利用可能になっても保持され続ける(=居座り)。空になるのは明示clearFeed(強制更新)のみ', () => {
         const { cs, cleanup } = createRealColumnState();
         try {
+            cs.add({ id: 'col-sub', algorithm: { type: 'default' }, did: 'did:plc:sub', settings: {}, data: { feed: [], cursor: '' } });
             const honPosts = [{ post: { uri: 'at://hon/1', author: { did: 'did:plc:hon' } } }];
             cs.setFeed('col-sub', honPosts);
             expect(cs.getFeed('col-sub')).toEqual(honPosts);

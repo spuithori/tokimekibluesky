@@ -95,6 +95,12 @@ export function measureRealIsolation(
     keys: string[],
     K: number,
 ): { self: number; cross: number } {
+    for (const k of keys) {
+        if (!cs.hasColumn(k)) {
+            cs.add({ id: k, algorithm: { type: 'default' }, did: 'did:plc:viewer', settings: {}, data: { feed: [], cursor: '' } });
+        }
+    }
+    flushSync();
     return measureIsolation(
         {
             getFeed: (id) => cs.getFeed(id),

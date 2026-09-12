@@ -30,7 +30,20 @@ export class ColumnState {
         return this._feedStatus[columnId];
     }
 
+    private canWriteFeed(columnId: string): boolean {
+        return untrack(() => {
+            if (this._feeds.has(columnId) || this.columnById.has(columnId)) {
+                return true;
+            }
+            if (columnId.endsWith(SOLO_FEED_SUFFIX)) {
+                return this.columnById.has(columnId.slice(0, -SOLO_FEED_SUFFIX.length));
+            }
+            return false;
+        });
+    }
+
     setFeedStatus(columnId: string, status: string): void {
+        if (!this.canWriteFeed(columnId)) return;
         this._feedStatus = { ...this._feedStatus, [columnId]: status };
     }
 
@@ -40,22 +53,26 @@ export class ColumnState {
     }
 
     setFeed(columnId: string, feed: any[]): void {
+        if (!this.canWriteFeed(columnId)) return;
         this._feeds.set(columnId, feed);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
     }
 
     updateFeed(columnId: string, fn: (feed: any[]) => void): void {
+        if (!this.canWriteFeed(columnId)) return;
         const feed = (this._feeds.get(columnId) ?? []).slice();
         fn(feed);
         this._feeds.set(columnId, feed);
     }
 
     replaceFeed(columnId: string, fn: (feed: any[]) => any[]): void {
+        if (!this.canWriteFeed(columnId)) return;
         const feed = this._feeds.get(columnId) ?? [];
         this._feeds.set(columnId, fn(feed));
     }
 
     clearFeed(columnId: string): void {
+        if (!this.canWriteFeed(columnId)) return;
         this._feeds.set(columnId, []);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
     }
