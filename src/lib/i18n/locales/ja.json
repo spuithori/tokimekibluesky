@@ -1,4 +1,5 @@
 {
+    "dir": "ltr",
     "reposted_by": "{name} がリポスト",
     "reply_to": "{name} に返信",
     "delete_post": "投稿を削除",
