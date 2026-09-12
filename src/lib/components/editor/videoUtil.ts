@@ -1,16 +1,3 @@
-import {getServiceAuthToken} from "$lib/util";
-import type {Agent} from "$lib/agent";
-
-export async function getUploadLimit(_agent: Agent) {
-    const token = await getServiceAuthToken({lxm: 'app.bsky.video.getUploadLimits', aud: 'did:web:video.bsky.app'}, _agent);
-    const res = await fetch(`https://video.bsky.app/xrpc/app.bsky.video.getUploadLimits`, {
-        headers: {
-            'Authorization': `Bearer ${token}`
-        },
-    });
-    return await res.json();
-}
-
 export async function getUploadStatus(jobId: string) {
     const res = await fetch(`https://video.bsky.app/xrpc/app.bsky.video.getJobStatus?jobId=${jobId}`);
     const json = await res.json();

@@ -22,7 +22,6 @@
   import {languageMap} from "$lib/langs/languageMap";
   import LangSelectorModal from "$lib/components/publish/LangSelectorModal.svelte";
   import PostGateLabel from "$lib/components/publish/PostGateLabel.svelte";
-  import {getUploadLimit} from "$lib/components/editor/videoUtil";
   import {getTenorUrl, getKlipyUrl} from "$lib/components/post/embedUtil";
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   import EmbedKlipy from "$lib/components/post/EmbedKlipy.svelte";
@@ -77,7 +76,6 @@
     let imageUploadEl = $state();
     let isDragover = $state(0);
     let isLangSelectorOpen = $state(false);
-    let isVideoUploadEnabled = $state(false);
     let isThreadGateOpen = $state(false);
     let isSelfLabelingMenuOpen = $state(false);
     let isWhisperModalOpen = $state(false);
@@ -272,12 +270,6 @@
         }
 
         post.owner = _agent.did();
-        isVideoUploadEnabled = false;
-
-        const limit = await getUploadLimit(_agent);
-        if (limit?.canUpload) {
-            isVideoUploadEnabled = true;
-        }
     }
 
     async function detectRichText(text: string) {
@@ -483,7 +475,6 @@
           onthreadsplit={handleThreadSplit}
           {_agent}
           {isEnabled}
-          {isVideoUploadEnabled}
           {isThreadSplitting}
           {onopen}
           {submitArea}

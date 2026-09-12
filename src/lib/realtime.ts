@@ -26,10 +26,12 @@ export class RealtimeClient {
         }
 
         this.shouldReconnect = true;
-        this.socket = new WebSocket(`${PUBLIC_TOKIMEKI_STREAM_API}/subscribe?${COLLECTIONS.map(item => `wantedCollections=${item}`).join('&')}`);
+        this.detachSocket();
+        const socket = new WebSocket(`${PUBLIC_TOKIMEKI_STREAM_API}/subscribe?${COLLECTIONS.map(item => `wantedCollections=${item}`).join('&')}`);
+        this.socket = socket;
 
-        this.socket.onmessage = async function (event) {
-            if (!event.data) {
+        socket.onmessage = async (event) => {
+            if (this.socket !== socket || !event.data) {
                 return;
             }
 
@@ -55,7 +57,10 @@ export class RealtimeClient {
             }
         };
 
-        this.socket.onclose = async (event) => {
+        socket.onclose = async (event) => {
+            if (this.socket !== socket) {
+                return;
+            }
             console.log('socket closed.');
             this.socket = null;
             realtimeStatuses.update((r: any[] | undefined) => {
@@ -68,16 +73,33 @@ export class RealtimeClient {
             }
         }
 
-        this.socket.onopen = async (event) => {
+        socket.onopen = async (event) => {
+            if (this.socket !== socket) {
+                return;
+            }
             this.reconnectAttempts = 0;
             realtimeStatuses.update((r: any[] | undefined) => {
                 return  [...r,  this.host];
             })
         }
 
-        this.socket.onerror = async (event) => {
+        socket.onerror = async (event) => {
             console.log(event)
         }
+    }
+
+    private detachSocket(): WebSocket | null {
+        const socket = this.socket;
+        if (!socket) {
+            return null;
+        }
+        this.socket = null;
+        socket.onmessage = null;
+        socket.onclose = null;
+        socket.onopen = null;
+        socket.onerror = null;
+        realtimeStatuses.update((r) => r.filter(item => item !== this.host));
+        return socket;
     }
 
     private scheduleReconnect() {
@@ -109,9 +131,9 @@ export class RealtimeClient {
             this.reconnectTimer = null;
         }
 
-        if (this.socket) {
-            this.socket.close();
-            this.socket = null;
+        const socket = this.detachSocket();
+        if (socket) {
+            socket.close();
         }
 
         this.reconnectAttempts = 0;

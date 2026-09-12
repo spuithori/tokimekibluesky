@@ -39,7 +39,6 @@
     text?: string;
     _agent?: any;
     isEnabled: boolean;
-    isVideoUploadEnabled: any;
     top?: import('svelte').Snippet;
     avatar?: import('svelte').Snippet;
     normal?: import('svelte').Snippet;
@@ -49,7 +48,6 @@
     json = $bindable(),
     text = $bindable(''),
     _agent,
-    isVideoUploadEnabled,
     top,
     avatar,
     normal,
