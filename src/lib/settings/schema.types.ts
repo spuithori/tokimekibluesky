@@ -6,7 +6,8 @@ export type SettingsCategoryId =
     | "design"
     | "timeline"
     | "embed"
-    | "moderation";
+    | "moderation"
+    | "keyboard";
 
 export type SettingType =
     | "toggle"

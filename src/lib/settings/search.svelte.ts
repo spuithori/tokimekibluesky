@@ -23,6 +23,7 @@ const categoryRoute: Record<SettingsCategoryId, string> = {
     timeline: '/settings/timeline',
     embed: '/settings/design/embed',
     moderation: '/settings/moderation',
+    keyboard: '/settings/keyboard',
 };
 
 export const categoryLabel: Record<SettingsCategoryId, string> = {
@@ -31,6 +32,7 @@ export const categoryLabel: Record<SettingsCategoryId, string> = {
     timeline: 'settings_timeline',
     embed: 'settings_embed',
     moderation: 'settings_moderation',
+    keyboard: 'settings_keyboard',
 };
 
 function normalize(text: string): string {

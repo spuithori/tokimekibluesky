@@ -324,14 +324,6 @@
         return getScrollElement().scrollTop;
     }
 
-    function handleKeydown(event: { key: string; }) {
-        const activeElement = document.activeElement?.tagName;
-
-        if (event.key === 'r' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
-            refresh().catch((e) => console.error(e));
-        }
-    }
-
     let lastRefreshSignal = -1;
     $effect(() => {
         const count = refreshSignal.count;
@@ -362,7 +354,6 @@
     })
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
 
 {#if column?.settings?.autoRefresh === -1}
   <button

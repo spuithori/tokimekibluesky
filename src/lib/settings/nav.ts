@@ -9,6 +9,7 @@ import Database from '@lucide/svelte/icons/database';
 import Layers from '@lucide/svelte/icons/layers';
 import Heart from '@lucide/svelte/icons/heart';
 import Orbit from '@lucide/svelte/icons/orbit';
+import Keyboard from '@lucide/svelte/icons/keyboard';
 
 /**
  * Data-driven settings navigation. The settings layout renders these instead of
@@ -28,6 +29,7 @@ export const settingsNav: SettingsNavItem[] = [
     { id: 'general', label: 'settings_general', href: '/settings/general', icon: Settings },
     { id: 'design', label: 'settings_design', href: '/settings/design', icon: Palette },
     { id: 'timeline', label: 'settings_timeline', href: '/settings/timeline', icon: GanttChartSquare },
+    { id: 'keyboard', label: 'settings_keyboard', href: '/settings/keyboard', icon: Keyboard },
     { id: 'moderation', label: 'settings_moderation', href: '/settings/moderation', icon: Hand },
     { id: 'keyword-mutes', label: 'settings_keyword_mutes', href: '/settings/keyword-mutes', icon: WholeWord },
     { id: 'push-notification', label: 'settings_push_notification', href: '/settings/push-notification', icon: BellRing },

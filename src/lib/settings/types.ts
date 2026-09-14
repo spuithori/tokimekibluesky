@@ -136,12 +136,18 @@ export interface EmbedSettings {
     disableEmbedVia: boolean;
 }
 
+export interface KeyboardSettings {
+    enabled: boolean;
+    bindings: Record<string, string[]>;
+}
+
 export interface Settings {
     general: GeneralSettings;
     design: DesignSettings;
     timeline: TimelineSettings;
     moderation: ModerationSettings;
     embed: EmbedSettings;
+    keyboard: KeyboardSettings;
     langFilter: string[];
     version: number;
 }

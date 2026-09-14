@@ -579,6 +579,30 @@ const rawSettingsSchema = [
         label: "monochrome",
         default: false,
     },
+
+    // --- keyboard ---
+    {
+        key: "keyboard.enabled",
+        category: "keyboard",
+        scope: "global",
+        type: "toggle",
+        label: "keyboard_shortcuts_enabled",
+        description: "keyboard_shortcuts_enabled_description",
+        default: true,
+        platform: "pc",
+        searchKeywords: ["shortcut", "hotkey", "keyboard"],
+    },
+    {
+        key: "keyboard.bindings",
+        category: "keyboard",
+        scope: "global",
+        type: "custom",
+        custom: "keyboardBindings",
+        label: "keyboard_shortcuts_bindings",
+        default: {},
+        platform: "pc",
+        searchKeywords: ["shortcut", "hotkey", "keyboard", "keymap"],
+    },
 ] as const satisfies readonly SettingItem[];
 
 export type SchemaKey = (typeof rawSettingsSchema)[number]["key"];

@@ -142,6 +142,10 @@ export function createDefaultSettings(): Settings {
             klipy: true,
             disableEmbedVia: false,
         },
+        keyboard: {
+            enabled: true,
+            bindings: {},
+        },
         langFilter: [],
         version: CURRENT_VERSION,
     };

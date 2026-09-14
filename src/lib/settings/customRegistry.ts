@@ -21,6 +21,8 @@ export const customFields = {
     postsImageLayout: () => import('$lib/components/settings/fields/custom/PostsImageLayoutField.svelte'),
     galleryLayout: () => import('$lib/components/settings/fields/custom/GalleryLayoutField.svelte'),
     externalLayout: () => import('$lib/components/settings/fields/custom/ExternalLayoutField.svelte'),
+    // keyboard
+    keyboardBindings: () => import('$lib/components/settings/fields/custom/KeyboardBindingsField.svelte'),
 } satisfies Record<string, () => Promise<{ default: Component<any> }>>;
 
 export type CustomFieldId = keyof typeof customFields;

@@ -11,7 +11,7 @@
         theme,
         bluefeedAddModal,
     } from "$lib/stores";
-    import { goto, beforeNavigate, afterNavigate } from "$app/navigation";
+    import { beforeNavigate, afterNavigate } from "$app/navigation";
     import { dev } from "$app/environment";
     import { injectAnalytics } from "@vercel/analytics/sveltekit";
     import { tick, untrack } from "svelte";
@@ -54,6 +54,8 @@
     import BootStatus from "$lib/components/utils/BootStatus.svelte";
     import { appState } from "$lib/classes/appState.svelte";
     import { recordError } from "$lib/errorLog";
+    import { shortcutManager } from "$lib/keyboard/shortcutManager.svelte";
+    import ShortcutHelp from "$lib/keyboard/ShortcutHelp.svelte";
 
     injectAnalytics({
         mode: dev ? "development" : "production",
@@ -168,35 +170,12 @@
         isColumnModalOpen.set(false);
     }
 
-    function handleKeydown(event: KeyboardEvent) {
-        if (!event.shiftKey || event.key !== "S") return;
-
-        const activeElement = document.activeElement;
-        if (
-            activeElement?.tagName === "INPUT" ||
-            activeElement?.tagName === "TEXTAREA" ||
-            activeElement?.classList.contains("tiptap")
-        ) {
+    $effect(() => {
+        if (!settingsStore.keyboard.enabled) {
             return;
         }
-
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-
-        const range = selection.getRangeAt(0);
-        const container = range.commonAncestorContainer;
-        const element =
-            container.nodeType === Node.TEXT_NODE
-                ? container.parentElement
-                : (container as Element);
-        if (!element?.closest("[data-timeline-text]")) return;
-
-        const selectedText = selection.toString().trim();
-        if (!selectedText) return;
-
-        event.preventDefault();
-        goto(`/search?q=${encodeURIComponent(selectedText)}`);
-    }
+        return shortcutManager.attach();
+    });
 
     function outputInlineStyle(theme) {
         if (!theme) {
@@ -359,8 +338,6 @@
     });
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 <svelte:head>
     <meta name="theme-color" content={baseColor} />
     <link rel="canonical" href="https://tokimeki.blue{page.url.pathname}" />
@@ -431,6 +408,10 @@
 
             {#if !isRepeater}
                 <WelcomeModal onclose={() => (isRepeater = true)}></WelcomeModal>
+            {/if}
+
+            {#if shortcutManager.helpOpen}
+                <ShortcutHelp onclose={() => (shortcutManager.helpOpen = false)}></ShortcutHelp>
             {/if}
 
             <NotificationCountObserver></NotificationCountObserver>

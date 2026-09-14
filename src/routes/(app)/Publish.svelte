@@ -5,7 +5,7 @@
   import { LEGACY_IMAGES_EMBED_MAX } from '$lib/components/post/embedImages';
   import { RichText } from '$lib/atproto-richtext';
   import {toast} from 'svelte-sonner'
-  import {goto, pushState} from '$app/navigation';
+  import {pushState} from '$app/navigation';
   import {page} from '$app/stores';
   import type {Draft} from '$lib/db';
   import {db} from '$lib/db';
@@ -32,11 +32,13 @@
   import ScheduleModal from "$lib/components/publish/ScheduleModal.svelte";
   import { createScheduledPost, uploadScheduleImage, registerWhisperPost, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent, type WhisperExpiresIn } from '$lib/scheduleApi';
   import { generatePollOgImage } from '$lib/pollApi';
+  import {shortcutManager} from "$lib/keyboard/shortcutManager.svelte";
 
   const postState = getPostState();
 
   let _agent = $derived($agent);
   let editor = $state();
+  let groupEl = $state<HTMLElement | undefined>();
   let isDraftModalOpen = $state(false);
   let mentionsHistory = JSON.parse(localStorage.getItem('mentionsHistory')) || [];
   let isEnabled = $state(true);
@@ -88,21 +90,31 @@
       }
   }
 
-  function handleKeydown(event: { key: string; }) {
-      const activeElement = document.activeElement?.tagName;
-
-      if (event.key === 'n' && !(activeElement === 'TEXTAREA' || activeElement === 'INPUT' || document.activeElement.classList.contains('tiptap'))) {
+  $effect(() => {
+      const offOpen = shortcutManager.provide('publish.open', () => {
           handleOpen();
-      }
-
-      if (event.key === '/' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
-          goto('/search');
-      }
-
-      if (event.key === 'Escape' && publishState.show) {
+          return true;
+      });
+      const offClose = shortcutManager.provide('publish.close', () => {
+          if (!publishState.show) {
+              return false;
+          }
+          if (publishState.pinned && publishState.layout === 'left') {
+              const active = document.activeElement;
+              if (active instanceof HTMLElement && groupEl?.contains(active)) {
+                  active.blur();
+                  return true;
+              }
+              return false;
+          }
           onClose();
-      }
-  }
+          return true;
+      });
+      return () => {
+          offOpen();
+          offClose();
+      };
+  });
 
   async function saveDraft() {
       if (!_agent) {
@@ -1108,8 +1120,6 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
 {#if (isMobile ? publishState.show && isMobilePopState : publishState.show)}
   <button class="publish-toggle publish-toggle--close" aria-label="Close post composer." class:publish-toggle--vk={!$settings.design?.mobilePostLayoutTop} class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={onClose}>
     <X size="24" color="var(--bg-color-1)"></X>
@@ -1127,6 +1137,7 @@
          class:publish-group--popup={publishState.layout === 'popup'}
          class:vk-publish-group={!$settings.design?.mobilePostLayoutTop}
          class:publish-mobile-top={$settings?.design?.mobilePostLayoutTop}
+         bind:this={groupEl}
 >
   {#if (publishState.layout === 'popup')}
     <div class="publish-bg-close" onclick={onClose} aria-hidden="true"></div>

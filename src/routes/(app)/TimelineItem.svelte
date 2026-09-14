@@ -40,6 +40,7 @@
   import {getEditPost} from "$lib/components/post/timelineUtil";
   import {getPollUrl} from "$lib/components/post/embedUtil";
   import {mergeSourceColor} from "$lib/merge/mergePalette";
+  import {refreshSignal} from "$lib/refreshSignal.svelte";
 
     let {
         _agent = $agent,
@@ -395,14 +396,7 @@
             });
 
             toast.success($_('success_register_pin'));
-            const character = 'r';
-            const keyboardEvent = new KeyboardEvent('keydown', {
-                key: character,
-                code: character.toUpperCase(),
-                bubbles: true,
-                cancelable: true,
-            });
-            document.dispatchEvent(keyboardEvent);
+            refreshSignal.bump();
         } catch (e) {
 
         }
@@ -420,14 +414,7 @@
             });
 
             toast.success($_('success_unregister_pin'));
-            const character = 'r';
-            const keyboardEvent = new KeyboardEvent('keydown', {
-                key: character,
-                code: character.toUpperCase(),
-                bubbles: true,
-                cancelable: true,
-            });
-            document.dispatchEvent(keyboardEvent);
+            refreshSignal.bump();
         } catch (e) {
 
         }
@@ -533,6 +520,7 @@
              class:timeline__item--bubble={$settings?.design?.bubbleTimeline}
              class:timeline__item--merge-source={mergeAccent}
              style:--merge-source-color={mergeAccent}
+             tabindex="-1"
              onclick={handleClick}
     >
       {#if isPinned}

@@ -61,6 +61,9 @@ class SettingsStore {
     get embed() {
         return this.#data.embed;
     }
+    get keyboard() {
+        return this.#data.keyboard;
+    }
     get langFilter() {
         return this.#data.langFilter;
     }

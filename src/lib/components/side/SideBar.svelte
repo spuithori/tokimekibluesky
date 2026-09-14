@@ -12,7 +12,9 @@
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import {untrack} from "svelte";
+    import {tick, untrack} from "svelte";
+    import {shortcutManager} from "$lib/keyboard/shortcutManager.svelte";
+    import {columnsInScope, enterColumn} from "$lib/keyboard/postNav";
 
     const columnState = getColumnState();
     let mobileV2Visible = $state(false);
@@ -38,22 +40,21 @@
         }
     }
 
-    function handleKeydown(event) {
-        if ($page.url.pathname !== '/') {
+    $effect(() => shortcutManager.provide('column.jump', (arg) => {
+        const index = typeof arg === 'number' ? arg : -1;
+        const column = columnState.getSlotColumn(index);
+        if (!column) {
             return false;
         }
-
-        const activeElement = document.activeElement?.tagName;
-        const isInactive = (activeElement === 'BODY' || activeElement === 'BUTTON' || document.activeElement?.classList.contains('deck-row'));
-
-        columnState.slots.forEach((slot, index) => {
-            const i = index + 1;
-
-            if (event.key === String(i) && isInactive) {
-                handleColumnClick(columnState.getSlotColumn(index), index)
+        handleColumnClick(column, index);
+        tick().then(() => {
+            const el = column.scrollElement ?? columnsInScope()[0];
+            if (el) {
+                enterColumn(el);
             }
-        })
-    }
+        });
+        return true;
+    }));
 
     $effect(() => {
       if ($settings?.design?.mobileNewUi) {
@@ -77,8 +78,6 @@
       }
     });
 </script>
-
-<svelte:window onkeydown={handleKeydown} />
 
 <div class="side-bar side-bar--{publishState.layout}" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
  class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>

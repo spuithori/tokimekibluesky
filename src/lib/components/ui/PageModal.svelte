@@ -3,6 +3,7 @@
   import {goto} from '$app/navigation';
   import {publishState} from "$lib/classes/publishState.svelte";
   import {getColumnState} from "$lib/classes/columnState.svelte";
+  import {shortcutManager} from "$lib/keyboard/shortcutManager.svelte";
 
   interface Props {
     isVirtual?: boolean;
@@ -20,16 +21,11 @@
       });
   }
 
-  function handleKeydown(event) {
-      const activeElement = document.activeElement?.tagName;
-
-      if (event.key === 'Escape' && (activeElement === 'BODY' || activeElement === 'BUTTON')) {
-          close();
-      }
-  }
+  $effect(() => shortcutManager.provide('page.close', () => {
+      close();
+      return true;
+  }));
 </script>
-
-<svelte:window onkeydown={handleKeydown}></svelte:window>
 
 <div class="modal-page modal-page--{$settings.design?.layout}" class:modal-page--side={publishState.isSideShown}>
   <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
