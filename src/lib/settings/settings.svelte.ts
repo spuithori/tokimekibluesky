@@ -36,10 +36,18 @@ function loadSettings(): Settings {
         legacyLabelerSettings = undefined;
     }
 
+    let legacyIsRepeater: unknown;
+    try {
+        legacyIsRepeater = localStorage.getItem('isRepeater');
+    } catch {
+        legacyIsRepeater = undefined;
+    }
+
     return migrate(persistence.read('global'), {
         stateSettings: legacyStateSettings,
         keywordMutes: legacyKeywordMutes,
         labelerSettings: legacyLabelerSettings,
+        isRepeater: legacyIsRepeater,
     });
 }
 
@@ -63,6 +71,12 @@ class SettingsStore {
     }
     get keyboard() {
         return this.#data.keyboard;
+    }
+    get onboarding() {
+        return this.#data.onboarding;
+    }
+    get columnCatalog() {
+        return this.#data.columnCatalog;
     }
     get langFilter() {
         return this.#data.langFilter;

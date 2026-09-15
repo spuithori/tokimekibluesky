@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {_} from "tokimeki-i18n";
     import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import {page} from '$app/stores';
@@ -86,6 +87,7 @@
           class="side-publish-button"
           onclick={() => {publishState.show = !publishState.show}}
           aria-label="Publish Tab"
+          data-tour="publish"
     >
       {#if (publishState.show)}
         <PenOff color="var(--bar-primary-icon-color)"></PenOff>
@@ -98,6 +100,8 @@
       <button
           class="side-bar-button side-column-add-button"
           onclick={() => {$isColumnModalOpen = true}}
+          aria-label={$_('feed_quick_add')}
+          data-tour="add-column"
       >
         <Plus color="var(--bar-primary-icon-color)"></Plus>
       </button>
@@ -144,7 +148,7 @@
       </div>
     {/if}
 
-    <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general">
+    <a class="side-bar-button side-bar-button--settings only-pc" href="/settings/general" aria-label={$_('settings')} data-tour="settings">
       <Settings color="var(--bar-bottom-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></Settings>
     </a>
   </div>

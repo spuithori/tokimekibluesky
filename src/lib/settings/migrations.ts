@@ -63,7 +63,7 @@ function normalizeLabelers(value: unknown): unknown[] {
 
 export function migrate(
     rawSettings: unknown,
-    legacy?: { stateSettings?: unknown; keywordMutes?: unknown; labelerSettings?: unknown },
+    legacy?: { stateSettings?: unknown; keywordMutes?: unknown; labelerSettings?: unknown; isRepeater?: unknown },
 ): Settings {
     const defaults = createDefaultSettings();
 
@@ -144,6 +144,14 @@ export function migrate(
             delete (stored.moderation as Record<string, any>).labelers;
         }
         stored.version = 6;
+    }
+
+    if (stored.version < 7) {
+        if (!isPlainObject(stored.onboarding)) stored.onboarding = {};
+        if (legacy?.isRepeater === 'true' || legacy?.isRepeater === true) {
+            (stored.onboarding as Record<string, unknown>).completed = true;
+        }
+        stored.version = 7;
     }
 
     return deepMerge(defaults, stored);

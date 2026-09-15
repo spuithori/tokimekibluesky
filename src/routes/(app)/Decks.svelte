@@ -1,6 +1,6 @@
 <script lang="ts">
-    import Ghost from '@lucide/svelte/icons/ghost';
-    import {agentsByDid, isColumnModalOpen} from '$lib/stores';
+    import {agentsByDid} from '$lib/stores';
+    import DeckEmptyState from "$lib/components/column/DeckEmptyState.svelte";
     import DeckSlot from "./DeckSlot.svelte";
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
     import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
@@ -9,7 +9,6 @@
     import TilingDragOverlay from "$lib/components/deck/TilingDragOverlay.svelte";
     import TilingDragGhost from "$lib/components/deck/TilingDragGhost.svelte";
     import {recordError} from "$lib/errorLog";
-    import {_} from "tokimeki-i18n";
     import DeckPopupWrap from "./DeckPopupWrap.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
@@ -63,13 +62,7 @@
     </div>
   {:else if appState.ready && columnState.isColumnsLoaded}
     <div class="deck-empty">
-      <div class="deck-empty__icon">
-        <Ghost size={64} color="var(--text-color-3)" />
-      </div>
-
-      <h2 class="deck-empty__title">{$_('decks_empty_title')}</h2>
-      <p class="deck-empty__text">{$_('decks_empty_text')}</p>
-      <button class="button" onclick={() => {$isColumnModalOpen = true}}>{$_('feed_quick_add')}</button>
+      <DeckEmptyState></DeckEmptyState>
     </div>
   {/if}
 </div>
@@ -143,10 +136,5 @@
       gap: 10px;
       color: var(--text-color-3);
       height: 100dvh;
-
-      &__title {
-          font-size: 24px;
-          letter-spacing: .05em;
-      }
   }
 </style>

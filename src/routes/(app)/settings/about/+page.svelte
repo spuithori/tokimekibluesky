@@ -4,8 +4,16 @@
     import { onMount } from 'svelte';
     import { agent } from "$lib/stores";
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
+    import { goto } from '$app/navigation';
+    import Compass from '@lucide/svelte/icons/compass';
+    import { onboardingState } from "$lib/onboarding/onboardingState.svelte";
 
     let me = $state();
+
+    async function replayTour() {
+        await goto('/');
+        onboardingState.startTour();
+    }
 
     onMount(async () => {
         const res = await $agent.xrpc.get('app.bsky.actor.getProfile', {actor: 'holybea.blue'});
@@ -65,6 +73,15 @@
       <p class="about-text">{$_('about_text1')}</p>
       <p class="about-text">{$_('about_text2')}: <a href="https://github.com/spuithori/tokimekibluesky" target="_blank" rel="noopener">GitHub</a></p>
 
+      <div class="about-tour">
+        <div class="about-tour__icon"><Compass size={22} color="var(--primary-color)" /></div>
+        <div class="about-tour__text">
+          <h3 class="about-tour__title">{$_('tour_replay')}</h3>
+          <p class="about-tour__description">{$_('tour_replay_description')}</p>
+        </div>
+        <button class="button button--ssl" onclick={replayTour}>{$_('tour_replay_button')}</button>
+      </div>
+
       <div class="about-author">
         <h3 class="about-title">{$_('author')}</h3>
 
@@ -93,6 +110,47 @@
 </div>
 
 <style lang="postcss">
+    .about-tour {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        border-radius: var(--border-radius-4);
+        background-color: var(--bg-color-2);
+        margin-bottom: 24px;
+
+        @media (max-width: 767px) {
+            flex-wrap: wrap;
+        }
+
+        &__icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background-color: color-mix(in srgb, var(--primary-color) 14%, var(--bg-color-1));
+            flex-shrink: 0;
+        }
+
+        &__text {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        &__title {
+            font-size: 15px;
+            margin: 0 0 2px;
+        }
+
+        &__description {
+            font-size: 13px;
+            color: var(--text-color-3);
+            margin: 0;
+            line-height: 1.6;
+        }
+    }
+
     .about-subhead {
         font-weight: 900;
         font-size: 18px;

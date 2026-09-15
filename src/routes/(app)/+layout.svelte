@@ -34,10 +34,10 @@
     import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
     import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
     import { isMobile } from "$lib/detectDevice";
-    import WelcomeModal from "$lib/components/utils/WelcomeModal.svelte";
     import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
     import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
-    import { initColumns } from "$lib/classes/columnState.svelte";
+    import { getColumnState, initColumns } from "$lib/classes/columnState.svelte";
+    import { onboardingState } from "$lib/onboarding/onboardingState.svelte";
     import { on } from "svelte/events";
     import { sideState } from "$lib/classes/sideState.svelte";
     import TokBackground from "$lib/components/utils/TokBackground.svelte";
@@ -77,7 +77,6 @@
 
     let app = $state();
     let baseColor = $state("#fff");
-    let isRepeater = $state(localStorage.getItem("isRepeater") === "true");
     let preferredDarkMode = $state(
         window.matchMedia("(prefers-color-scheme: dark)").matches,
     );
@@ -215,6 +214,18 @@
     viewPortSetting();
     setPostState();
     initColumns();
+
+    const columnState = getColumnState();
+    const wizardVisible = $derived(
+        onboardingState.wizardActive ||
+        (
+            appState.ready &&
+            columnState.isColumnsLoaded &&
+            !columnState.loadFailed &&
+            columnState.columns.length === 0 &&
+            !settingsStore.onboarding.completed
+        ),
+    );
 
     const savedScrollPositions = new Map<
         string,
@@ -406,8 +417,16 @@
                 <BluefeedAddObserver></BluefeedAddObserver>
             {/if}
 
-            {#if !isRepeater}
-                <WelcomeModal onclose={() => (isRepeater = true)}></WelcomeModal>
+            {#if wizardVisible}
+                {#await import("$lib/onboarding/OnboardingWizard.svelte") then { default: OnboardingWizard }}
+                    <OnboardingWizard></OnboardingWizard>
+                {/await}
+            {/if}
+
+            {#if onboardingState.tourOpen}
+                {#await import("$lib/onboarding/Tour.svelte") then { default: Tour }}
+                    <Tour></Tour>
+                {/await}
             {/if}
 
             {#if shortcutManager.helpOpen}

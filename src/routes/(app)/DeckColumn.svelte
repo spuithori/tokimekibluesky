@@ -437,7 +437,7 @@
         <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
     {/snippet}
 
-    <div class="deck-heading" class:deck-heading--sticky={isJunk && column?.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk}>
+    <div class="deck-heading" class:deck-heading--sticky={isJunk && column?.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk} data-tour={!isJunk && index === 0 ? 'column-header' : undefined}>
         {#if (!isJunk)}
             {#if showDragHandle}
                 <div class="deck-drag-area">

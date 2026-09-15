@@ -141,6 +141,15 @@ export interface KeyboardSettings {
     bindings: Record<string, string[]>;
 }
 
+export interface OnboardingSettings {
+    completed: boolean;
+    tourSeen: boolean;
+}
+
+export interface ColumnCatalogSettings {
+    collapsed: string[];
+}
+
 export interface Settings {
     general: GeneralSettings;
     design: DesignSettings;
@@ -148,6 +157,8 @@ export interface Settings {
     moderation: ModerationSettings;
     embed: EmbedSettings;
     keyboard: KeyboardSettings;
+    onboarding: OnboardingSettings;
+    columnCatalog: ColumnCatalogSettings;
     langFilter: string[];
     version: number;
 }

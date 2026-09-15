@@ -227,4 +227,20 @@ describe('migrate', () => {
             { did: 'did:plc:ok', labels: { 'custom-x': 'warn', spam: 'hide' } },
         ]);
     });
+
+    it('folds the legacy isRepeater flag into onboarding.completed (v6 -> v7)', () => {
+        const result = migrate({ version: 6 }, { isRepeater: 'true' });
+        expect(result.onboarding).toEqual({ completed: true, tourSeen: false });
+    });
+
+    it('leaves onboarding incomplete when isRepeater is absent (v6 -> v7)', () => {
+        const result = migrate({ version: 6 });
+        expect(result.onboarding.completed).toBe(false);
+        expect(result.columnCatalog.collapsed).toEqual(['merge', 'atmosphere', 'local']);
+    });
+
+    it('does not re-fold isRepeater once already at v7', () => {
+        const result = migrate({ version: 7, onboarding: { completed: false, tourSeen: true } }, { isRepeater: 'true' });
+        expect(result.onboarding).toEqual({ completed: false, tourSeen: true });
+    });
 });

@@ -1,37 +1,25 @@
 <script lang="ts">
     import {_} from 'tokimeki-i18n';
-    import {agents} from '$lib/stores';
-    import { toast } from "svelte-sonner";
-    import { liveQuery } from 'dexie';
-    import {accountsDb, db} from '$lib/db';
-    import BookmarkObserver from "$lib/components/bookmark/BookmarkObserver.svelte";
-    import ListObserver from "$lib/components/list/ListObserver.svelte";
-    import ColumnChoices from "$lib/components/column/ColumnChoices.svelte";
+    import {agents, currentTimeline, settings} from '$lib/stores';
+    import { tick } from 'svelte';
+    import {accountsDb} from '$lib/db';
     import AgentsSelector from "$lib/components/acp/AgentsSelector.svelte";
-    import OfficialListObserver from "$lib/components/list/OfficialListObserver.svelte";
-    import CloudBookmarkObserver from "$lib/components/bookmark/CloudBookmarkObserver.svelte";
-    import CloudListObserver from "$lib/components/list/CloudListObserver.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {slotIndexOfColumn} from "$lib/classes/deckLayout";
     import Modal from "$lib/components/ui/Modal.svelte";
-    import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
-    import LayoutGrid from '@lucide/svelte/icons/layout-grid';
-    import Pin from '@lucide/svelte/icons/pin';
-    import Combine from '@lucide/svelte/icons/combine';
-    import ColumnChoicesPinned from "$lib/components/column/ColumnChoicesPinned.svelte";
-    import ColumnChoicesMerge from "$lib/components/column/ColumnChoicesMerge.svelte";
-    import ColumnList from "$lib/components/column/ColumnList.svelte";
+    import ColumnCatalog from "$lib/components/column/catalog/ColumnCatalog.svelte";
     import {appState} from "$lib/classes/appState.svelte";
+    import {isMobileViewport} from "$lib/viewportQuery.svelte";
+    import type {Column} from "$lib/types/column";
 
     let { onclose } = $props();
 
     const columns = getColumnState();
     let profileId = appState.profile.current;
 
-    let bookmarks = liveQuery(() => db.bookmarks.toArray());
-    let currentAccount = $state();
-    let profile = $state();
-    let unique = $state(Symbol());
-    let currentTab: 'all' | 'pinned' | 'merge' | 'list' = $state('all');
+    let currentAccount = $state<number | undefined>();
+    let addedIds = $state<string[]>([]);
+    const lastAdded = $derived(addedIds.length ? columns.columns.find(column => column.id === addedIds[addedIds.length - 1]) : undefined);
 
     accountsDb.profiles.get(profileId)
         .then(value => {
@@ -39,178 +27,122 @@
                 return false;
             }
 
-            profile = value;
-            currentAccount = profile.primary;
+            currentAccount = value.primary ?? undefined;
         });
 
-    async function save(isClose = true) {
-        try {
-            onclose();
-        } catch (e) {
-            console.error(e);
-            toast.error('Error: ' + e);
+    async function revealLastAdded() {
+        if (!lastAdded) {
+            return;
         }
-    }
-
-    function handleBookmarkClose(clear: boolean, id) {
-        if (clear) {
-            columns.columns
-                .filter(_column => _column.algorithm.type === 'bookmark' && Number(_column.algorithm.algorithm) === id)
-                .forEach(_column => columns.remove(_column.id));
+        const id = lastAdded.id;
+        const slotIndex = slotIndexOfColumn(columns.slots, id);
+        if ($settings.design.layout !== 'decks') {
+            if (slotIndex !== -1) {
+                currentTimeline.set(slotIndex);
+            }
+            return;
         }
+        await tick();
+        requestAnimationFrame(() => {
+            const el = document.querySelector<HTMLElement>(`[data-flip-id="${CSS.escape(id)}"]`);
+            el?.scrollIntoView({ inline: 'center', behavior: 'smooth' });
+        });
     }
 
-    function handleCloudBookmarkClose(clear: boolean, id: number) {
-        unique = Symbol();
+    function close() {
+        onclose();
+        revealLastAdded();
     }
 
-    function handleCloudListClose(clear: boolean, id: number) {
-        if (clear && id) {
-            columns.columns
-                .filter(_column => _column.algorithm.type === 'cloudList' && Number(_column.algorithm.algorithm) === Number(id))
-                .forEach(_column => columns.remove(_column.id));
-        }
-        unique = Symbol();
+    function handleSelect(selected: { id: number | string }) {
+        currentAccount = Number(selected.id);
     }
 
-    function handleListClose(id) {
-        if (id) {
-            columns.columns
-                .filter(_column => _column.algorithm.type === 'list' && _column.algorithm.algorithm === id)
-                .forEach(_column => columns.remove(_column.id));
-        }
-    }
-
-    function handleOfficialListClose() {
-        unique = Symbol();
-    }
-
-    function handleSelect(selected) {
-        currentAccount = selected.id;
-    }
-
-    function handleColumnAdd(column) {
-        try {
-            let addedColumn = structuredClone($state.snapshot(column));
-            columns.add({
-                ...addedColumn,
-                id: self.crypto.randomUUID(),
-            });
-
-            toast.success($_('column_add_success'));
-            // save(false);
-        } catch (e) {
-            console.log(e);
-        }
+    function handleColumnAdd(column: Column) {
+        const id = self.crypto.randomUUID();
+        columns.add({
+            ...column,
+            id,
+        });
+        addedIds = [...addedIds, id];
     }
 </script>
 
 {#if ($agents.size > 0)}
-    <Modal title={$_('column_settings')} onclose={save}>
-        {#if (profile && currentAccount)}
+    <Modal title={$_('column_settings')} onclose={close} sheet={true}>
+        {#if (currentAccount && $agents.size > 1)}
             <div class="column-modal-account">
                 <AgentsSelector _agent={$agents.get(currentAccount)} onselect={handleSelect}></AgentsSelector>
             </div>
         {/if}
 
-        <div class="column-modal-tabs">
-            <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'all'} onclick={() => {currentTab = 'all'}}>
-                <LayoutGrid size="18"></LayoutGrid>
-                {$_('all')}
-            </button>
-
-            <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'pinned'} onclick={() => {currentTab = 'pinned'}}>
-                <Pin size="18"></Pin>
-                {$_('pinned_feed')}
-            </button>
-
-            <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'merge'} onclick={() => {currentTab = 'merge'}}>
-                <Combine size="18"></Combine>
-                {$_('merge_timeline')}
-            </button>
-
-            <button class="column-modal-tab" class:column-modal-tab--current={currentTab === 'list'} onclick={() => {currentTab = 'list'}}>
-                <ArrowUpDown size="18"></ArrowUpDown>
-                {$_('columns_reorder')}
-            </button>
-        </div>
-
-        <div class="column-group-wrap">
+        {#if currentAccount && $agents.get(currentAccount)}
             {#key currentAccount}
-                {#key unique}
-                    {#if (currentTab === 'all')}
-                        <div class="column-group">
-                            <ColumnChoices _agent={$agents.get(currentAccount)} onadd={handleColumnAdd}></ColumnChoices>
-                        </div>
-                    {:else if (currentTab === 'pinned')}
-                        <div class="column-group column-group--single">
-                            <ColumnChoicesPinned _agent={$agents.get(currentAccount)} onadd={handleColumnAdd}></ColumnChoicesPinned>
-                        </div>
-                    {:else if (currentTab === 'merge')}
-                        <div class="column-group column-group--single">
-                            <ColumnChoicesMerge _agent={$agents.get(currentAccount)} onadd={handleColumnAdd}></ColumnChoicesMerge>
-                        </div>
-                    {:else if (currentTab === 'list')}
-                        <div class="column-group column-group--single">
-                            <ColumnList items={columns.columns}></ColumnList>
-                        </div>
-                    {/if}
-                {/key}
+                <ColumnCatalog _agent={$agents.get(currentAccount)} onadd={handleColumnAdd} autofocus={!isMobileViewport.current}></ColumnCatalog>
             {/key}
-        </div>
-    </Modal>
+        {/if}
 
-    <BookmarkObserver close={handleBookmarkClose} _agent={$agents.get(currentAccount)}></BookmarkObserver>
-    <CloudBookmarkObserver close={handleCloudBookmarkClose} _agent={$agents.get(currentAccount)}></CloudBookmarkObserver>
-    <CloudListObserver close={handleCloudListClose} _agent={$agents.get(currentAccount)}></CloudListObserver>
-    <ListObserver onclose={handleListClose} _agent={$agents.get(currentAccount)}></ListObserver>
-    <OfficialListObserver _agent={$agents.get(currentAccount)} onclose={handleOfficialListClose}></OfficialListObserver>
+        {#snippet footer()}
+            <div class="column-modal-footer">
+                <p class="column-modal-footer__status" aria-live="polite">
+                    {#if addedIds.length}
+                        <span class="column-modal-footer__count">{$_('catalog_added_count', { count: addedIds.length })}</span>
+                        {#if lastAdded}
+                            <span class="column-modal-footer__last">{lastAdded.algorithm.name}</span>
+                        {/if}
+                    {:else}
+                        <span class="column-modal-footer__hint">{$_('catalog_footer_hint')}</span>
+                    {/if}
+                </p>
+
+                <button class="button button--ssl" onclick={close}>
+                    {addedIds.length ? $_('catalog_done') : $_('close')}
+                </button>
+            </div>
+        {/snippet}
+    </Modal>
 {/if}
 
 <style lang="postcss">
-    .column-group {
-        margin-top: 30px;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+    .column-modal-account {
+        margin-bottom: 16px;
+    }
 
-        &--single {
-            grid-template-columns: 1fr;
-        }
+    .column-modal-footer {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .column-modal-footer__status {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        font-size: 13px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        overflow: hidden;
+    }
+
+    .column-modal-footer__count {
+        font-weight: 700;
+        color: var(--text-color-1);
+        white-space: nowrap;
+    }
+
+    .column-modal-footer__last {
+        color: var(--text-color-3);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .column-modal-footer__hint {
+        color: var(--text-color-3);
 
         @media (max-width: 767px) {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .column-group-wrap {
-        position: relative;
-    }
-
-    .column-modal-tabs {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 16px;
-    }
-
-    .column-modal-tab {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        padding: 0 8px;
-        height: 40px;
-        border: 2px solid var(--border-color-2);
-        border-radius: var(--border-radius-2);
-        color: var(--text-color-3);
-        font-weight: bold;
-        font-size: 14px;
-
-        &--current {
-            border-color: var(--primary-color);
-            color: var(--text-color-1);
+            display: none;
         }
     }
 </style>
