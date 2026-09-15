@@ -69,7 +69,7 @@
 </script>
 
 {#if ($agents.size > 0)}
-    <Modal title={$_('column_settings')} onclose={close} sheet={true}>
+    <Modal title={$_('column_settings')} onclose={close}>
         {#if (currentAccount && $agents.size > 1)}
             <div class="column-modal-account">
                 <AgentsSelector _agent={$agents.get(currentAccount)} onselect={handleSelect}></AgentsSelector>

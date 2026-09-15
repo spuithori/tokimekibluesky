@@ -417,6 +417,7 @@
         font-weight: 700;
         color: var(--primary-color);
         padding: 4px 8px;
+        white-space: nowrap;
         border-radius: var(--border-radius-3);
         transition: background-color .15s ease;
 

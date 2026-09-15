@@ -4,7 +4,7 @@
   import { _ } from 'tokimeki-i18n';
   import { scale } from 'svelte/transition';
 
-  let { title, size = 'normal', sheet = false, onclose, onback = undefined, children, footer = undefined } = $props();
+  let { title, size = 'normal', onclose, onback = undefined, children, footer = undefined } = $props();
   const duration = 150;
   let el = $state();
 
@@ -27,9 +27,8 @@
 
 <dialog
   class="v2-modal v2-modal--{size}"
-  class:v2-modal--sheet={sheet}
   bind:this={el}
-  in:scale={{duration: sheet && window.matchMedia?.('(max-width: 767px)').matches ? 0 : 250, opacity: 0, start: 0.98}}
+  in:scale={{duration: 250, opacity: 0, start: 0.98}}
   onclick={handleClick}
   {onclose}
 >
@@ -101,21 +100,6 @@
       @media (max-width: 767px) {
           display: block;
           overscroll-behavior-y: none;
-      }
-
-      &--sheet {
-          @media (max-width: 767px) {
-              margin: auto 0 0;
-              width: 100vw;
-              max-width: 100vw;
-              max-height: 92dvh;
-              border-radius: var(--border-radius-6) var(--border-radius-6) 0 0;
-              animation: v2-modal-sheet-in .32s cubic-bezier(.22, 1, .36, 1);
-
-              .v2-modal__inner {
-                  max-height: 92dvh;
-              }
-          }
       }
 
       &__inner {
@@ -198,23 +182,6 @@
       left: 0;
       display: grid;
       place-content: center;
-  }
-
-  @keyframes v2-modal-sheet-in {
-      from {
-          transform: translateY(24px);
-          opacity: 0;
-      }
-      to {
-          transform: none;
-          opacity: 1;
-      }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-      .v2-modal--sheet {
-          animation: none;
-      }
   }
 
   .modal-close-button {

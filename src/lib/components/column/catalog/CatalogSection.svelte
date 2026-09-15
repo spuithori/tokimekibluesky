@@ -67,6 +67,7 @@
 
     .catalog-section__head {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 4px;
         padding: 4px 0;
@@ -83,6 +84,7 @@
         font-weight: 700;
         font-size: 14px;
         letter-spacing: .02em;
+        white-space: nowrap;
         transition: background-color .15s ease;
 
         &:hover {
@@ -136,6 +138,8 @@
     .catalog-section__actions {
         margin-left: auto;
         display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
         align-items: center;
         gap: 4px;
     }
