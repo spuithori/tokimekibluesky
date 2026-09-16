@@ -244,3 +244,26 @@ describe('migrate', () => {
         expect(result.onboarding).toEqual({ completed: false, tourSeen: true });
     });
 });
+
+describe('v7 -> v8 support prompt seeding', () => {
+    it('marks any pre-existing settings payload as qualified so users from before the deploy see the prompt once', () => {
+        const result = migrate({ version: 7, onboarding: { completed: true, tourSeen: true } });
+        expect(result.support).toEqual({
+            dismissed: false,
+            qualified: true,
+            firstActiveDay: '',
+            lastActiveDay: '',
+            activeDays: 0,
+        });
+    });
+
+    it('leaves a brand-new install unqualified', () => {
+        expect(migrate(undefined).support.qualified).toBe(false);
+    });
+
+    it('keeps a v8 payload untouched', () => {
+        const result = migrate({ version: 8, support: { dismissed: true, qualified: true, activeDays: 3 } });
+        expect(result.support.dismissed).toBe(true);
+        expect(result.support.activeDays).toBe(3);
+    });
+});

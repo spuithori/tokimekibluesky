@@ -150,6 +150,14 @@ export interface ColumnCatalogSettings {
     collapsed: string[];
 }
 
+export interface SupportSettings {
+    dismissed: boolean;
+    qualified: boolean;
+    firstActiveDay: string;
+    lastActiveDay: string;
+    activeDays: number;
+}
+
 export interface Settings {
     general: GeneralSettings;
     design: DesignSettings;
@@ -159,6 +167,7 @@ export interface Settings {
     keyboard: KeyboardSettings;
     onboarding: OnboardingSettings;
     columnCatalog: ColumnCatalogSettings;
+    support: SupportSettings;
     langFilter: string[];
     version: number;
 }

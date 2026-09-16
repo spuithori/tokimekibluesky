@@ -1409,5 +1409,11 @@
     "login_feature_keyboard": "Keyboard shortcuts",
     "login_feature_themes": "Colorful themes",
     "login_front_lead_before": "TOKIMEKI is a lightweight, full-featured ",
-    "login_front_lead_after": " client you can arrange to fit the way you use it."
+    "login_front_lead_after": " client you can arrange to fit the way you use it.",
+    "support_prompt_title": "Support TOKIMEKI",
+    "support_prompt_body": "We'd be grateful for your support toward server costs and future development!",
+    "support_prompt_cta": "Support on FANBOX",
+    "support_prompt_note": "This banner also appears for existing supporters.",
+    "support_banner_lead": "Help fund hosting and development",
+    "support_banner_title": "Support us"
 }

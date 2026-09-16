@@ -1409,5 +1409,11 @@
     "login_feature_keyboard": "ショートカットキー",
     "login_feature_themes": "多彩なテーマ",
     "login_front_lead_before": "TOKIMEKIは、",
-    "login_front_lead_after": "を自分の使い方に合わせて組み立てられる軽量・高機能クライアントです。"
+    "login_front_lead_after": "を自分の使い方に合わせて組み立てられる軽量・高機能クライアントです。",
+    "support_prompt_title": "TOKIMEKIを支援する",
+    "support_prompt_body": "サーバー維持費と、これからの開発を支援していただけると嬉しいです！",
+    "support_prompt_cta": "FANBOXで支援する",
+    "support_prompt_note": "※支援中のかたにもこのバナーが表示されてしまいます。",
+    "support_banner_lead": "サーバー費と開発にご支援ください！",
+    "support_banner_title": "TOKIMEKIを支援"
 }

@@ -32,7 +32,7 @@ export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 8;
 
 function detectLanguage(): string {
     return typeof navigator !== 'undefined' && navigator.language ? navigator.language : 'en';
@@ -152,6 +152,13 @@ export function createDefaultSettings(): Settings {
         },
         columnCatalog: {
             collapsed: ['merge', 'atmosphere', 'local'],
+        },
+        support: {
+            dismissed: false,
+            qualified: false,
+            firstActiveDay: '',
+            lastActiveDay: '',
+            activeDays: 0,
         },
         langFilter: [],
         version: CURRENT_VERSION,

@@ -78,6 +78,9 @@ class SettingsStore {
     get columnCatalog() {
         return this.#data.columnCatalog;
     }
+    get support() {
+        return this.#data.support;
+    }
     get langFilter() {
         return this.#data.langFilter;
     }

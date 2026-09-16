@@ -91,6 +91,16 @@
     }
 </script>
 
+{#snippet supportBanner()}
+  <a class="support-banner" href="/settings/support" onclick={onclose}>
+    <img class="support-banner__logo" src="/favicon.png" alt="" width="32" height="32" decoding="async">
+    <div class="support-banner__body">
+      <p class="support-banner__title">{$_('support_banner_title')}</p>
+      <p class="support-banner__lead">{$_('support_banner_lead')}</p>
+    </div>
+  </a>
+{/snippet}
+
 {#snippet appsBanner()}
   <a class="apps-banner" href="/atmosphere" onclick={onclose}>
     <div class="apps-banner__fan">
@@ -130,6 +140,7 @@
 
     <div class="only-mobile">
       {@render appsBanner()}
+      {@render supportBanner()}
     </div>
 
     <ul class="side-items-list">
@@ -249,6 +260,7 @@
 
     <div class="side-menu-item">
       {@render appsBanner()}
+      {@render supportBanner()}
     </div>
   </div>
 </dialog>
@@ -493,6 +505,79 @@
           gap: 2px;
           font-size: 12px;
           font-weight: bold;
+
+          @media (max-width: 767px) {
+              display: none;
+          }
+      }
+  }
+
+  .support-banner {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 9px;
+      width: 168px;
+      margin-top: 12px;
+      padding: 10px 12px 10px 10px;
+      border-radius: var(--border-radius-4);
+      background:
+          radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, #ffa3b2 40%, transparent), transparent 60%),
+          radial-gradient(100% 120% at 0% 100%, color-mix(in srgb, #75c0e5 44%, transparent), transparent 62%),
+          linear-gradient(180deg, color-mix(in srgb, #caecee 50%, var(--bg-color-1)), var(--bg-color-1));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-color-1) 8%, transparent);
+      color: var(--text-color-1);
+      text-decoration: none;
+      transition: box-shadow .15s ease;
+
+      @media (max-width: 767px) {
+          gap: 10px;
+          width: 180px;
+          min-height: 46px;
+          margin: 12px 0 0;
+          padding: 8px 10px 8px 12px;
+      }
+
+      &:hover {
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-color-1) 8%, transparent), 0 4px 12px var(--box-shadow-color-1);
+      }
+
+      &__logo {
+          width: 30px;
+          height: 30px;
+          border-radius: 8px;
+          box-shadow: 0 2px 6px color-mix(in srgb, #923ec9 24%, transparent);
+
+          @media (max-width: 767px) {
+              width: 22px;
+              height: 22px;
+              border-radius: 6px;
+          }
+      }
+
+      &__body {
+          min-width: 0;
+      }
+
+      &__title {
+          font-size: 12.5px;
+          font-weight: bold;
+          line-height: 1.2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          @media (max-width: 767px) {
+              font-size: 13px;
+          }
+      }
+
+      &__lead {
+          margin: 3px 0 0;
+          font-size: 11px;
+          line-height: 1.4;
+          color: var(--text-color-2);
+          text-wrap: pretty;
 
           @media (max-width: 767px) {
               display: none;

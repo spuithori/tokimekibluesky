@@ -154,5 +154,10 @@ export function migrate(
         stored.version = 7;
     }
 
+    if (stored.version < 8) {
+        stored.support = { qualified: true };
+        stored.version = 8;
+    }
+
     return deepMerge(defaults, stored);
 }

@@ -43,6 +43,8 @@
     import TokBackground from "$lib/components/utils/TokBackground.svelte";
     import UpdateBanner from "$lib/components/utils/UpdateBanner.svelte";
     import BskyStatusBanner from "$lib/components/utils/BskyStatusBanner.svelte";
+    import SupportPrompt from "$lib/components/utils/SupportPrompt.svelte";
+    import { supportPromptState } from "$lib/support/supportPromptState.svelte";
     import { bskyStatusState } from "$lib/classes/bskyStatusState.svelte";
     import { setPostState } from "$lib/classes/postState.svelte";
     import { imageState } from "$lib/classes/imageState.svelte";
@@ -310,6 +312,7 @@
             return;
         }
         bskyStatusState.boot();
+        supportPromptState.boot();
 
         return on(document, "visibilitychange", () => {
             if (!document.hidden) {
@@ -461,6 +464,10 @@
 
     {#if bskyStatusState.isVisible}
         <BskyStatusBanner></BskyStatusBanner>
+    {/if}
+
+    {#if appState.ready && supportPromptState.isDue && !wizardVisible && !onboardingState.tourOpen}
+        <SupportPrompt></SupportPrompt>
     {/if}
 
     {#if sideState.isTokStart}
