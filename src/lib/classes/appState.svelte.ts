@@ -6,6 +6,7 @@ import {goto} from '$app/navigation';
 import { PersistedState } from "runed";
 import { t } from 'tokimeki-i18n';
 import { recordError } from '$lib/errorLog';
+import { TOKIMEKI_LABELER_DID, withAppLabelers } from '$lib/support/supporterLabels';
 
 export interface AccountResumeStatus {
     phase: ResumePhase;
@@ -25,8 +26,8 @@ class AppState {
     resumeStatus: Record<string, AccountResumeStatus> = $state({});
     resumePrimaryDid: string = $state('');
     bootError: { name: string; message: string } | null = $state(null);
-    labelDefs = new PersistedState('labelDefs', []);
-    subscribedLabelers = new PersistedState('subscribedLabelers', ['did:plc:ar7c4by46qjdydhdevvrndac']);
+    labelDefs = new PersistedState<Record<string, any[]>>('labelDefs', {});
+    subscribedLabelers = new PersistedState('subscribedLabelers', withAppLabelers(['did:plc:ar7c4by46qjdydhdevvrndac']));
     singleColumnScrollPositions: Map<number, number> = new Map();
 
     private hasBooted = false;
@@ -259,8 +260,13 @@ class AppState {
         this.shellReady = true;
         this.ready = true;
 
-        if (!Object.keys(this.labelDefs.current).length) {
-            primaryAgent.getLabelDefinitions(this.subscribedLabelers.current)
+        const labelers = withAppLabelers(this.subscribedLabelers.current);
+        if (labelers.length !== this.subscribedLabelers.current.length) {
+            this.subscribedLabelers.current = labelers;
+        }
+
+        if (!Object.keys(this.labelDefs.current).length || !this.labelDefs.current[TOKIMEKI_LABELER_DID]) {
+            primaryAgent.getLabelDefinitions(labelers)
                 .then(defs => { this.labelDefs.current = defs; })
                 .catch(e => { console.error(e); });
         }

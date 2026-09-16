@@ -3,6 +3,7 @@
   import {settingsStore} from "$lib/settings/settings.svelte";
   import {_} from "tokimeki-i18n";
   import {appState} from "$lib/classes/appState.svelte";
+  import {TOKIMEKI_LABELER_DID} from "$lib/support/supporterLabels";
 
   interface Props {
     did: any;
@@ -49,7 +50,7 @@
   });
 </script>
 
-{#if (did !== 'did:plc:ar7c4by46qjdydhdevvrndac')}
+{#if (did !== 'did:plc:ar7c4by46qjdydhdevvrndac' && did !== TOKIMEKI_LABELER_DID)}
   {#if (subscribed)}
     <button class="button button--{size} button--following" onclick={unsubscribe} data-unfollow-name="{$_('label_unsubscribe')}">{$_('label_unsubscribe')}</button>
   {:else}

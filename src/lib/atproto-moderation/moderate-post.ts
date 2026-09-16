@@ -112,6 +112,10 @@ function decideBlockedQuotedPost(
 	return acc;
 }
 
+export function moderateProfile(profile: any, opts: ModerationOpts): ModerationDecision {
+	return ModerationDecision.merge(decideAccount(profile, opts), decideProfile(profile, opts));
+}
+
 function decideAccount(author: any, opts: ModerationOpts): ModerationDecision {
 	const acc = new ModerationDecision();
 	if (!author) return acc;

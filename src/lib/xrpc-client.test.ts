@@ -54,6 +54,6 @@ describe('XrpcClient atproto-proxy', () => {
 		client.configureLabelers(['did:plc:labeler']);
 		await client.get('app.bsky.feed.getTimeline');
 		expect(captured[0]['atproto-proxy']).toBe(BSKY_APPVIEW_PROXY);
-		expect(captured[0]['atproto-accept-labelers']).toBe('did:plc:labeler;redact');
+		expect(captured[0]['atproto-accept-labelers']).toBe('did:plc:labeler;redact, did:plc:45scnhbnhc6zm4vn4br4q3wp;redact');
 	});
 });

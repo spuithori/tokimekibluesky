@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate } from './migrations';
-import { createDefaultSettings, CURRENT_VERSION, DEFAULT_LABELER_SETTINGS } from './defaults';
+import { createDefaultSettings, CURRENT_VERSION, DEFAULT_LABELER_SETTINGS, TOKIMEKI_LABELER_SETTINGS } from './defaults';
 
 describe('migrate', () => {
     it('returns fresh defaults for non-object input', () => {
@@ -180,7 +180,7 @@ describe('migrate', () => {
     it('folds legacy labelerSettings into moderation (v5 -> v6)', () => {
         const result = migrate({ version: 5 }, { labelerSettings: [sampleLabeler] });
         expect(result.version).toBe(CURRENT_VERSION);
-        expect(result.moderation.labelers).toEqual([sampleLabeler]);
+        expect(result.moderation.labelers).toEqual([sampleLabeler, TOKIMEKI_LABELER_SETTINGS]);
     });
 
 
@@ -196,7 +196,7 @@ describe('migrate', () => {
         );
         expect(result.moderation.contentLabels.porn).toBe('hide');
         expect(result.moderation.keywordMutes).toEqual([sampleMute]);
-        expect(result.moderation.labelers).toEqual([sampleLabeler]);
+        expect(result.moderation.labelers).toEqual([sampleLabeler, TOKIMEKI_LABELER_SETTINGS]);
     });
 
     it('is idempotent on a v6 payload', () => {
@@ -211,7 +211,7 @@ describe('migrate', () => {
             { version: 6, moderation: { labelers: kept } },
             { labelerSettings: [{ ...sampleLabeler, did: 'did:plc:incoming' }] },
         );
-        expect(result.moderation.labelers).toEqual(kept);
+        expect(result.moderation.labelers).toEqual([...kept, TOKIMEKI_LABELER_SETTINGS]);
     });
 
     it('normalizes folded labelerSettings (drops malformed entries and out-of-range values, keeps custom keys)', () => {
@@ -225,6 +225,7 @@ describe('migrate', () => {
         });
         expect(result.moderation.labelers).toEqual([
             { did: 'did:plc:ok', labels: { 'custom-x': 'warn', spam: 'hide' } },
+            TOKIMEKI_LABELER_SETTINGS,
         ]);
     });
 
@@ -254,6 +255,8 @@ describe('v7 -> v8 support prompt seeding', () => {
             firstActiveDay: '',
             lastActiveDay: '',
             activeDays: 0,
+            plan: '',
+            planCheckedDay: '',
         });
     });
 
@@ -265,5 +268,26 @@ describe('v7 -> v8 support prompt seeding', () => {
         const result = migrate({ version: 8, support: { dismissed: true, qualified: true, activeDays: 3 } });
         expect(result.support.dismissed).toBe(true);
         expect(result.support.activeDays).toBe(3);
+    });
+});
+
+describe('v8 -> v9 TOKIMEKI labeler preference seeding', () => {
+    it('appends the TOKIMEKI labeler to an existing labeler list without touching other entries', () => {
+        const result = migrate({ version: 8, moderation: { labelers: [{ did: 'did:plc:other', labels: { spam: 'hide' } }] } });
+        expect(result.moderation.labelers).toEqual([
+            { did: 'did:plc:other', labels: { spam: 'hide' } },
+            TOKIMEKI_LABELER_SETTINGS,
+        ]);
+    });
+
+    it('does not duplicate an entry that is already there', () => {
+        const custom = { did: TOKIMEKI_LABELER_SETTINGS.did, labels: { supporter: 'ignore' } };
+        const result = migrate({ version: 8, moderation: { labelers: [custom] } });
+        expect(result.moderation.labelers).toEqual([custom]);
+    });
+
+    it('falls back to defaults (which include the TOKIMEKI labeler) when no list is stored', () => {
+        const result = migrate({ version: 8 });
+        expect(result.moderation.labelers.some((labeler) => labeler.did === TOKIMEKI_LABELER_SETTINGS.did)).toBe(true);
     });
 });

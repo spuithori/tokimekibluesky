@@ -156,6 +156,8 @@ export interface SupportSettings {
     firstActiveDay: string;
     lastActiveDay: string;
     activeDays: number;
+    plan: string;
+    planCheckedDay: string;
 }
 
 export interface Settings {

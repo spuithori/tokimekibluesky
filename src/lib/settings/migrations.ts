@@ -1,6 +1,7 @@
 import type { Settings } from './types';
 import { createDefaultSettings } from './defaults';
 import { oldThemeConvert } from '$lib/builtInThemes';
+import { TOKIMEKI_LABELER_SETTINGS } from './defaults';
 
 /**
  * Pure (DOM/localStorage-free) settings migration. Brings an arbitrary stored
@@ -157,6 +158,17 @@ export function migrate(
     if (stored.version < 8) {
         stored.support = { qualified: true };
         stored.version = 8;
+    }
+
+    if (stored.version < 9) {
+        const moderation = isPlainObject(stored.moderation) ? (stored.moderation as Record<string, any>) : undefined;
+        if (moderation && Array.isArray(moderation.labelers)) {
+            const present = moderation.labelers.some((entry: unknown) => isPlainObject(entry) && entry.did === TOKIMEKI_LABELER_SETTINGS.did);
+            if (!present) {
+                moderation.labelers = [...moderation.labelers, structuredClone(TOKIMEKI_LABELER_SETTINGS)];
+            }
+        }
+        stored.version = 9;
     }
 
     return deepMerge(defaults, stored);

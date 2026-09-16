@@ -1,6 +1,12 @@
 import type { Settings, LabelerPreference } from './types';
 import { defaultReactionButtons } from '$lib/defaultSettings';
 import { isSafariOrFirefox } from '$lib/util';
+import { SUPPORTER_PLANS, TOKIMEKI_LABELER_DID } from '$lib/support/supporterLabels';
+
+export const TOKIMEKI_LABELER_SETTINGS: LabelerPreference = {
+    did: TOKIMEKI_LABELER_DID,
+    labels: Object.fromEntries(SUPPORTER_PLANS.map((plan) => [plan.id, 'warn' as const])),
+};
 
 export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
     {
@@ -26,13 +32,14 @@ export const DEFAULT_LABELER_SETTINGS: LabelerPreference[] = [
             'sexual-figurative': 'warn',
         },
     },
+    TOKIMEKI_LABELER_SETTINGS,
 ];
 
 /**
  * Current settings schema version. Migrations (migrations.ts) bring older
  * stored payloads up to this version before deep-merging against the defaults.
  */
-export const CURRENT_VERSION = 8;
+export const CURRENT_VERSION = 9;
 
 function detectLanguage(): string {
     return typeof navigator !== 'undefined' && navigator.language ? navigator.language : 'en';
@@ -159,6 +166,8 @@ export function createDefaultSettings(): Settings {
             firstActiveDay: '',
             lastActiveDay: '',
             activeDays: 0,
+            plan: '',
+            planCheckedDay: '',
         },
         langFilter: [],
         version: CURRENT_VERSION,

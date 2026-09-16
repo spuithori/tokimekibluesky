@@ -1,4 +1,4 @@
-import {moderatePost} from '$lib/atproto-moderation';
+import {moderatePost, moderateProfile} from '$lib/atproto-moderation';
 import type {ModerationOpts} from '$lib/atproto-moderation';
 import type {KeywordMute} from '$lib/settings/types';
 import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
@@ -44,7 +44,7 @@ export const defaultKeywordMute: KeywordMute = {
     regExp: false,
 }
 
-export function contentLabelling(post, did, settings, labelDefs) {
+function buildModerationOpts(did: any, settings: any, labelDefs: any): ModerationOpts {
     let labels = settings.moderation?.contentLabels || {
         porn: 'warn',
         sexual: 'warn',
@@ -54,7 +54,7 @@ export function contentLabelling(post, did, settings, labelDefs) {
     labels['!warn'] = 'warn';
     labels.spoiler = 'warn';
 
-    const options: ModerationOpts = {
+    return {
         userDid: did,
         prefs: {
             adultContentEnabled: true,
@@ -64,9 +64,15 @@ export function contentLabelling(post, did, settings, labelDefs) {
             labels: labels,
         },
         labelDefs: labelDefs,
-    }
+    };
+}
 
-    return moderatePost(post, options);
+export function contentLabelling(post: any, did: any, settings: any, labelDefs: any) {
+    return moderatePost(post, buildModerationOpts(did, settings, labelDefs));
+}
+
+export function profileLabelling(profile: any, did: any, settings: any, labelDefs: any) {
+    return moderateProfile(profile, buildModerationOpts(did, settings, labelDefs));
 }
 
 export function keywordStringToArray(word: string | string[]): string[] {

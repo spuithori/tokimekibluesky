@@ -1415,5 +1415,7 @@
     "support_prompt_cta": "FANBOXで支援する",
     "support_prompt_note": "※支援中のかたにもこのバナーが表示されてしまいます。",
     "support_banner_lead": "サーバー費と開発にご支援ください！",
-    "support_banner_title": "TOKIMEKIを支援"
+    "support_banner_title": "TOKIMEKIを支援",
+    "tokimeki_label_settings": "TOKIMEKIラベラーの表示設定",
+    "tokimeki_label_settings_description": "TOKIMEKI の支援者ラベル(Supporter / Sponsor / TOKIMEKI GOLD / TOKIMEKI PLATINUM)に適用されます。"
 }

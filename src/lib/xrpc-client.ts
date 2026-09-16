@@ -1,6 +1,7 @@
 // Lightweight XRPC client that accepts a FetchHandler
 
 import type {XrpcGetMap, XrpcPostMap} from "$lib/types/xrpc";
+import { withAppLabelers } from '$lib/support/supporterLabels';
 
 export type FetchHandler = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
@@ -22,7 +23,7 @@ export function setXrpcFailureListener(listener: XrpcFailureListener | undefined
 export class XrpcClient {
 	private _fetch: FetchHandler;
 	private _appViewProxy: string;
-	private _labelerDids: string[] = [];
+	private _labelerDids: string[] = withAppLabelers([]);
 	private _inflight = new Map<string, Promise<any>>();
 
 	constructor(fetchHandler: FetchHandler, appViewProxy?: string) {
@@ -31,7 +32,7 @@ export class XrpcClient {
 	}
 
 	configureLabelers(dids: string[]): void {
-		this._labelerDids = dids;
+		this._labelerDids = withAppLabelers(dids);
 	}
 
 	async get<N extends keyof XrpcGetMap>(nsid: N, params?: XrpcGetMap[N]['params'], opts?: XrpcCallOptions): Promise<XrpcGetMap[N]['output']>;

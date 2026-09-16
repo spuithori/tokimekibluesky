@@ -7,6 +7,9 @@
   import { fade } from 'svelte/transition';
   import {RichText} from '$lib/atproto-richtext';
   import BadgeCheck from '@lucide/svelte/icons/badge-check';
+  import {appState} from '$lib/classes/appState.svelte';
+  import {profileLabelling} from '$lib/timelineFilter';
+  import {TOKIMEKI_LABELER_DID, getSupporterPlan} from '$lib/support/supporterLabels';
   import CircleCheck from '@lucide/svelte/icons/circle-check';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeOff from '@lucide/svelte/icons/eye-off';
@@ -33,6 +36,33 @@
   }
 
   let { handle, profile = $bindable(getProfile(handle)), isLabeler = false, _agent = $agent, children }: Props = $props();
+
+  const isPlanLabel = (label: any) => label?.src === TOKIMEKI_LABELER_DID && !!getSupporterPlan(label?.val);
+  const visiblePlanValues = $derived.by(() => {
+      if (!profile?.labels?.some(isPlanLabel)) {
+          return new Set<string>();
+      }
+      try {
+          const ui = profileLabelling(profile, _agent.did(), $settings, appState.labelDefs.current).ui('profileView');
+          return new Set([...ui.informs, ...ui.alerts].filter((cause) => isPlanLabel(cause.label)).map((cause) => cause.label?.val as string));
+      } catch {
+          return new Set<string>();
+      }
+  });
+  const profileLabelEntries = $derived.by(() => {
+      const entries: { key: string; text: string }[] = [];
+      for (const label of profile?.labels ?? []) {
+          if (label?.val === '!no-unauthenticated') continue;
+          if (isPlanLabel(label)) {
+              if (visiblePlanValues.has(label.val)) {
+                  entries.push({ key: label.src + label.val, text: getSupporterPlan(label.val)!.name });
+              }
+              continue;
+          }
+          entries.push({ key: label.src + label.val, text: $_(label.val) });
+      }
+      return entries;
+  });
 
   let firstPostDate = $state('');
   let firstPostUri = $state('');
@@ -112,16 +142,14 @@
 
 {#if (profile.did)}
   <div class="user-profile">
-    {#if (profile?.labels?.length)}
+    {#if (profileLabelEntries.length)}
       <dl class="profile-reported">
         <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
           <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="var(--danger-color)"/>
         </svg>{$_('reporting_this_user')}: </dt>
 
-        {#each profile.labels as label}
-          {#if (label?.val !== '!no-unauthenticated')}
-            <dd class="profile-reported__content">{$_(label.val)}</dd>
-          {/if}
+        {#each profileLabelEntries as entry (entry.key)}
+          <dd class="profile-reported__content">{entry.text}</dd>
         {/each}
       </dl>
     {/if}
