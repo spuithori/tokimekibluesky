@@ -199,7 +199,7 @@
       &[data-path='/settings'] {
           .settings-toc {
               @media (max-width: 767px) {
-                  display: block;
+                  display: flex;
                   border-right: none;
               }
           }
@@ -219,12 +219,10 @@
   .settings-toc {
       padding: 16px;
       border-right: 1px solid var(--border-color-2);
-
-      @media (min-width: 768px) {
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-      }
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
 
       @media (max-width: 767px) {
           display: none;
@@ -237,13 +235,22 @@
   }
 
   .p-menu-nav {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      scrollbar-width: thin;
+
       @media (min-width: 768px) {
           display: flex;
           flex-direction: column;
-          flex: 1;
-          min-height: 0;
 
           &__item {
+              flex-shrink: 0;
+
+              &:has(+ .p-menu-nav__item--bottom) {
+                  margin-bottom: 16px;
+              }
+
               &--bottom {
                   position: relative;
                   margin-top: auto;
