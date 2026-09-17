@@ -31,13 +31,13 @@
     <li>
       <button class={['timeline-chips__item', plan && `timeline-chips__item--plan timeline-chips__item--${plan.id}`]} onclick={() => {isInfoOpen = true}}>
         {#if (plan?.id === 'supporter')}
-          <Heart size={13} strokeWidth="2.5" />
+          <Heart size={13} strokeWidth="2" />
         {:else if (plan?.id === 'sponsor')}
-          <Sparkles size={13} strokeWidth="2.5" />
+          <Sparkles size={13} strokeWidth="2" />
         {:else if (plan?.id === 'tokimeki-gold')}
-          <Crown size={13} strokeWidth="2.5" />
+          <Crown size={13} strokeWidth="2" />
         {:else if (plan?.id === 'tokimeki-platinum')}
-          <Gem size={13} strokeWidth="2.5" />
+          <Gem size={13} strokeWidth="2" />
         {/if}
         {#if (label?.source?.type === 'user' || label?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !label?.labelDef?.locales[0]?.name)}
           {$_('labeling_' + label.label?.val)}
