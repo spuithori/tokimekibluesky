@@ -14,7 +14,6 @@
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {appState} from "$lib/classes/appState.svelte";
     import type {ContentLabelPrefs} from "$lib/settings/types";
-    import {TOKIMEKI_LABELER_DID} from "$lib/support/supporterLabels";
 
     const officialLabelerDid = 'did:plc:ar7c4by46qjdydhdevvrndac';
 
@@ -141,13 +140,6 @@
         <p class="settings-description">{$_('official_label_settings_description')}</p>
 
         <LabelerLabelList did="did:plc:ar7c4by46qjdydhdevvrndac" isOfficial={true}></LabelerLabelList>
-      {/if}
-
-      {#if (appState.subscribedLabelers.current.includes(TOKIMEKI_LABELER_DID))}
-        <h2 class="moderation-group-title">{$_('tokimeki_label_settings')}</h2>
-        <p class="settings-description">{$_('tokimeki_label_settings_description')}</p>
-
-        <LabelerLabelList did={TOKIMEKI_LABELER_DID}></LabelerLabelList>
       {/if}
     </div>
   </div>

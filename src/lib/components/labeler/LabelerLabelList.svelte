@@ -5,6 +5,7 @@
   import {_} from "tokimeki-i18n";
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
   import {appState} from "$lib/classes/appState.svelte";
+  import {BADGE_LABELER_DIDS} from "$lib/labeler/badgeLabelers";
 
   interface Props {
     did: any;
@@ -16,6 +17,17 @@
   let labels = $state([]);
   let renderLabels = $state({});
   let ready = false;
+  const badgeSelections = $derived(BADGE_LABELER_DIDS.includes(did) ? [
+      {
+          value: 'warn',
+          text: $_('label_badge_show'),
+      },
+      {
+          value: 'ignore',
+          text: $_('label_badge_hide'),
+          matches: ['hide'],
+      },
+  ] : undefined);
 
 
   onMount(async () => {
@@ -83,6 +95,7 @@
         <LabelSelector
           name={did + '_' + label[0]}
           bind:value={renderLabels[label[0]]}
+          contentLabelsSelections={badgeSelections}
         ></LabelSelector>
       </div>
     {/if}

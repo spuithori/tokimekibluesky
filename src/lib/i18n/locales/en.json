@@ -1416,6 +1416,11 @@
     "support_prompt_note": "This banner also appears for existing supporters.",
     "support_banner_lead": "Help fund hosting and development",
     "support_banner_title": "Support us",
-    "tokimeki_label_settings": "TOKIMEKI labeler labels",
-    "tokimeki_label_settings_description": "Applies to TOKIMEKI supporter labels (Supporter / Sponsor / TOKIMEKI GOLD / TOKIMEKI PLATINUM)."
+    "tokimeki_label_settings_description_1": "Show or hide TOKIMEKI supporter labels (Supporter / Sponsor / TOKIMEKI GOLD / TOKIMEKI PLATINUM). This feature is implemented by a ",
+    "tokimeki_label_settings_description_link": "labeler",
+    "tokimeki_label_settings_description_2": ".",
+    "settings_support_label": "Supporter label settings",
+    "settings_support_label_description": "Show or hide supporter labels",
+    "label_badge_show": "Show",
+    "label_badge_hide": "Don't show"
 }

@@ -1416,6 +1416,11 @@
     "support_prompt_note": "※支援中のかたにもこのバナーが表示されてしまいます。",
     "support_banner_lead": "サーバー費と開発にご支援ください！",
     "support_banner_title": "TOKIMEKIを支援",
-    "tokimeki_label_settings": "TOKIMEKIラベラーの表示設定",
-    "tokimeki_label_settings_description": "TOKIMEKI の支援者ラベル(Supporter / Sponsor / TOKIMEKI GOLD / TOKIMEKI PLATINUM)に適用されます。"
+    "tokimeki_label_settings_description_1": "TOKIMEKI の支援者ラベル(Supporter / Sponsor / TOKIMEKI GOLD / TOKIMEKI PLATINUM)の表示・非表示を切り替えられます。この機能は、",
+    "tokimeki_label_settings_description_link": "ラベラー",
+    "tokimeki_label_settings_description_2": "によって実装されています。",
+    "settings_support_label": "サポートラベル設定",
+    "settings_support_label_description": "サポーターのラベル表示・非表示を設定",
+    "label_badge_show": "表示する",
+    "label_badge_hide": "表示しない"
 }

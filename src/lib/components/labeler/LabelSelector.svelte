@@ -26,7 +26,7 @@
 <div class="label-selector">
   {#each contentLabelsSelections as choice}
     <label class="label-selector__item">
-      <input type="radio" class="label-selector__input" name={name} value={choice.value} bind:group={value}>
+      <input type="radio" class="label-selector__input" name={name} value={choice.value} checked={choice.value === value || choice.matches?.includes(value)} onchange={() => {value = choice.value}}>
       <span class="label-selector__text">{choice.text}</span>
     </label>
   {/each}
@@ -35,7 +35,8 @@
 <style lang="postcss">
   .label-selector {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
       border: 1px solid var(--border-color-2);
       border-radius: var(--border-radius-4);
       background-color: var(--bg-color-3);
