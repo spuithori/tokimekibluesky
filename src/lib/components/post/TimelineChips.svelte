@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Info from '@lucide/svelte/icons/info';
   import Languages from '@lucide/svelte/icons/languages';
   import AppWindow from '@lucide/svelte/icons/app-window';
   import {settings} from '$lib/stores';
@@ -29,31 +28,25 @@
 <ul class="timeline-chips">
   {#each ordered as label (label?.label?.src + label?.label?.val)}
     {@const plan = planOf(label)}
-    <li class={['timeline-chips__item', plan && `timeline-chips__item--plan timeline-chips__item--${plan.id}`]}>
-      {#if (plan?.id === 'supporter')}
-        <Heart size={13} strokeWidth="2.5" />
-      {:else if (plan?.id === 'sponsor')}
-        <Sparkles size={13} strokeWidth="2.5" />
-      {:else if (plan?.id === 'tokimeki-gold')}
-        <Crown size={13} strokeWidth="2.5" />
-      {:else if (plan?.id === 'tokimeki-platinum')}
-        <Gem size={13} strokeWidth="2.5" />
-      {/if}
-      {#if (label?.source?.type === 'user' || label?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !label?.labelDef?.locales[0]?.name)}
-        {$_('labeling_' + label.label?.val)}
-      {:else}
-        {label?.labelDef?.locales.find((locale: { lang: string; name: string }) => locale.lang === $settings.general.userLanguage)?.name ?? label?.labelDef?.locales[0]?.name}
-      {/if}
-    </li>
-  {/each}
-
-  {#if (labels.length)}
-    <li class="timeline-chips__button">
-      <button class="timeline-chips-button" onclick={() => {isInfoOpen = true}}>
-        <Info size={16} color="var(--text-color-2)" />
+    <li>
+      <button class={['timeline-chips__item', plan && `timeline-chips__item--plan timeline-chips__item--${plan.id}`]} onclick={() => {isInfoOpen = true}}>
+        {#if (plan?.id === 'supporter')}
+          <Heart size={13} strokeWidth="2.5" />
+        {:else if (plan?.id === 'sponsor')}
+          <Sparkles size={13} strokeWidth="2.5" />
+        {:else if (plan?.id === 'tokimeki-gold')}
+          <Crown size={13} strokeWidth="2.5" />
+        {:else if (plan?.id === 'tokimeki-platinum')}
+          <Gem size={13} strokeWidth="2.5" />
+        {/if}
+        {#if (label?.source?.type === 'user' || label?.label?.src === 'did:plc:ar7c4by46qjdydhdevvrndac' || !label?.labelDef?.locales[0]?.name)}
+          {$_('labeling_' + label.label?.val)}
+        {:else}
+          {label?.labelDef?.locales.find((locale: { lang: string; name: string }) => locale.lang === $settings.general.userLanguage)?.name ?? label?.labelDef?.locales[0]?.name}
+        {/if}
       </button>
     </li>
-  {/if}
+  {/each}
 
   {#each langs as lang (lang)}
     <li class="timeline-chips__item timeline-chips__item--dev">
@@ -92,6 +85,10 @@
           justify-content: center;
           border: 1px solid var(--border-color-2);
           letter-spacing: .025em;
+
+          &:is(button):hover {
+              opacity: .7;
+          }
 
           &--dev {
               gap: 4px;
@@ -139,22 +136,6 @@
           :global(.darkmode) &--tokimeki-platinum {
               --plan-color: #a9c2d6;
           }
-      }
-  }
-
-  .timeline-chips-button {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      &:hover {
-          opacity: .7;
-      }
-
-      :global(svg) {
-          display: block;
       }
   }
 </style>
