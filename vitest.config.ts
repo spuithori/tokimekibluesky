@@ -9,6 +9,7 @@ export default defineConfig({
     alias: {
       $lib: fileURLToPath(new URL('./src/lib', import.meta.url)),
       '$app/navigation': fileURLToPath(new URL('./src/lib/test/appNavigationStub.ts', import.meta.url)),
+      '$app/state': fileURLToPath(new URL('./src/lib/test/appStateStub.svelte.ts', import.meta.url)),
       '$env/static/public': fileURLToPath(new URL('./src/lib/test/envStaticPublicStub.ts', import.meta.url)),
     },
   },

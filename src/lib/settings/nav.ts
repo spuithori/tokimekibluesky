@@ -8,8 +8,8 @@ import CalendarClock from '@lucide/svelte/icons/calendar-clock';
 import Database from '@lucide/svelte/icons/database';
 import Layers from '@lucide/svelte/icons/layers';
 import Heart from '@lucide/svelte/icons/heart';
-import Orbit from '@lucide/svelte/icons/orbit';
 import Keyboard from '@lucide/svelte/icons/keyboard';
+import Sparkles from '@lucide/svelte/icons/sparkles';
 
 /**
  * Data-driven settings navigation. The settings layout renders these instead of
@@ -22,6 +22,7 @@ export interface SettingsNavItem {
     href: string;
     icon: any; // lucide-svelte component (see schema.types SettingOption.icon note)
     placement?: 'top' | 'bottom';
+    parent?: string;
 }
 
 export const settingsNav: SettingsNavItem[] = [
@@ -31,10 +32,14 @@ export const settingsNav: SettingsNavItem[] = [
     { id: 'timeline', label: 'settings_timeline', href: '/settings/timeline', icon: GanttChartSquare },
     { id: 'keyboard', label: 'settings_keyboard', href: '/settings/keyboard', icon: Keyboard },
     { id: 'moderation', label: 'settings_moderation', href: '/settings/moderation', icon: Hand },
-    { id: 'keyword-mutes', label: 'settings_keyword_mutes', href: '/settings/keyword-mutes', icon: WholeWord },
+    { id: 'keyword-mutes', label: 'settings_keyword_mutes', href: '/settings/keyword-mutes', icon: WholeWord, parent: 'moderation' },
     { id: 'push-notification', label: 'settings_push_notification', href: '/settings/push-notification', icon: BellRing },
     { id: 'schedule', label: 'schedule_post_title', href: '/settings/schedule', icon: CalendarClock },
+    { id: 'ai', label: 'tokimeki_ai', href: '/settings/ai', icon: Sparkles },
     { id: 'data', label: 'settings_data_management', href: '/settings/data', icon: Database },
-    { id: 'atmosphere', label: 'atmosphere', href: '/atmosphere', icon: Orbit },
     { id: 'about', label: 'settings_about', href: '/settings/about', icon: Heart, placement: 'bottom' },
 ];
+
+export function isNavCurrent(item: SettingsNavItem, pathname: string): boolean {
+    return pathname === item.href || settingsNav.some((child) => child.parent === item.id && child.href === pathname);
+}

@@ -45,6 +45,8 @@ export interface GeneralSettings {
     se: boolean;
     devMode: boolean;
     finnhubApiKey: string;
+    autoColumnIcon: boolean;
+    aiPolicyConsent: string;
 }
 
 export interface DesignSettings {

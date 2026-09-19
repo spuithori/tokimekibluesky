@@ -11,6 +11,7 @@
     import {appState} from "$lib/classes/appState.svelte";
     import {isMobileViewport} from "$lib/viewportQuery.svelte";
     import type {Column} from "$lib/types/column";
+    import {addColumnWithIcon} from "$lib/addColumnWithIcon";
 
     let { onclose } = $props();
 
@@ -58,12 +59,12 @@
         currentAccount = Number(selected.id);
     }
 
-    function handleColumnAdd(column: Column) {
+    function handleColumnAdd(column: Column, description?: string) {
         const id = self.crypto.randomUUID();
-        columns.add({
+        addColumnWithIcon(columns, {
             ...column,
             id,
-        });
+        }, description);
         addedIds = [...addedIds, id];
     }
 </script>

@@ -33,6 +33,7 @@
     import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
     import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
     import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
+    import AiConsentDialog from "$lib/components/ai/AiConsentDialog.svelte";
     import { isMobile } from "$lib/detectDevice";
     import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
     import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
@@ -460,6 +461,7 @@
     <EmbedDetachObserver></EmbedDetachObserver>
     <ProfileStatusObserver></ProfileStatusObserver>
     <LinkWarningModal></LinkWarningModal>
+    <AiConsentDialog></AiConsentDialog>
     <UpdateBanner></UpdateBanner>
 
     {#if bskyStatusState.isVisible}

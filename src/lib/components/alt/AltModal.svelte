@@ -2,6 +2,7 @@
   import { _ } from 'tokimeki-i18n';
   import AltModalItem from "$lib/components/alt/AltModalItem.svelte";
   import Modal from "$lib/components/ui/Modal.svelte";
+  import { aiConsent } from "$lib/ai/consent.svelte";
 
   let { images, close, altFocusPulse } = $props();
 </script>
@@ -13,7 +14,7 @@
     {/each}
   </div>
 
-  <p class="ai-note">{$_('ai_alt_note')}</p>
+  <p class="ai-note"><button class="ai-link" type="button" onclick={() => aiConsent.showPolicy()}>{$_('ai_policy_open')}</button></p>
 </Modal>
 
 <style lang="postcss">

@@ -14,8 +14,7 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {getPostState} from "$lib/classes/postState.svelte";
   import {feedHintState} from "$lib/classes/feedHintState.svelte";
-  import {settingsStore} from "$lib/settings/settings.svelte";
-  import {applyDefaultColumnIcon} from "$lib/columnAvatar";
+  import {addColumnWithIcon} from "$lib/addColumnWithIcon";
   const columnState = getColumnState();
   const postState = getPostState();
 
@@ -60,7 +59,7 @@
       }
 
       try {
-          columnState.add(applyDefaultColumnIcon(_column, settingsStore.design.defaultColumnIcon));
+          addColumnWithIcon(columnState, _column, feed.description);
 
           toast.success($_('column_added'));
           isColumnAdded = true;

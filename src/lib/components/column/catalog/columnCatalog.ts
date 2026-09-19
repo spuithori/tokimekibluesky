@@ -13,6 +13,7 @@ export interface CatalogItem {
     editable?: CatalogEditable;
     migratable?: boolean;
     avatar?: string;
+    description?: string;
 }
 
 export interface CatalogSection {
@@ -24,6 +25,7 @@ export interface CatalogFeed {
     uri: string;
     name: string;
     avatar?: string;
+    description?: string;
     creator?: { did: string; handle: string };
     pinned?: boolean;
 }
@@ -131,6 +133,7 @@ export function buildCatalog(sources: CatalogSources): CatalogSection[] {
             subtitle: feed.creator?.handle ? `@${feed.creator.handle}` : undefined,
             pinned: Boolean(feed.pinned),
             avatar: feed.avatar,
+            description: feed.description,
         }));
 
     const lists = [

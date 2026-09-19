@@ -9,8 +9,7 @@
     import { CatalogSourcesState } from '$lib/components/column/catalog/catalogSources.svelte';
     import { makeColumn, type CatalogFeed } from '$lib/components/column/catalog/columnCatalog';
     import type { Column } from '$lib/types/column';
-    import { settingsStore } from '$lib/settings/settings.svelte';
-    import { applyDefaultColumnIcon } from '$lib/columnAvatar';
+    import { addColumnWithIcon } from '$lib/addColumnWithIcon';
 
     const columnState = getColumnState();
     const sources = new CatalogSourcesState($agent);
@@ -18,12 +17,12 @@
 
     const pinned = $derived(sources.pinnedFeeds.slice(0, 4));
 
-    function add(algorithm: Column['algorithm']) {
-        columnState.add(applyDefaultColumnIcon(makeColumn($agent.did(), $agent.handle() ?? '', algorithm), settingsStore.design.defaultColumnIcon));
+    function add(algorithm: Column['algorithm'], description?: string) {
+        addColumnWithIcon(columnState, makeColumn($agent.did(), $agent.handle() ?? '', algorithm), description);
     }
 
     function addFeed(feed: CatalogFeed) {
-        add({ type: 'custom', algorithm: feed.uri, name: feed.name, avatar: feed.avatar });
+        add({ type: 'custom', algorithm: feed.uri, name: feed.name, avatar: feed.avatar }, feed.description);
     }
 </script>
 

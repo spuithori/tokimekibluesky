@@ -97,12 +97,13 @@ export function buildIndex(
     const pageEntries: SearchEntry[] = settingsNav.map((nav) => {
         const label = translate(nav.label);
         const labelEn = translateEn(nav.label);
+        const parent = nav.parent ? settingsNav.find((item) => item.id === nav.parent) : undefined;
         return {
             id: `page:${nav.id}`,
             route: nav.href,
             hash: undefined,
             label,
-            badge: '',
+            badge: parent ? translate(parent.label) : '',
             labelNorm: normalize(label),
             labelEnNorm: normalize(labelEn),
             keyNorm: normalize(nameToText(nav.id)),
