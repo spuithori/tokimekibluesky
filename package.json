@@ -67,6 +67,7 @@
         "@vercel/analytics": "^2.0.1",
         "@vercel/blob": "^2.8.0",
         "@vercel/functions": "3.6.2",
+        "ai": "^7.0.107",
         "dexie": "^4.0.11",
         "embla-carousel-svelte": "^8.6.0",
         "embla-carousel-wheel-gestures": "^8.1.0",

@@ -7,13 +7,13 @@
   import NotebookPen from '@lucide/svelte/icons/notebook-pen';
   import { scale } from 'svelte/transition';
   import { agent } from "$lib/stores";
-  import { settingsNav } from "$lib/settings/nav";
+  import { settingsNav, isNavCurrent } from "$lib/settings/nav";
   import SettingsSearch from "$lib/components/settings/SettingsSearch.svelte";
 
   const OFFICIAL_HANDLE = 'tokimeki.blue';
   const STORAGE_KEY = 'hideFollowPrompt';
 
-  const topNav = settingsNav.filter((item) => item.placement !== 'bottom');
+  const topNav = settingsNav.filter((item) => item.placement !== 'bottom' && !item.parent);
   const bottomNav = settingsNav.filter((item) => item.placement === 'bottom');
 
   interface Props {
@@ -102,7 +102,7 @@
         <ul class="p-menu-nav">
           {#each topNav as item (item.id)}
             {@const Icon = item.icon}
-            <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === item.href}>
+            <li class="p-menu-nav__item" class:p-menu-nav__item--current={isNavCurrent(item, $page.url.pathname)}>
               <div class="p-menu-nav__icon">
                 <Icon size="24" color="var(--text-color-1)"></Icon>
               </div>

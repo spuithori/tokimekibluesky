@@ -86,6 +86,8 @@ export function createDefaultSettings(): Settings {
             se: false,
             devMode: false,
             finnhubApiKey: '',
+            autoColumnIcon: false,
+            aiPolicyConsent: '',
         },
         design: {
             skin: 'default',

@@ -11,6 +11,7 @@
     import Shield from '@lucide/svelte/icons/shield';
     import VolumeX from '@lucide/svelte/icons/volume-x';
     import ShieldBan from '@lucide/svelte/icons/shield-ban';
+    import WholeWord from '@lucide/svelte/icons/whole-word';
     import SettingsHeader from "$lib/components/settings/SettingsHeader.svelte";
     import {appState} from "$lib/classes/appState.svelte";
     import type {ContentLabelPrefs} from "$lib/settings/types";
@@ -53,6 +54,12 @@
   </SettingsHeader>
 
   <div class="settings-wrap">
+    <div class="settings-child-nav">
+      <WholeWord size="24"></WholeWord>
+      <a href="/settings/keyword-mutes">{$_('settings_keyword_mutes')}</a>
+      <ChevronRight size="20"></ChevronRight>
+    </div>
+
     <div class="settings-child-nav">
       <VolumeX size="24"></VolumeX>
       <a href="/mutes">{$_('mutes_list')}</a>

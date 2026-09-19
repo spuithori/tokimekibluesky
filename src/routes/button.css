@@ -157,3 +157,12 @@ button {
         opacity: .5;
     }
 }
+
+.ai-link {
+    padding: 0;
+    font-size: 14px;
+    color: var(--link-color);
+    text-decoration: underline;
+    text-align: left;
+    cursor: pointer;
+}

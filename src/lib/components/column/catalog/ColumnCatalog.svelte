@@ -7,7 +7,6 @@
     import { db } from '$lib/db';
     import { bookmarkModal, cloudBookmarkModal, cloudListModal, listModal, officialListModal, userLists } from '$lib/stores';
     import { settingsStore } from '$lib/settings/settings.svelte';
-    import { applyDefaultColumnIcon } from '$lib/columnAvatar';
     import { getColumnState } from '$lib/classes/columnState.svelte';
     import { migrateLocalList, migrateLocalLists, unmigratedLocalLists as filterUnmigratedLocalLists } from '$lib/localListMigration';
     import BookmarkObserver from '$lib/components/bookmark/BookmarkObserver.svelte';
@@ -24,7 +23,7 @@
 
     interface Props {
         _agent: any;
-        onadd: (column: Column) => void;
+        onadd: (column: Column, description?: string) => void;
         autofocus?: boolean;
     }
 
@@ -130,7 +129,7 @@
     }
 
     function handleAdd(item: CatalogItem) {
-        onadd(applyDefaultColumnIcon(structuredClone($state.snapshot(item.column)) as Column, settingsStore.design.defaultColumnIcon));
+        onadd(structuredClone($state.snapshot(item.column)) as Column, item.description);
     }
 
     function handleEdit(item: CatalogItem) {

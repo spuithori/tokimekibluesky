@@ -7,7 +7,8 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import {settings} from "$lib/stores";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
-  import { PUBLIC_DETECT_ALT_API_SERVER, PUBLIC_DETECT_ALT_API_HEADER } from '$env/static/public';
+  import { requestAltText } from '$lib/ai/client';
+  import { aiConsent } from '$lib/ai/consent.svelte';
 
   let { image = $bindable(), altFocusPulse } = $props();
   let isProcessing = $state(false);
@@ -19,28 +20,24 @@
           return;
       }
       isMenuOpen = false;
+      if (!(await aiConsent.ensure('altText'))) {
+          return;
+      }
       const blob = new Blob([image.file], {type: image.file.type});
       const compressedFile = await compressImage(blob, {
           maxSizeMB: 0.5,
           maxWidthOrHeight: 1280,
       });
-      const formData = new FormData();
-      formData.append('image', compressedFile);
-      formData.append('category', category);
-      formData.append('language', $settings.general.userLanguage);
 
       isProcessing = true;
       try {
-          const res = await fetch(PUBLIC_DETECT_ALT_API_SERVER, {
-              method: 'POST',
-              headers: {
-                  'X-PF-HEADER': PUBLIC_DETECT_ALT_API_HEADER,
-              },
-              body: formData,
-          });
-          const data = await res.json();
+          const text = await requestAltText(compressedFile, category, $settings.general.userLanguage);
+          if (!text) {
+              isProcessing = false;
+              return;
+          }
 
-          image.alt = data.text;
+          image.alt = text;
       } catch (e) {
           console.log(e);
           toast.error('Sorry, Error!!');
