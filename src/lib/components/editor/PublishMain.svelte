@@ -213,7 +213,9 @@
         isLinkCardAdding = true;
 
         try {
-            const data = await _agent.xrpc.get('app.bsky.feed.getPosts', {uris: [bskyUrlToAtUri(uri)]});
+            const [, , actor, collection, rkey] = bskyUrlToAtUri(uri)!.split('/');
+            const did = actor.startsWith('did:') ? actor : await _agent.resolveHandle(actor);
+            const data = await _agent.xrpc.get('app.bsky.feed.getPosts', {uris: [`at://${did}/${collection}/${rkey}`]});
             const _post = data?.posts?.[0];
 
             if (_post?.viewer?.embeddingDisabled) {
