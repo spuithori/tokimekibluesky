@@ -335,6 +335,20 @@ const rawSettingsSchema = [
         default: false,
     },
     {
+        key: "design.defaultColumnIcon",
+        category: "design",
+        scope: "global",
+        type: "radio",
+        appearance: "radio",
+        section: "settings_section_layout",
+        label: "default_column_icon",
+        default: "icon",
+        options: [
+            { value: "icon", label: "default_column_icon_icon" },
+            { value: "avatar", label: "default_column_icon_avatar" },
+        ],
+    },
+    {
         key: "design.skin",
         category: "design",
         scope: "global",

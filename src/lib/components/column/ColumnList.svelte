@@ -1,8 +1,7 @@
 <script lang="ts">
     import { getColumnState } from "$lib/classes/columnState.svelte";
     import XCircle from '@lucide/svelte/icons/x-circle';
-    import {iconMap} from "$lib/columnIcons";
-    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import ColumnDisplayIcon from "$lib/components/column/ColumnDisplayIcon.svelte";
     import Sortable from "$lib/components/utils/Sortable.svelte";
     import {flattenLeafIds} from "$lib/classes/deckLayout";
     const columnState = getColumnState();
@@ -32,12 +31,7 @@
   {#snippet content(column, index)}
     <div class="column-list__item">
       <div class="column-list__icon">
-        {#if column.settings?.icon}
-          {@const SvelteComponent = iconMap.get(column.settings.icon)}
-          <SvelteComponent color="var(--deck-heading-icon-color)"></SvelteComponent>
-        {:else}
-          <ColumnIcon type={column.algorithm.type}></ColumnIcon>
-        {/if}
+        <ColumnDisplayIcon {column}></ColumnDisplayIcon>
       </div>
 
       <div role="button" class="column-list__content" onclick={() => {onviewcolumn(column, index)}}>

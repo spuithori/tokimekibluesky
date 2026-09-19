@@ -1,12 +1,10 @@
 <script lang="ts">
     import { tilingDrag } from "$lib/classes/tilingDragState.svelte";
     import { getColumnState } from "$lib/classes/columnState.svelte";
-    import { iconMap } from "$lib/columnIcons";
-    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import ColumnDisplayIcon from "$lib/components/column/ColumnDisplayIcon.svelte";
 
     const columnState = getColumnState();
     const column = $derived(tilingDrag.draggingId ? columnState.columnById.get(tilingDrag.draggingId) : undefined);
-    const CustomIcon = $derived(column?.settings?.icon ? iconMap.get(column.settings.icon) : undefined);
 </script>
 
 {#if tilingDrag.draggingId && tilingDrag.pointer && column}
@@ -20,11 +18,7 @@
                 <span class="tile-ghost__name">{tilingDrag.chip.name}</span>
             {:else}
                 <span class="tile-ghost__icon">
-                    {#if CustomIcon}
-                        <CustomIcon color="var(--primary-color)" strokeWidth="var(--icon-stroke-width, 2px)" />
-                    {:else}
-                        <ColumnIcon type={column.algorithm?.type} color="var(--primary-color)" />
-                    {/if}
+                    <ColumnDisplayIcon {column} color="var(--primary-color)" />
                 </span>
                 <span class="tile-ghost__name">{column.algorithm?.name}</span>
             {/if}

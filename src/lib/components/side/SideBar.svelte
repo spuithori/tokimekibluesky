@@ -1,14 +1,13 @@
 <script lang="ts">
     import {_} from "tokimeki-i18n";
     import { currentTimeline, settings, isColumnModalOpen, intersectingIndex } from "$lib/stores";
-    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import ColumnDisplayIcon from "$lib/components/column/ColumnDisplayIcon.svelte";
     import {page} from '$app/stores';
     import Home from '@lucide/svelte/icons/home';
     import Pen from '@lucide/svelte/icons/pen';
     import PenOff from '@lucide/svelte/icons/pen-off';
     import Plus from '@lucide/svelte/icons/plus';
     import Settings from '@lucide/svelte/icons/settings';
-    import {iconMap} from "$lib/columnIcons";
     import SideNav from "$lib/components/side/SideNav.svelte";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
@@ -117,12 +116,7 @@
             title={column?.algorithm?.name}
             bind:this={els[index]}
         >
-          {#if column?.settings?.icon}
-            {@const SvelteComponent = iconMap.get(column.settings.icon)}
-            <SvelteComponent color="var(--bar-secondary-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
-          {:else}
-            <ColumnIcon type={column?.algorithm?.type} color="var(--bar-secondary-icon-color)"></ColumnIcon>
-          {/if}
+          <ColumnDisplayIcon {column} color="var(--bar-secondary-icon-color)"></ColumnDisplayIcon>
 
           {#if (column?.unreadCount)}
             <span class="side-bar-button__count">

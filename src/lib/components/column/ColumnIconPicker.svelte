@@ -1,13 +1,24 @@
 <script lang="ts">
   import { settings } from '$lib/stores';
   import { iconMap } from '$lib/columnIcons';
+  import { AVATAR_ICON, columnAvatarSrc } from '$lib/columnAvatar';
   import { fly, fade } from 'svelte/transition';
 
-  let { current, onchange, onclose } = $props();
+  let { current, avatar = undefined, onchange, onclose } = $props();
 </script>
 
 <div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:fly={{ duration:250, y: -30 }}>
   <ul class="icon-picker-list">
+    {#if avatar}
+      <button
+          class="icon-picker-list__button"
+          class:icon-picker-list__button--current={current === AVATAR_ICON}
+          onclick={() => {onchange(AVATAR_ICON)}}
+      >
+        <img class="icon-picker-list__avatar" src={columnAvatarSrc(avatar)} alt="" width="24" height="24" decoding="async">
+      </button>
+    {/if}
+
     {#each iconMap as [key, icon]}
       {@const SvelteComponent = icon}
       <button
@@ -61,6 +72,14 @@
           &:hover {
               background-color: var(--bg-color-3);
           }
+      }
+
+      &__avatar {
+          display: block;
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          object-fit: cover;
       }
   }
 

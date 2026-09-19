@@ -73,6 +73,7 @@ export interface DesignSettings {
     mutualDisplay: boolean;
     mobileNewUi: boolean;
     bubbleTimeline: boolean;
+    defaultColumnIcon: 'icon' | 'avatar';
     threaded: boolean;
     monochrome: boolean;
     fontSize: number;

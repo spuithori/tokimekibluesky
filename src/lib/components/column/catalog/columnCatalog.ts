@@ -127,7 +127,7 @@ export function buildCatalog(sources: CatalogSources): CatalogSection[] {
 
     const feeds = [...sources.feeds]
         .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)))
-        .map(feed => item(did, handle, { type: 'custom', algorithm: feed.uri, name: feed.name }, {
+        .map(feed => item(did, handle, { type: 'custom', algorithm: feed.uri, name: feed.name, avatar: feed.avatar }, {
             subtitle: feed.creator?.handle ? `@${feed.creator.handle}` : undefined,
             pinned: Boolean(feed.pinned),
             avatar: feed.avatar,

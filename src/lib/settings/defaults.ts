@@ -113,6 +113,7 @@ export function createDefaultSettings(): Settings {
             mutualDisplay: false,
             mobileNewUi: false,
             bubbleTimeline: false,
+            defaultColumnIcon: 'icon',
             threaded: false,
             monochrome: false,
             fontSize: 2,

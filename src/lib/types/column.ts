@@ -8,6 +8,7 @@ export type currentAlgorithm = {
     type: 'default' | 'custom' | 'list' | 'cloudList' | 'officialList' | 'bookmark' | 'chat' | 'chatList' | 'cloudBookmark' | 'officialBookmark' | 'like' | 'search' | 'author' | 'authorLike' | 'authorReplies' | 'authorReposts' | 'authorMedia' | 'authorVideo' | 'myPost' | 'myMedia' | 'mochottTimeline' | 'networkFeed' | 'notification' | 'thread' | 'realtime' | 'merge',
     algorithm?: string,
     name?: string,
+    avatar?: string,
     list?: object,
     sort?: 'top' | 'latest',
     searchFilters?: searchFilters,

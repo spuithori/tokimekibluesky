@@ -18,6 +18,7 @@
     import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
     import { CatalogSourcesState } from '$lib/components/column/catalog/catalogSources.svelte';
     import { makeColumn, columnKey } from '$lib/components/column/catalog/columnCatalog';
+    import { applyDefaultColumnIcon } from '$lib/columnAvatar';
     import { onboardingState } from './onboardingState.svelte';
     import type { Column } from '$lib/types/column';
 
@@ -65,7 +66,7 @@
 
     const feedChoices: Choice[] = $derived(sources.pinnedFeeds.map(feed => ({
         key: columnKey({ algorithm: { type: 'custom', algorithm: feed.uri } }),
-        algorithm: { type: 'custom', algorithm: feed.uri, name: feed.name },
+        algorithm: { type: 'custom', algorithm: feed.uri, name: feed.name, avatar: feed.avatar },
         icon: 'feed',
         avatar: feed.avatar,
         subtitle: feed.creator?.handle ? `@${feed.creator.handle}` : undefined,
@@ -103,7 +104,7 @@
             if (!selected.includes(choice.key)) {
                 continue;
             }
-            columnState.add(makeColumn(did, handle, structuredClone($state.snapshot(choice.algorithm))));
+            columnState.add(applyDefaultColumnIcon(makeColumn(did, handle, structuredClone($state.snapshot(choice.algorithm))), settingsStore.design.defaultColumnIcon));
         }
         settingsStore.design.layout = layout;
     }

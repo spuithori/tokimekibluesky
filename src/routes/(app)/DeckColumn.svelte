@@ -4,7 +4,6 @@
     import {agent, agentsByDid, intersectingIndex, isColumnModalOpen, settings} from "$lib/stores";
     import {getDisplayNameByDid} from "$lib/util";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
-    import {iconMap} from "$lib/columnIcons";
     import {scrollDirection} from "$lib/scrollDirection";
     import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
     import {onMount} from "svelte";
@@ -25,7 +24,8 @@
     import CheckCheck from '@lucide/svelte/icons/check-check';
     import { createLongPress } from "$lib/longpress";
     import Refresher from "$lib/components/utils/Refresher.svelte";
-    import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
+    import ColumnDisplayIcon from "$lib/components/column/ColumnDisplayIcon.svelte";
+    import type {currentAlgorithm} from "$lib/types/column";
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import ColumnContent from "./ColumnContent.svelte";
@@ -318,6 +318,29 @@
         }
     }
 
+    function toggleIconPicker() {
+        isIconPickerOpen = !isIconPickerOpen;
+
+        if (isIconPickerOpen && column?.algorithm?.type === 'custom' && column.algorithm.algorithm && !column.algorithm.avatar) {
+            resolveFeedAvatar(column.algorithm);
+        }
+    }
+
+    async function resolveFeedAvatar(algorithm: currentAlgorithm) {
+        if (!_agent) {
+            return;
+        }
+
+        try {
+            const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', {feed: algorithm.algorithm});
+            if (res?.view?.avatar) {
+                algorithm.avatar = res.view.avatar;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     function handleIconChange(icon) {
         if (!column.settings) {
             column.settings = {};
@@ -446,13 +469,8 @@
             {/if}
 
             <div class="deck-heading__icon">
-                <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={() => {isIconPickerOpen = !isIconPickerOpen}}>
-                    {#if column?.settings?.icon}
-                        {@const SvelteComponent = iconMap.get(column.settings.icon)}
-                        <SvelteComponent color="var(--deck-heading-icon-color)" strokeWidth="var(--icon-stroke-width, 2px)"></SvelteComponent>
-                    {:else}
-                        <ColumnIcon type={column?.algorithm?.type}></ColumnIcon>
-                    {/if}
+                <button class="deck-heading__icon-picker-button" aria-label="Change icon" onclick={toggleIconPicker}>
+                    <ColumnDisplayIcon {column}></ColumnDisplayIcon>
                 </button>
             </div>
 
@@ -569,7 +587,7 @@
         {/if}
 
         {#if isIconPickerOpen}
-            <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column?.settings?.icon}></ColumnIconPicker>
+            <ColumnIconPicker onchange={handleIconChange} onclose={() => {isIconPickerOpen = false}} current={column?.settings?.icon} avatar={column?.algorithm?.type === 'custom' ? column.algorithm.avatar : undefined}></ColumnIconPicker>
         {/if}
 
         {#if isSettingsOpen && !isSplit}
