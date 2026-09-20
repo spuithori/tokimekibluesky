@@ -1,7 +1,7 @@
 import type {Column} from "$lib/types/column";
 import {type Slot, type LayoutNode, loadDeckState, migrateLegacyColumns, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, firstLeafId, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
 import {getContext, setContext, untrack} from "svelte";
-import {SvelteMap} from "svelte/reactivity";
+import {SvelteMap, SvelteSet} from "svelte/reactivity";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
@@ -21,6 +21,9 @@ export class ColumnState {
     private readonly isJunk: boolean;
     private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
+    private _deferredContent = new SvelteSet<string>();
+    private contentReleaseGeneration = 0;
+    private deckMounted = false;
 
     getFeed(columnId: string): any[] {
         return this._feeds.get(columnId) ?? [];
@@ -193,10 +196,55 @@ export class ColumnState {
                 const feed = col.data.feed;
                 if (feed && feed.length > 0 && col.id) {
                     this._feeds.set(col.id, feed);
+                    this._deferredContent.add(col.id);
                     col.data.feed = [];
                 }
             }
         }
+    }
+
+    isContentDeferred(columnId: string): boolean {
+        return this._deferredContent.has(columnId);
+    }
+
+    private nextDeferredInDeckOrder(): string | undefined {
+        for (const slot of this.slots) {
+            for (const id of flattenLeafIds(slot.layout)) {
+                if (this._deferredContent.has(id)) {
+                    return id;
+                }
+            }
+        }
+        return this._deferredContent.values().next().value;
+    }
+
+    setDeckMounted(mounted: boolean) {
+        this.deckMounted = mounted;
+        this.scheduleContentRelease();
+    }
+
+    private scheduleContentRelease() {
+        const generation = ++this.contentReleaseGeneration;
+        if (!this.deckMounted || this._deferredContent.size === 0) {
+            return;
+        }
+
+        const release = () => {
+            if (generation !== this.contentReleaseGeneration) {
+                return;
+            }
+
+            const next = this.nextDeferredInDeckOrder();
+            if (next !== undefined) {
+                this._deferredContent.delete(next);
+            }
+
+            if (this._deferredContent.size > 0) {
+                requestAnimationFrame(release);
+            }
+        };
+
+        requestAnimationFrame(() => requestAnimationFrame(release));
     }
 
     private resetFeedData(columns: Column[]) {
@@ -225,6 +273,7 @@ export class ColumnState {
               this.adoptPersistedFeeds(columns);
               this.columns = columns;
               this.slots = slots;
+              this.scheduleContentRelease();
               this.isColumnsLoaded = true;
               this.applyAllKnownHandles();
           })
@@ -250,6 +299,7 @@ export class ColumnState {
     }
 
     remove(id: string) {
+        this._deferredContent.delete(id);
         this.deleteFeed(id);
         this.deleteFeed(soloFeedKey(id));
         this.clearFeedStatus(id);
@@ -271,6 +321,7 @@ export class ColumnState {
         }
         this.columns.length = 0;
         this.slots.length = 0;
+        this._deferredContent.clear();
         this._feeds.clear();
         this._feedStatus = {};
     }
@@ -279,6 +330,7 @@ export class ColumnState {
         clearAllNotificationLedgers();
         this._feeds.clear();
         this._feedStatus = {};
+        this._deferredContent.clear();
         const deck = loadDeckState(
             { version, columns, slots },
             () => self.crypto.randomUUID(),
@@ -290,6 +342,7 @@ export class ColumnState {
         }
         this.columns = deck.columns;
         this.slots = deck.slots;
+        this.scheduleContentRelease();
         this.applyAllKnownHandles();
     }
 
