@@ -31,7 +31,7 @@
         "postcss-nested": "6.0.1",
         "rollup-plugin-visualizer": "^6.0.3",
         "ssim.js": "^3.5.0",
-        "svelte": "5.57.0",
+        "svelte": "5.57.1",
         "svelte-check": "^4.7.6",
         "svelte-floating-ui": "^1.5.9",
         "tinyld": "^1.3.4",
