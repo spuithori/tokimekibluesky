@@ -5,6 +5,7 @@
     import ColumnResumePlaceholder from "$lib/components/column/ColumnResumePlaceholder.svelte";
     import ColumnsLoadError from "$lib/components/column/ColumnsLoadError.svelte";
     import ColumnErrorPanel from "$lib/components/column/ColumnErrorPanel.svelte";
+    import BootStatus from "$lib/components/utils/BootStatus.svelte";
     import TilingDragOverlay from "$lib/components/deck/TilingDragOverlay.svelte";
     import TilingDragGhost from "$lib/components/deck/TilingDragGhost.svelte";
     import {recordError} from "$lib/errorLog";
@@ -27,31 +28,39 @@
     </div>
   {:else if columnState.slots.length}
     <div class="deck">
-      {#each columnState.slots as slot, index (slot.id)}
-        {@const column = columnState.getSlotColumn(index)}
-        {@const gate = appState.getColumnResumeGate($agentsByDid, column?.did)}
-        {#if gate !== 'mount'}
-          {#if !column?.settings?.isPopup}
-            <ColumnResumePlaceholder {column}></ColumnResumePlaceholder>
+      {#if appState.ready}
+        {#each columnState.slots as slot, index (slot.id)}
+          {@const column = columnState.getSlotColumn(index)}
+          {@const gate = appState.getColumnResumeGate($agentsByDid, column?.did)}
+          {#if gate !== 'mount'}
+            {#if !column?.settings?.isPopup}
+              <ColumnResumePlaceholder {column}></ColumnResumePlaceholder>
+            {/if}
+          {:else if !column?.settings?.isPopup}
+            <svelte:boundary onerror={(error) => recordError(error, 'column')}>
+              <DeckSlot {index}></DeckSlot>
+
+              {#snippet failed(error, reset)}
+                <ColumnErrorPanel {column} {reset}></ColumnErrorPanel>
+              {/snippet}
+            </svelte:boundary>
+          {:else}
+            <svelte:boundary onerror={(error) => recordError(error, 'column')}>
+              <DeckPopupWrap {index}></DeckPopupWrap>
+
+              {#snippet failed(error, reset)}{/snippet}
+            </svelte:boundary>
           {/if}
-        {:else if !column?.settings?.isPopup}
-          <svelte:boundary onerror={(error) => recordError(error, 'column')}>
-            <DeckSlot {index}></DeckSlot>
-
-            {#snippet failed(error, reset)}
-              <ColumnErrorPanel {column} {reset}></ColumnErrorPanel>
-            {/snippet}
-          </svelte:boundary>
-        {:else}
-          <svelte:boundary onerror={(error) => recordError(error, 'column')}>
-            <DeckPopupWrap {index}></DeckPopupWrap>
-
-            {#snippet failed(error, reset)}{/snippet}
-          </svelte:boundary>
-        {/if}
-      {/each}
+        {/each}
+      {:else}
+        <BootStatus></BootStatus>
+      {/if}
     </div>
-  {:else if columnState.isColumnsLoaded}
+  {:else if !appState.ready}
+    <div class="deck-empty">
+      <BootStatus></BootStatus>
+    </div>
+  {:else if appState.ready && columnState.isColumnsLoaded}
     <div class="deck-empty">
       <DeckEmptyState></DeckEmptyState>
     </div>

@@ -381,7 +381,7 @@
     dir={$_("dir")}
     bind:this={app}
 >
-    {#if appState.ready}
+    {#if appState.shellReady}
         <div
             class="wrap"
             class:layout-decks={$settings.design.layout === "decks"}
@@ -393,48 +393,56 @@
                 style:--single-column-width={typeof $settings.design?.singleWidth === 'number' ? `${$settings.design.singleWidth}px` : null}
             >
                 {#if $settings.design.layout !== "decks"}
-                    <Single></Single>
+                    {#if appState.ready}
+                        <Single></Single>
+                    {:else}
+                        <BootStatus></BootStatus>
+                    {/if}
                 {:else}
                     <Decks></Decks>
                 {/if}
 
-                {@render children?.()}
+                {#if appState.ready}
+                    {@render children?.()}
+                {/if}
             </main>
         </div>
 
-        {#if $isColumnModalOpen}
-            <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
-        {/if}
+        {#if appState.ready}
+            {#if $isColumnModalOpen}
+                <ColumnModal onclose={handleColumnModalClose}></ColumnModal>
+            {/if}
 
-        {#if $listAddModal.open}
-            <OfficialListAddObserver></OfficialListAddObserver>
-        {/if}
+            {#if $listAddModal.open}
+                <OfficialListAddObserver></OfficialListAddObserver>
+            {/if}
 
-        {#if $bluefeedAddModal.open}
-            <BluefeedAddObserver></BluefeedAddObserver>
-        {/if}
+            {#if $bluefeedAddModal.open}
+                <BluefeedAddObserver></BluefeedAddObserver>
+            {/if}
 
-        {#if wizardVisible}
-            {#await import("$lib/onboarding/OnboardingWizard.svelte") then { default: OnboardingWizard }}
-                <OnboardingWizard></OnboardingWizard>
-            {/await}
-        {/if}
+            {#if wizardVisible}
+                {#await import("$lib/onboarding/OnboardingWizard.svelte") then { default: OnboardingWizard }}
+                    <OnboardingWizard></OnboardingWizard>
+                {/await}
+            {/if}
 
-        {#if onboardingState.tourOpen}
-            {#await import("$lib/onboarding/Tour.svelte") then { default: Tour }}
-                <Tour></Tour>
-            {/await}
-        {/if}
+            {#if onboardingState.tourOpen}
+                {#await import("$lib/onboarding/Tour.svelte") then { default: Tour }}
+                    <Tour></Tour>
+                {/await}
+            {/if}
 
-        {#if shortcutManager.helpOpen}
-            <ShortcutHelp onclose={() => (shortcutManager.helpOpen = false)}></ShortcutHelp>
-        {/if}
+            {#if shortcutManager.helpOpen}
+                <ShortcutHelp onclose={() => (shortcutManager.helpOpen = false)}></ShortcutHelp>
+            {/if}
 
-        <NotificationCountObserver></NotificationCountObserver>
-        <RealtimeListenersObserver></RealtimeListenersObserver>
+            <NotificationCountObserver></NotificationCountObserver>
+            <RealtimeListenersObserver></RealtimeListenersObserver>
 
-        {#if !$settings?.general?.disableChat}
-            <ChatUpdateObserver></ChatUpdateObserver>
+            {#if !$settings?.general?.disableChat}
+                <ChatUpdateObserver></ChatUpdateObserver>
+            {/if}
         {/if}
 
         <Footer></Footer>

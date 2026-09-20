@@ -4,6 +4,7 @@ import {agent, agents} from "$lib/stores";
 import {startAccountsResume, type ResumeOutcome, type ResumePhase} from "$lib/resumeAccountsSession";
 import {goto} from '$app/navigation';
 import { PersistedState } from "runed";
+import { PersistedValue } from '$lib/classes/persistedValue.svelte';
 import { t } from 'tokimeki-i18n';
 import { recordError } from '$lib/errorLog';
 import { TOKIMEKI_LABELER_DID, withAppLabelers } from '$lib/support/supporterLabels';
@@ -18,6 +19,7 @@ export interface AccountResumeStatus {
 
 class AppState {
     ready: boolean = $state(false);
+    shellReady: boolean = $state(false);
     status: number = $state(0);
     pdsRequestReady: boolean = $state(false);
     profile: PersistedState<number> = new PersistedState('currentProfile', 1);
@@ -25,10 +27,11 @@ class AppState {
     resumeStatus: Record<string, AccountResumeStatus> = $state({});
     resumePrimaryDid: string = $state('');
     bootError: { name: string; message: string } | null = $state(null);
-    labelDefs = new PersistedState<Record<string, any[]>>('labelDefs', {});
+    labelDefs = new PersistedValue<Record<string, any[]>>('labelDefs', {});
     subscribedLabelers = new PersistedState('subscribedLabelers', withAppLabelers(['did:plc:ar7c4by46qjdydhdevvrndac']));
     singleColumnScrollPositions: Map<number, number> = new Map();
 
+    private hasBooted = false;
     private initEpoch = 0;
     private snoozedMissingIds = new Set<number>();
     private freshHandles = new Map<string, string>();
@@ -157,6 +160,10 @@ class AppState {
             return false;
         }
 
+        if (!this.hasBooted) {
+            this.shellReady = true;
+        }
+
         this.resumeAccounts = accounts;
         this.resumeProxy = profile?.appViewProxy;
         this.resumePrimaryId = profile.primary;
@@ -250,6 +257,8 @@ class AppState {
 
     private completeBoot(primaryAgent: Agent) {
         agent.set(primaryAgent);
+        this.hasBooted = true;
+        this.shellReady = true;
         this.ready = true;
 
         const labelers = withAppLabelers(this.subscribedLabelers.current);
@@ -384,6 +393,7 @@ class AppState {
     changeProfile(id) {
         this.profile.current = id;
         appState.ready = false;
+        appState.shellReady = false;
         appState.init();
     }
 
