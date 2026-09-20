@@ -42,11 +42,10 @@
     let layout = $state<Layout>('decks');
     let selected = $state<string[]>(['default:', 'notification:']);
     let feedsLoading = $state(true);
-    let busy = $state(false);
 
     onboardingState.openWizard();
 
-    const loaded = sources.load().then(() => {
+    sources.load().then(() => {
         for (const feed of sources.pinnedFeeds) {
             const key = columnKey({ algorithm: { type: 'custom', algorithm: feed.uri } });
             if (!selected.includes(key)) {
@@ -109,29 +108,15 @@
         settingsStore.design.layout = layout;
     }
 
-    async function finish(withTour: boolean) {
-        if (busy) {
-            return;
-        }
-        busy = true;
-        if (feedsLoading) {
-            await loaded;
-        }
+    function start() {
         createColumns();
         onboardingState.closeWizard();
-        if (withTour) {
-            onboardingState.startTour();
-        } else {
-            settingsStore.onboarding.tourSeen = true;
-        }
+        onboardingState.startTour();
     }
 
-    function next() {
-        if (step === 1) {
-            finish(true);
-            return;
-        }
-        goTo(step + 1);
+    function skip() {
+        onboardingState.closeWizard();
+        settingsStore.onboarding.tourSeen = true;
     }
 
     function handleCancel(event: Event) {
@@ -148,7 +133,7 @@
                 {/each}
             </ol>
 
-            <button class="wizard__skip" type="button" onclick={() => finish(false)} disabled={busy}>{$_('onboarding_skip')}</button>
+            <button class="wizard__skip" type="button" onclick={skip}>{$_('onboarding_skip')}</button>
         </header>
 
         <div class="wizard__stage">
@@ -272,10 +257,10 @@
         <footer class="wizard__foot">
             {#if step === 0}
                 <span></span>
-                <button class="wizard__button wizard__button--primary" type="button" onclick={next}>{$_('onboarding_next')}</button>
+                <button class="wizard__button wizard__button--primary" type="button" onclick={() => goTo(1)}>{$_('onboarding_next')}</button>
             {:else}
                 <button class="wizard__button wizard__button--ghost" type="button" onclick={() => goTo(0)}>{$_('onboarding_back')}</button>
-                <button class="wizard__button wizard__button--primary" type="button" onclick={next} disabled={selectedCount === 0 || busy}>
+                <button class="wizard__button wizard__button--primary" type="button" onclick={start} disabled={selectedCount === 0}>
                     {$_('onboarding_create_columns', { count: selectedCount })}
                 </button>
             {/if}
