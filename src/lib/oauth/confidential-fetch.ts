@@ -1,9 +1,25 @@
 const CLIENT_ASSERTION_TYPE = 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer';
+const UNCONSUMED_ASSERTION_TTL = 30_000;
 
 export function createConfidentialFetch(
     clientAssertionEndpoint: string,
     originalFetch: typeof fetch = globalThis.fetch,
 ): typeof fetch {
+    const unconsumedAssertions = new Map<string, { jwt: string; issuedAt: number }>();
+
+    function takeUnconsumedAssertion(key: string): { jwt: string; issuedAt: number } | undefined {
+        const now = Date.now();
+        for (const [storedKey, stored] of unconsumedAssertions) {
+            if (now - stored.issuedAt >= UNCONSUMED_ASSERTION_TTL) {
+                unconsumedAssertions.delete(storedKey);
+            }
+        }
+
+        const assertion = unconsumedAssertions.get(key);
+        unconsumedAssertions.delete(key);
+        return assertion;
+    }
+
     return async function confidentialFetch(
         input: RequestInfo | URL,
         init?: RequestInit,
@@ -77,24 +93,49 @@ export function createConfidentialFetch(
             }
         }
 
-        let assertionResponse = await requestAssertion();
-        if (!assertionResponse?.ok) {
-            assertionResponse = await requestAssertion();
-        }
-        if (!assertionResponse?.ok) {
-            console.error('Failed to get client assertion');
-            throw new Error('Client assertion unavailable');
+        const isRefreshGrant = grantType === 'refresh_token';
+        const assertionKey = `${url}\n${body}`;
+        const reused = isRefreshGrant ? takeUnconsumedAssertion(assertionKey) : undefined;
+        let assertion = reused;
+
+        if (!assertion) {
+            let assertionResponse = await requestAssertion();
+            if (!assertionResponse?.ok) {
+                assertionResponse = await requestAssertion();
+            }
+            if (!assertionResponse?.ok) {
+                console.error('Failed to get client assertion');
+                throw new Error('Client assertion unavailable');
+            }
+
+            const result = await assertionResponse.json();
+            assertion = { jwt: result.jwt, issuedAt: Date.now() };
         }
 
-        const result = await assertionResponse.json();
         params.set('client_assertion_type', CLIENT_ASSERTION_TYPE);
-        params.set('client_assertion', result.jwt);
+        params.set('client_assertion', assertion.jwt);
 
-        return originalFetch(url.toString(), {
+        const res = await originalFetch(url.toString(), {
             method: 'POST',
             headers,
             body: params.toString(),
             signal: init?.signal,
         });
+
+        if (res.ok || !isRefreshGrant) {
+            return res;
+        }
+
+        const error = await res.clone().json().then((errorBody) => errorBody?.error, () => undefined);
+        if (error === 'use_dpop_nonce') {
+            unconsumedAssertions.set(assertionKey, assertion);
+            return res;
+        }
+
+        if (reused) {
+            throw new Error('Client assertion reuse rejected');
+        }
+
+        return res;
     };
 }
