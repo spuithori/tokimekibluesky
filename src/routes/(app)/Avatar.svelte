@@ -6,6 +6,7 @@
   import {profileHintState} from "$lib/classes/profileHintState.svelte";
   import {modalState} from "$lib/classes/modalState.svelte";
   import {onDestroy} from "svelte";
+  import {isMobileViewport} from "$lib/viewportQuery.svelte";
 
   let {
     _agent = $agent,
@@ -44,7 +45,7 @@
   let currentAnimation: Animation | null = null;
 
   function handlePointerDown(e: PointerEvent) {
-    if ($settings?.general?.disableMochiHoppe) return;
+    if ($settings?.general?.disableMochiHoppe || isMobileViewport.current) return;
     isDragging = true;
     wasDragged = false;
     startX = e.clientX;
@@ -102,7 +103,7 @@
   }
 
   function handleDragStart(e: DragEvent) {
-    if ($settings?.general?.disableMochiHoppe) return;
+    if ($settings?.general?.disableMochiHoppe || isMobileViewport.current) return;
     e.preventDefault();
   }
 
@@ -228,10 +229,12 @@
           overflow: hidden;
           display: block;
 
-          &.mochi-enabled {
-              -webkit-user-drag: none;
-              user-select: none;
-              touch-action: none;
+          @media (min-width: 768px) {
+              &.mochi-enabled {
+                  -webkit-user-drag: none;
+                  user-select: none;
+                  touch-action: none;
+              }
           }
       }
 
