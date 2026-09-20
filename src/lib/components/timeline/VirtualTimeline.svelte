@@ -16,6 +16,7 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {makeFeedKeys, getFeedKey} from "$lib/components/timeline/feedKeys";
   import {soloFeedKey} from "$lib/merge/mergeSolo";
+  import {getTimelineItemHeightEstimate, reportTimelineItemHeight} from "$lib/components/timeline/timelineHeightEstimate";
 
   let {
     column,
@@ -270,6 +271,8 @@
     paused={isPaused}
     bufferPx={1000}
     onScroll={handleVirtualScroll}
+    estimatedItemHeight={getTimelineItemHeightEstimate()}
+    onMeasuredAverage={reportTimelineItemHeight}
     onRangeChange={scheduleLoadCheck}
     bind:this={virtualList}
   >

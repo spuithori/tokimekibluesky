@@ -10,6 +10,7 @@ import {appState} from "$lib/classes/appState.svelte";
 import {recordError} from "$lib/errorLog";
 import {clearAllNotificationLedgers, deleteNotificationLedger} from "$lib/components/notification/notificationLedger";
 import {SOLO_FEED_SUFFIX, soloFeedKey} from "$lib/merge/mergeSolo";
+import {probeFeedRender} from "$lib/debug/renderProbe";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -55,23 +56,32 @@ export class ColumnState {
         this._feedStatus = rest;
     }
 
+    private probeFeedWrite(columnId: string, before: number, after: number) {
+        probeFeedRender('fetch', columnId, untrack(() => this.columnById.get(columnId)?.algorithm?.name), before, after);
+    }
+
     setFeed(columnId: string, feed: any[]): void {
         if (!this.canWriteFeed(columnId)) return;
+        this.probeFeedWrite(columnId, this._feeds.get(columnId)?.length ?? 0, feed.length);
         this._feeds.set(columnId, feed);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
     }
 
     updateFeed(columnId: string, fn: (feed: any[]) => void): void {
         if (!this.canWriteFeed(columnId)) return;
-        const feed = (this._feeds.get(columnId) ?? []).slice();
+        const current = this._feeds.get(columnId) ?? [];
+        const feed = current.slice();
         fn(feed);
+        this.probeFeedWrite(columnId, current.length, feed.length);
         this._feeds.set(columnId, feed);
     }
 
     replaceFeed(columnId: string, fn: (feed: any[]) => any[]): void {
         if (!this.canWriteFeed(columnId)) return;
         const feed = this._feeds.get(columnId) ?? [];
-        this._feeds.set(columnId, fn(feed));
+        const next = fn(feed);
+        this.probeFeedWrite(columnId, feed.length, next.length);
+        this._feeds.set(columnId, next);
     }
 
     clearFeed(columnId: string): void {
@@ -236,6 +246,8 @@ export class ColumnState {
 
             const next = this.nextDeferredInDeckOrder();
             if (next !== undefined) {
+                const restored = this._feeds.get(next)?.length ?? 0;
+                probeFeedRender('restore', next, untrack(() => this.columnById.get(next)?.algorithm?.name), restored, restored);
                 this._deferredContent.delete(next);
             }
 
