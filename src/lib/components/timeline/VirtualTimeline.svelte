@@ -16,6 +16,7 @@
   import {getColumnState} from "$lib/classes/columnState.svelte";
   import {makeFeedKeys, getFeedKey} from "$lib/components/timeline/feedKeys";
   import {soloFeedKey} from "$lib/merge/mergeSolo";
+  import {getTimelineItemHeightEstimate, reportTimelineItemHeight} from "$lib/components/timeline/timelineHeightEstimate";
 
   let {
     column,
@@ -150,6 +151,16 @@
     checkLoadMore();
   }
 
+  let loadCheckFrame = 0;
+
+  function scheduleLoadCheck() {
+    if (loadCheckFrame) return;
+    loadCheckFrame = requestAnimationFrame(() => {
+      loadCheckFrame = 0;
+      checkLoadMore();
+    });
+  }
+
   function checkLoadMore() {
     if (!virtualList) return;
     const info = virtualList.getScrollInfo();
@@ -185,6 +196,11 @@
   });
 
   onDestroy(() => {
+    if (loadCheckFrame) {
+      cancelAnimationFrame(loadCheckFrame);
+      loadCheckFrame = 0;
+    }
+
     if (scrollSaveTimer) {
       clearTimeout(scrollSaveTimer);
       scrollSaveTimer = null;
@@ -255,7 +271,9 @@
     paused={isPaused}
     bufferPx={1000}
     onScroll={handleVirtualScroll}
-    onRangeChange={checkLoadMore}
+    estimatedItemHeight={getTimelineItemHeightEstimate()}
+    onMeasuredAverage={reportTimelineItemHeight}
+    onRangeChange={scheduleLoadCheck}
     bind:this={virtualList}
   >
     {#snippet children(item, index)}

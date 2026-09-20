@@ -26,6 +26,8 @@
     initialScrollState?: ScrollState | null;
     refreshToTop?: boolean;
     paused?: boolean;
+    estimatedItemHeight?: number;
+    onMeasuredAverage?: (average: number, count: number) => void;
     onRangeChange?: (range: VisibleRange) => void;
     onScroll?: () => void;
     children: Snippet<[T, number]>;
@@ -41,6 +43,8 @@
     initialScrollState = null,
     refreshToTop = false,
     paused = false,
+    estimatedItemHeight = DEFAULT_ITEM_HEIGHT,
+    onMeasuredAverage,
     onRangeChange,
     onScroll,
     children
@@ -60,6 +64,8 @@
   let rangeEnd = $state(0);
 
   let viewportHeight = $state(0);
+  let viewportMeasured = $state(false);
+  let initialRangePending = false;
   let visibleStart = $state(0);
   let visibleEnd = $state(Infinity);
   let measuredEpoch = $state(0);
@@ -126,7 +132,7 @@
   let downTop = $derived(B + downOffset);
 
   function getAverageHeight(): number {
-    return tree.measuredCount > 0 ? tree.measuredAverage : DEFAULT_ITEM_HEIGHT;
+    return tree.measuredCount > 0 ? tree.measuredAverage : estimatedItemHeight;
   }
 
   function getEffectiveBufferPx(): number {
@@ -679,6 +685,9 @@
       growCanvas(requiredCanvasHeight());
       flushSync();
     }
+    if (changed) {
+      onMeasuredAverage?.(tree.measuredAverage, tree.measuredCount);
+    }
     if (changed && !effectivePaused) {
       growCanvas(requiredCanvasHeight());
       if (!frameQueued) {
@@ -734,8 +743,19 @@
     tree.buildWithCallback(items.length, () => avg);
     setPivot(0, 0);
     rangeStart = 0;
-    rangeEnd = initialScrollState && !hasRestoredScroll ? 0 : Math.min(items.length, initialRenderCount());
+    initialRangePending = viewportHeight === 0 && !(initialScrollState && !hasRestoredScroll);
+    rangeEnd = initialRangePending || (initialScrollState && !hasRestoredScroll) ? 0 : Math.min(items.length, initialRenderCount());
     canvasHeight = Math.max(tree.total, initialScrollState?.scrollTop != null ? initialScrollState.scrollTop + 1000 : 0);
+  }
+
+  function applyPendingInitialRange(): void {
+    untrack(() => {
+      if (!initialRangePending || viewportHeight === 0) return;
+      initialRangePending = false;
+      if (rangeStart === 0 && rangeEnd === 0) {
+        rangeEnd = Math.min(items.length, initialRenderCount());
+      }
+    });
   }
 
   function initialRenderCount(): number {
@@ -1173,18 +1193,28 @@
 
     if (isWindowScroll) {
       viewportHeight = window.innerHeight;
+      viewportMeasured = true;
+      applyPendingInitialRange();
       const handleResize = () => {
         const newHeight = window.innerHeight;
-        if (newHeight !== viewportHeight && newHeight > 0) viewportHeight = newHeight;
+        if (newHeight !== viewportHeight && newHeight > 0) {
+          viewportHeight = newHeight;
+          applyPendingInitialRange();
+        }
       };
       window.addEventListener('resize', handleResize, { passive: true });
       extraCleanup = () => window.removeEventListener('resize', handleResize);
     } else {
       viewportHeight = scrollContainer!.clientHeight;
+      viewportMeasured = true;
+      applyPendingInitialRange();
       const containerObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const newHeight = entry.contentRect.height;
-          if (newHeight !== viewportHeight && newHeight > 0) viewportHeight = newHeight;
+          if (newHeight !== viewportHeight && newHeight > 0) {
+            viewportHeight = newHeight;
+            applyPendingInitialRange();
+          }
         }
       });
       containerObserver.observe(scrollContainer!);
@@ -1249,7 +1279,7 @@
       </div>
     {:else}
       <div class="vl-down" style:top="0px">
-        {#each (restorePending ? [] : items.slice(0, FALLBACK_RENDER_COUNT)) as item, index (getKey(item, index))}
+        {#each (restorePending || !viewportMeasured ? [] : items.slice(0, FALLBACK_RENDER_COUNT)) as item, index (getKey(item, index))}
           {@const k = getKey(item, index)}
           <div class="virtual-item" {@attach itemAttach(k)}>
             {@render children(item, index)}

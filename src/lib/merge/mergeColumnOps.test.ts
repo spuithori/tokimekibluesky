@@ -208,7 +208,7 @@ describe('solo overlay feed cleanup', () => {
         cleanup();
     });
 
-    it('sweeps orphan solo overlay feeds on replaceAllColumns while keeping regular feeds hot', () => {
+    it('sweeps solo overlay feeds together with regular feeds on replaceAllColumns', () => {
         const { cs, cleanup } = createRealDeckColumnState();
         cs.add(homeCol('a'));
         cs.setFeed('a', [post('a1', 100)]);
@@ -216,7 +216,7 @@ describe('solo overlay feed cleanup', () => {
 
         cs.replaceAllColumns([homeCol('a')], undefined, 2);
         expect((cs as any)._feeds.has(soloFeedKey('a'))).toBe(false);
-        expect((cs as any)._feeds.has('a')).toBe(true);
+        expect((cs as any)._feeds.has('a')).toBe(false);
         cleanup();
     });
 });

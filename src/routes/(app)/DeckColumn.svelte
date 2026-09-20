@@ -69,6 +69,7 @@
     const column = $derived(columnState.getColumn(index));
     const _agent = $derived(_agentProp ?? $agentsByDid.get(column?.did) ?? (isJunk ? $agent : undefined));
     const slotIndex = $derived(isJunk ? index : columnState.slotIndexOf(column?.id));
+    const isContentDeferred = $derived(!isJunk && $settings.design?.layout === 'decks' && !!column?.id && columnState.isContentDeferred(column.id));
 
     let isSettingsOpen = $state(false);
     let isIconPickerOpen = $state(false);
@@ -607,7 +608,9 @@
             disabled={column?.algorithm?.type === 'chat' || column?.algorithm?.type === 'chatList' || $settings.design?.layout === 'default' || !!profileRefreshContext}
     >
         <div class="deck-row__content">
-            <ColumnContent {index} {_agent} {isJunk} {unique} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
+            {#if !isContentDeferred}
+                <ColumnContent {index} {_agent} {isJunk} {unique} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
+            {/if}
         </div>
     </Refresher>
 </div>

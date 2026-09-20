@@ -18,6 +18,7 @@ vi.mock("$lib/classes/settingsState.svelte", () => ({
 import { flushSync } from "svelte";
 import { createRealColumnState, createRealDeckColumnState } from "$lib/classes/columnState.perf.harness.svelte";
 import { soloFeedKey } from "$lib/merge/mergeSolo";
+import { settingsState } from "$lib/classes/settingsState.svelte";
 
 function post(uri: string) {
     return {
@@ -105,18 +106,68 @@ describe("ghost feed guard", () => {
         cleanup();
     });
 
-    it("keeps accepting writes for feeds retained across replaceAllColumns (hot resume)", () => {
+    it("restores the persisted timelines of the next workspace when timeline retention is on", () => {
+        settingsState.settings.markedUnread = true;
+        try {
+            const { cs, cleanup } = createRealDeckColumnState();
+            cs.add(column("ws1-a", { data: { feed: [post("at://ws1/1")], cursor: "" } }));
+            cs.setFeedStatus("ws1-a", "loaded");
+            flushSync();
+
+            cs.replaceAllColumns([
+                column("ws2-b", { data: { feed: [post("at://ws2/kept")], cursor: "kept-cursor", scrollState: { scrollTop: 400 } } }),
+            ]);
+            flushSync();
+
+            expect(hasFeed(cs, "ws1-a")).toBe(false);
+            expect(cs.getFeedStatus("ws1-a")).toBeUndefined();
+            expect(cs.getFeed("ws2-b").map((item: any) => item.post.uri)).toEqual(["at://ws2/kept"]);
+            const next = cs.columns.find((c: any) => c.id === "ws2-b");
+            expect(next.data.feed).toEqual([]);
+            expect(next.data.cursor).toBe("kept-cursor");
+            expect(next.data.scrollState).toBeUndefined();
+            cleanup();
+        } finally {
+            settingsState.settings.markedUnread = false;
+        }
+    });
+
+    it("discards every feed, status and paging position when the workspace is replaced with timeline retention off", () => {
+        const { cs, cleanup } = createRealDeckColumnState();
+        cs.add(column("ws1-a", { data: { feed: [post("at://ws1/1")], cursor: "" } }));
+        cs.setFeedStatus("ws1-a", "loaded");
+        flushSync();
+
+        cs.replaceAllColumns([
+            column("ws2-b", { data: { feed: [post("at://ws2/stale")], cursor: "stale-cursor", scrollState: { scrollTop: 400 }, mergeSoloCursor: "stale-solo" } }),
+        ]);
+        flushSync();
+
+        expect(hasFeed(cs, "ws1-a")).toBe(false);
+        expect(cs.getFeedStatus("ws1-a")).toBeUndefined();
+        expect(cs.getFeed("ws2-b")).toEqual([]);
+        const next = cs.columns.find((c: any) => c.id === "ws2-b");
+        expect(next.data.feed).toEqual([]);
+        expect(next.data.cursor).toBe("");
+        expect(next.data.scrollState).toBeUndefined();
+        expect(next.data.mergeSoloCursor).toBeUndefined();
+        cleanup();
+    });
+
+    it("drops late writes from the previous workspace after it has been replaced", () => {
         const { cs, cleanup } = createRealDeckColumnState();
         cs.add(column("ws1-a", { data: { feed: [post("at://ws1/1")], cursor: "" } }));
         flushSync();
 
         cs.replaceAllColumns([column("ws2-b")]);
         flushSync();
-        expect(cs.hasColumn("ws1-a")).toBe(false);
-        expect(hasFeed(cs, "ws1-a")).toBe(true);
 
         cs.updateFeed("ws1-a", (f: any[]) => { f.unshift(post("at://ws1/late")); });
-        expect(cs.getFeed("ws1-a")).toHaveLength(2);
+        cs.setFeedStatus("ws1-a", "loaded");
+
+        expect(hasFeed(cs, "ws1-a")).toBe(false);
+        expect(cs.getFeedStatus("ws1-a")).toBeUndefined();
+        expect(cs.getFeed("ws2-b")).toEqual([]);
         cleanup();
     });
 

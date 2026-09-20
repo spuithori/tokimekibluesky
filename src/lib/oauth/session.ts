@@ -17,6 +17,10 @@ function flushAllDirty() {
     }
 }
 
+function isInvalidTokenChallenge(wwwAuth: string): boolean {
+    return (wwwAuth.startsWith('DPoP ') || wwwAuth.startsWith('Bearer ')) && wwwAuth.includes('error="invalid_token"');
+}
+
 function installGlobalFlushHooks() {
     if (globalFlushHooksInstalled || typeof window === 'undefined') return;
     globalFlushHooksInstalled = true;
@@ -314,7 +318,7 @@ export function createOAuthSession(
                     continue;
                 }
 
-                if (!didRefresh && currentRefreshToken) {
+                if (!didRefresh && currentRefreshToken && isInvalidTokenChallenge(wwwAuth)) {
                     didRefresh = true;
                     try {
                         await requestRefresh();

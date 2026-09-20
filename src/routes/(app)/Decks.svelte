@@ -14,12 +14,17 @@
     import {publishState} from "$lib/classes/publishState.svelte";
     import {appState} from "$lib/classes/appState.svelte";
     const columnState = getColumnState();
+
+    function trackDeckMounted() {
+        columnState.setDeckMounted(true);
+        return () => columnState.setDeckMounted(false);
+    }
 </script>
 
 <TilingDragOverlay></TilingDragOverlay>
 <TilingDragGhost></TilingDragGhost>
 
-<div class="deck-wrap">
+<div class="deck-wrap" {@attach appState.ready && trackDeckMounted}>
   <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
 
   {#if columnState.loadFailed}

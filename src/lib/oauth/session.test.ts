@@ -117,6 +117,46 @@ describe('OAuth session fetchHandler', () => {
         expect(res.status).toBe(401);
         expect(vi.mocked(refreshToken)).toHaveBeenCalledTimes(1);
     });
+
+    it('refreshes on an invalid_token challenge using the Bearer scheme', async () => {
+        const stored = storedSession();
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+        vi.mocked(refreshToken).mockResolvedValue({ access_token: 'new-token', refresh_token: 'r2', expires_in: 3600 } as any);
+
+        stubFetchSequence([
+            () => new Response('{}', { status: 401, headers: { 'WWW-Authenticate': 'Bearer error="invalid_token"' } }),
+            ok(),
+        ]);
+
+        const session = createOAuthSession(stored, 'client-id');
+        const res = await session.fetchHandler('/xrpc/app.bsky.feed.getTimeline');
+
+        expect(res.status).toBe(200);
+        expect(vi.mocked(refreshToken)).toHaveBeenCalledTimes(1);
+    });
+
+    it('never rotates the refresh token on a 401 that does not challenge the access token', async () => {
+        const stored = storedSession();
+        vi.mocked(getSession).mockResolvedValue({ ...stored });
+
+        const upstreamRejections = [
+            () => new Response('{"error":"AuthenticationRequired"}', { status: 401 }),
+            () => new Response('{}', { status: 401, headers: { 'WWW-Authenticate': 'DPoP error="insufficient_scope"' } }),
+            () => new Response('{}', { status: 401, headers: { 'WWW-Authenticate': 'Basic error="invalid_token"' } }),
+        ];
+
+        for (const rejection of upstreamRejections) {
+            const fetchMock = stubFetchSequence([rejection]);
+            const session = createOAuthSession(stored, 'client-id');
+            const res = await session.fetchHandler('/xrpc/app.bsky.feed.getFeed');
+
+            expect(res.status).toBe(401);
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+        }
+
+        expect(vi.mocked(refreshToken)).not.toHaveBeenCalled();
+        expect(stored.refreshToken).toBe('r1');
+    });
 });
 
 describe('OAuth session refresh coordination', () => {

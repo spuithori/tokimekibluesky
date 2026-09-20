@@ -1,7 +1,7 @@
 import type {Column} from "$lib/types/column";
 import {type Slot, type LayoutNode, loadDeckState, migrateLegacyColumns, splitLeaf, splitLeafWithExisting, moveLeafToSplit, moveLeafToSlot, unsplitAt, swapAt, slotIndexOfColumn, flattenLeafIds, firstLeafId, DECK_SCHEMA_VERSION} from "$lib/classes/deckLayout";
 import {getContext, setContext, untrack} from "svelte";
-import {SvelteMap} from "svelte/reactivity";
+import {SvelteMap, SvelteSet} from "svelte/reactivity";
 import {accountsDb} from "$lib/db";
 import type {pulseReaction} from "$lib/components/post/reactionPulse.svelte";
 import {AppBskyFeedDefs} from "$lib/atproto-guards";
@@ -10,6 +10,7 @@ import {appState} from "$lib/classes/appState.svelte";
 import {recordError} from "$lib/errorLog";
 import {clearAllNotificationLedgers, deleteNotificationLedger} from "$lib/components/notification/notificationLedger";
 import {SOLO_FEED_SUFFIX, soloFeedKey} from "$lib/merge/mergeSolo";
+import {probeFeedRender} from "$lib/debug/renderProbe";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -21,6 +22,9 @@ export class ColumnState {
     private readonly isJunk: boolean;
     private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
+    private _deferredContent = new SvelteSet<string>();
+    private contentReleaseGeneration = 0;
+    private deckMounted = false;
 
     getFeed(columnId: string): any[] {
         return this._feeds.get(columnId) ?? [];
@@ -52,23 +56,32 @@ export class ColumnState {
         this._feedStatus = rest;
     }
 
+    private probeFeedWrite(columnId: string, before: number, after: number) {
+        probeFeedRender('fetch', columnId, untrack(() => this.columnById.get(columnId)?.algorithm?.name), before, after);
+    }
+
     setFeed(columnId: string, feed: any[]): void {
         if (!this.canWriteFeed(columnId)) return;
+        this.probeFeedWrite(columnId, this._feeds.get(columnId)?.length ?? 0, feed.length);
         this._feeds.set(columnId, feed);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
     }
 
     updateFeed(columnId: string, fn: (feed: any[]) => void): void {
         if (!this.canWriteFeed(columnId)) return;
-        const feed = (this._feeds.get(columnId) ?? []).slice();
+        const current = this._feeds.get(columnId) ?? [];
+        const feed = current.slice();
         fn(feed);
+        this.probeFeedWrite(columnId, current.length, feed.length);
         this._feeds.set(columnId, feed);
     }
 
     replaceFeed(columnId: string, fn: (feed: any[]) => any[]): void {
         if (!this.canWriteFeed(columnId)) return;
         const feed = this._feeds.get(columnId) ?? [];
-        this._feeds.set(columnId, fn(feed));
+        const next = fn(feed);
+        this.probeFeedWrite(columnId, feed.length, next.length);
+        this._feeds.set(columnId, next);
     }
 
     clearFeed(columnId: string): void {
@@ -186,6 +199,80 @@ export class ColumnState {
         }
     }
 
+    private adoptPersistedFeeds(columns: Column[]) {
+        for (const col of columns) {
+            if (col.data) {
+                col.data.scrollState = undefined;
+                const feed = col.data.feed;
+                if (feed && feed.length > 0 && col.id) {
+                    this._feeds.set(col.id, feed);
+                    this._deferredContent.add(col.id);
+                    col.data.feed = [];
+                }
+            }
+        }
+    }
+
+    isContentDeferred(columnId: string): boolean {
+        return this._deferredContent.has(columnId);
+    }
+
+    private nextDeferredInDeckOrder(): string | undefined {
+        for (const slot of this.slots) {
+            for (const id of flattenLeafIds(slot.layout)) {
+                if (this._deferredContent.has(id)) {
+                    return id;
+                }
+            }
+        }
+        return this._deferredContent.values().next().value;
+    }
+
+    setDeckMounted(mounted: boolean) {
+        this.deckMounted = mounted;
+        this.scheduleContentRelease();
+    }
+
+    private scheduleContentRelease() {
+        const generation = ++this.contentReleaseGeneration;
+        if (!this.deckMounted || this._deferredContent.size === 0) {
+            return;
+        }
+
+        const release = () => {
+            if (generation !== this.contentReleaseGeneration) {
+                return;
+            }
+
+            const next = this.nextDeferredInDeckOrder();
+            if (next !== undefined) {
+                const restored = this._feeds.get(next)?.length ?? 0;
+                probeFeedRender('restore', next, untrack(() => this.columnById.get(next)?.algorithm?.name), restored, restored);
+                this._deferredContent.delete(next);
+            }
+
+            if (this._deferredContent.size > 0) {
+                requestAnimationFrame(release);
+            }
+        };
+
+        requestAnimationFrame(() => requestAnimationFrame(release));
+    }
+
+    private resetFeedData(columns: Column[]) {
+        for (const col of columns) {
+            if (col.data) {
+                col.data.feed = [];
+                col.data.cursor = '';
+                col.data.scrollState = undefined;
+                col.data._heightCache = undefined;
+                col.data._heightCacheWidth = undefined;
+                col.data.mergeSoloCursor = undefined;
+                col.data.mergeSoloComplete = undefined;
+            }
+        }
+    }
+
     loadColumns() {
         this.loadFailed = false;
 
@@ -195,22 +282,10 @@ export class ColumnState {
                   { version: res?.deckVersion, columns: res?.columns, slots: res?.slots },
                   () => self.crypto.randomUUID(),
               );
-              const feedEntries: Record<string, any[]> = {};
-              for (const col of columns) {
-                  if (col.data) {
-                      col.data.scrollState = undefined;
-                      const feed = col.data.feed;
-                      if (feed && feed.length > 0 && col.id) {
-                          feedEntries[col.id] = feed;
-                          col.data.feed = [];
-                      }
-                  }
-              }
-              for (const [id, feed] of Object.entries(feedEntries)) {
-                  this._feeds.set(id, feed);
-              }
+              this.adoptPersistedFeeds(columns);
               this.columns = columns;
               this.slots = slots;
+              this.scheduleContentRelease();
               this.isColumnsLoaded = true;
               this.applyAllKnownHandles();
           })
@@ -236,6 +311,7 @@ export class ColumnState {
     }
 
     remove(id: string) {
+        this._deferredContent.delete(id);
         this.deleteFeed(id);
         this.deleteFeed(soloFeedKey(id));
         this.clearFeedStatus(id);
@@ -257,23 +333,28 @@ export class ColumnState {
         }
         this.columns.length = 0;
         this.slots.length = 0;
+        this._deferredContent.clear();
         this._feeds.clear();
         this._feedStatus = {};
     }
 
     replaceAllColumns(columns: Column[], slots?: Slot[], version?: number) {
         clearAllNotificationLedgers();
-        for (const key of [...this._feeds.keys()]) {
-            if (key.endsWith(SOLO_FEED_SUFFIX)) {
-                this._feeds.delete(key);
-            }
-        }
+        this._feeds.clear();
+        this._feedStatus = {};
+        this._deferredContent.clear();
         const deck = loadDeckState(
             { version, columns, slots },
             () => self.crypto.randomUUID(),
         );
+        if (settingsState?.settings?.markedUnread) {
+            this.adoptPersistedFeeds(deck.columns);
+        } else {
+            this.resetFeedData(deck.columns);
+        }
         this.columns = deck.columns;
         this.slots = deck.slots;
+        this.scheduleContentRelease();
         this.applyAllKnownHandles();
     }
 
