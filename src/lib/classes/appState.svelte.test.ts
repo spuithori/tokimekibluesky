@@ -118,32 +118,27 @@ function seedSingleProfile() {
 }
 
 describe('appState boot gating', () => {
-    it('goes straight to /login with zero accounts and never raises shellReady', async () => {
+    it('goes straight to /login with zero accounts and never becomes ready', async () => {
         const appState = await loadAppState();
 
         await appState.init();
 
         expect(gotoMock).toHaveBeenCalledWith('/login');
-        expect(appState.shellReady).toBe(false);
         expect(appState.ready).toBe(false);
     });
 
-    it('raises shellReady before session resume resolves, ready only after', async () => {
+    it('stays unready while session resume is pending, ready only after', async () => {
         seedSingleProfile();
         const appState = await loadAppState();
 
         const boot = appState.init();
         await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
-
-        expect(appState.shellReady).toBe(true);
         expect(appState.ready).toBe(false);
         expect(appState.resumeStatus['did:plc:one'].phase).toBe('pending');
         expect(gotoMock).not.toHaveBeenCalled();
 
         resolveResume(1, resumedOutcome());
         await boot;
-
-        expect(appState.shellReady).toBe(true);
         expect(appState.ready).toBe(true);
         expect(appState.resumeStatus['did:plc:one'].phase).toBe('resumed');
     });
@@ -163,15 +158,12 @@ describe('appState boot gating', () => {
         appState.changeProfile(2);
 
         expect(appState.ready).toBe(false);
-        expect(appState.shellReady).toBe(false);
 
         await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(2));
         expect(appState.ready).toBe(false);
-        expect(appState.shellReady).toBe(false);
 
         resolveResume(2, resumedOutcome());
         await vi.waitFor(() => expect(appState.ready).toBe(true));
-        expect(appState.shellReady).toBe(true);
     });
 
     it('ignores a stale in-flight init once changeProfile has started a newer one', async () => {
@@ -196,7 +188,6 @@ describe('appState boot gating', () => {
 
         resolveResume(2, resumedOutcome());
         await vi.waitFor(() => expect(appState.ready).toBe(true));
-        expect(appState.shellReady).toBe(true);
         expect(get(agents as any).has(2)).toBe(true);
         expect(get(agents as any).has(1)).toBe(false);
     });
@@ -296,7 +287,6 @@ describe('appState primary-gated progressive resume', () => {
         await boot;
 
         expect(appState.ready).toBe(false);
-        expect(appState.shellReady).toBe(true);
         expect(appState.missingAccounts.some((a: any) => a.id === 1)).toBe(true);
     });
 
@@ -348,7 +338,6 @@ describe('appState primary-gated progressive resume', () => {
 
         expect(appState.bootError?.message).toContain('VersionError');
         expect(appState.ready).toBe(false);
-        expect(appState.shellReady).toBe(false);
 
         const boot = appState.init();
         await vi.waitFor(() => expect(resumeControls.length).toBe(1));

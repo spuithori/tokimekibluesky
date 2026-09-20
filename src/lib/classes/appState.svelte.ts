@@ -18,7 +18,6 @@ export interface AccountResumeStatus {
 
 class AppState {
     ready: boolean = $state(false);
-    shellReady: boolean = $state(false);
     status: number = $state(0);
     pdsRequestReady: boolean = $state(false);
     profile: PersistedState<number> = new PersistedState('currentProfile', 1);
@@ -30,7 +29,6 @@ class AppState {
     subscribedLabelers = new PersistedState('subscribedLabelers', withAppLabelers(['did:plc:ar7c4by46qjdydhdevvrndac']));
     singleColumnScrollPositions: Map<number, number> = new Map();
 
-    private hasBooted = false;
     private initEpoch = 0;
     private snoozedMissingIds = new Set<number>();
     private freshHandles = new Map<string, string>();
@@ -159,10 +157,6 @@ class AppState {
             return false;
         }
 
-        if (!this.hasBooted) {
-            this.shellReady = true;
-        }
-
         this.resumeAccounts = accounts;
         this.resumeProxy = profile?.appViewProxy;
         this.resumePrimaryId = profile.primary;
@@ -256,8 +250,6 @@ class AppState {
 
     private completeBoot(primaryAgent: Agent) {
         agent.set(primaryAgent);
-        this.hasBooted = true;
-        this.shellReady = true;
         this.ready = true;
 
         const labelers = withAppLabelers(this.subscribedLabelers.current);
@@ -392,7 +384,6 @@ class AppState {
     changeProfile(id) {
         this.profile.current = id;
         appState.ready = false;
-        appState.shellReady = false;
         appState.init();
     }
 
