@@ -148,30 +148,56 @@ describe('appState boot gating', () => {
         expect(appState.resumeStatus['did:plc:one'].phase).toBe('resumed');
     });
 
-    it('drops both flags during changeProfile until the new resume resolves', async () => {
+    it('removes every agent synchronously when a workspace switch starts', async () => {
         seedSingleProfile();
         db.accounts.push({ id: 2, did: 'did:plc:two' });
         db.profiles.push({ id: 2, accounts: [2], primary: 2, columns: [] });
         const appState = await loadAppState();
+        const { agent, agents } = await import('$lib/stores');
+        const { get } = await import('svelte/store');
 
         const boot = appState.init();
         await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
-        resolveResume(1, resumedOutcome());
+        resolveResume(1, resumedOutcome(makeAgent('did:plc:one')));
         await boot;
-        expect(appState.ready).toBe(true);
+        expect((get(agent as any) as any).did()).toBe('did:plc:one');
+        expect((get(agents as any) as Map<number, any>).has(1)).toBe(true);
 
         appState.changeProfile(2);
 
+        expect(get(agent as any)).toBeUndefined();
+        expect((get(agents as any) as Map<number, any>).size).toBe(0);
         expect(appState.ready).toBe(false);
         expect(appState.shellReady).toBe(false);
+    });
 
+    it('brings the shell back before the new primary resumes, with no agent reachable until it does', async () => {
+        seedSingleProfile();
+        db.accounts.push({ id: 2, did: 'did:plc:two' });
+        db.profiles.push({ id: 2, accounts: [2], primary: 2, columns: [] });
+        const appState = await loadAppState();
+        const { agent, agents } = await import('$lib/stores');
+        const { get } = await import('svelte/store');
+
+        const boot = appState.init();
+        await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalled());
+        resolveResume(1, resumedOutcome(makeAgent('did:plc:one')));
+        await boot;
+
+        appState.changeProfile(2);
         await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(2));
-        expect(appState.ready).toBe(false);
-        expect(appState.shellReady).toBe(false);
 
-        resolveResume(2, resumedOutcome());
-        await vi.waitFor(() => expect(appState.ready).toBe(true));
         expect(appState.shellReady).toBe(true);
+        expect(appState.ready).toBe(false);
+        expect(get(agent as any)).toBeUndefined();
+        expect((get(agents as any) as Map<number, any>).size).toBe(0);
+
+        const nextPrimary = makeAgent('did:plc:two');
+        resolveResume(2, resumedOutcome(nextPrimary));
+        await vi.waitFor(() => expect(appState.ready).toBe(true));
+
+        expect(get(agent as any)).toBe(nextPrimary);
+        expect([...(get(agents as any) as Map<number, any>).keys()]).toEqual([2]);
     });
 
     it('ignores a stale in-flight init once changeProfile has started a newer one', async () => {
@@ -186,13 +212,14 @@ describe('appState boot gating', () => {
         appState.changeProfile(2);
         await vi.waitFor(() => expect(startResumeMock).toHaveBeenCalledTimes(2));
 
-        resolveResume(1, resumedOutcome());
+        resolveResume(1, resumedOutcome(makeAgent('did:plc:one')));
         await firstBoot;
 
         expect(appState.ready).toBe(false);
-        const { agents } = await import('$lib/stores');
+        const { agent, agents } = await import('$lib/stores');
         const { get } = await import('svelte/store');
         expect(get(agents as any).size).toBe(0);
+        expect(get(agent as any)).toBeUndefined();
 
         resolveResume(2, resumedOutcome());
         await vi.waitFor(() => expect(appState.ready).toBe(true));

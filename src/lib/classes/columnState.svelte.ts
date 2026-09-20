@@ -186,6 +186,33 @@ export class ColumnState {
         }
     }
 
+    private adoptPersistedFeeds(columns: Column[]) {
+        for (const col of columns) {
+            if (col.data) {
+                col.data.scrollState = undefined;
+                const feed = col.data.feed;
+                if (feed && feed.length > 0 && col.id) {
+                    this._feeds.set(col.id, feed);
+                    col.data.feed = [];
+                }
+            }
+        }
+    }
+
+    private resetFeedData(columns: Column[]) {
+        for (const col of columns) {
+            if (col.data) {
+                col.data.feed = [];
+                col.data.cursor = '';
+                col.data.scrollState = undefined;
+                col.data._heightCache = undefined;
+                col.data._heightCacheWidth = undefined;
+                col.data.mergeSoloCursor = undefined;
+                col.data.mergeSoloComplete = undefined;
+            }
+        }
+    }
+
     loadColumns() {
         this.loadFailed = false;
 
@@ -195,20 +222,7 @@ export class ColumnState {
                   { version: res?.deckVersion, columns: res?.columns, slots: res?.slots },
                   () => self.crypto.randomUUID(),
               );
-              const feedEntries: Record<string, any[]> = {};
-              for (const col of columns) {
-                  if (col.data) {
-                      col.data.scrollState = undefined;
-                      const feed = col.data.feed;
-                      if (feed && feed.length > 0 && col.id) {
-                          feedEntries[col.id] = feed;
-                          col.data.feed = [];
-                      }
-                  }
-              }
-              for (const [id, feed] of Object.entries(feedEntries)) {
-                  this._feeds.set(id, feed);
-              }
+              this.adoptPersistedFeeds(columns);
               this.columns = columns;
               this.slots = slots;
               this.isColumnsLoaded = true;
@@ -263,15 +277,17 @@ export class ColumnState {
 
     replaceAllColumns(columns: Column[], slots?: Slot[], version?: number) {
         clearAllNotificationLedgers();
-        for (const key of [...this._feeds.keys()]) {
-            if (key.endsWith(SOLO_FEED_SUFFIX)) {
-                this._feeds.delete(key);
-            }
-        }
+        this._feeds.clear();
+        this._feedStatus = {};
         const deck = loadDeckState(
             { version, columns, slots },
             () => self.crypto.randomUUID(),
         );
+        if (settingsState?.settings?.markedUnread) {
+            this.adoptPersistedFeeds(deck.columns);
+        } else {
+            this.resetFeedData(deck.columns);
+        }
         this.columns = deck.columns;
         this.slots = deck.slots;
         this.applyAllKnownHandles();
