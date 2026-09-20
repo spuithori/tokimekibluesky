@@ -1126,6 +1126,8 @@
     "oauth_error": "An error has occurred",
     "oauth_redirecting": "Redirecting...",
     "oauth_login": "Log in with OAuth",
+    "atpassport_login": "Log in with @passport",
+    "login_or": "or",
     "oauth_enter_handle": "Please enter your handle",
     "login_tab_oauth": "OAuth (recommended)",
     "oauth_recommended_note": "OAuth is the recommended way to sign in. You'll be taken to your account's server to authorize — your password is never shared with this app.",

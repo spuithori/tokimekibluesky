@@ -727,6 +727,8 @@
   "oauth_error": "发生错误",
   "oauth_redirecting": "重定向...",
   "oauth_login": "使用 OAuth 登录",
+  "atpassport_login": "使用 @passport 登录",
+  "login_or": "或",
   "oauth_enter_handle": "请输入你的用户识别符",
   "back_to_login": "返回登录页",
   "switch_to_oauth": "切换为 Oauth",

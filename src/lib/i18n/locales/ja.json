@@ -1126,6 +1126,8 @@
     "oauth_error": "エラーが発生しました",
     "oauth_redirecting": "リダイレクト中...",
     "oauth_login": "OAuthでログイン",
+    "atpassport_login": "@passportでログイン",
+    "login_or": "または",
     "oauth_enter_handle": "ハンドルを入力してください",
     "login_tab_oauth": "OAuth（推奨）",
     "oauth_recommended_note": "OAuthは推奨のログイン方法です。アカウントのサーバーで許可するだけで、パスワードをアプリに渡す必要はありません。",

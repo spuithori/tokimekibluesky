@@ -726,6 +726,8 @@
   "oauth_error": "Si è verificato un errore",
   "oauth_redirecting": "Reindirizzamento...",
   "oauth_login": "Accedi tramite OAuth",
+  "atpassport_login": "Accedi con @passport",
+  "login_or": "oppure",
   "oauth_enter_handle": "Inserisci il tuo nome utente",
   "back_to_login": "Torna al login",
   "switch_to_oauth": "Passa all'accesso OAuth",

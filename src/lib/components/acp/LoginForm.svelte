@@ -8,6 +8,7 @@
   import { accountsDb } from "$lib/db";
   import { toast } from "svelte-sonner";
   import { signIn } from '$lib/oauth';
+  import { requestPassportHandle } from '$lib/atpassport';
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import HandleTypeahead from "$lib/components/acp/HandleTypeahead.svelte";
 
@@ -32,6 +33,7 @@
   let twoFactorValue = $state('');
   let isOAuthLoading = $state(false);
   let isPasswordLoading = $state(false);
+  let isPassportLoading = $state(false);
   let isServerOpen = $state(false);
   const showPassword = $derived(authMode === 'password');
   const showOAuth = $derived(mode === 'page' || authMode === 'oauth');
@@ -108,10 +110,41 @@
     }
   }
 
+  async function loginWithPassport() {
+    isPassportLoading = true;
+
+    try {
+      const result = await requestPassportHandle();
+
+      if (result.status === 'redirecting') {
+        return;
+      }
+
+      if (result.status === 'selected') {
+        identifier = result.handle;
+        await loginWithOAuth();
+      }
+    } catch (error) {
+      console.error('@passport sign in error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to start @passport flow');
+    }
+
+    isPassportLoading = false;
+  }
+
+  function handlePageShow(event: PageTransitionEvent) {
+    if (event.persisted) {
+      isOAuthLoading = false;
+      isPassportLoading = false;
+    }
+  }
+
   function cancel() {
     oncancel?.();
   }
 </script>
+
+<svelte:window onpageshow={handlePageShow} />
 
 <div class="login-form login-form--{mode}">
   {#if mode === 'tabs'}
@@ -138,25 +171,38 @@
   {/if}
 
   {#if showOAuth}
-    <form class="login-form__section" action="#" onsubmit={(e) => { e.preventDefault(); loginWithOAuth(); }}>
+    <form class="login-form__section login-form__section--oauth" action="#" onsubmit={(e) => { e.preventDefault(); loginWithOAuth(); }}>
       <dl class="input-group">
         <dt class="input-group__name input-group__name--show">
           <label for="handle">{$_('login_handle_label')}</label>
         </dt>
 
         <dd class="input-group__content">
-          <HandleTypeahead bind:value={identifier} disabled={isOAuthLoading || lockIdentifier} id="handle" />
+          <HandleTypeahead bind:value={identifier} disabled={isOAuthLoading || isPassportLoading || lockIdentifier} id="handle" />
         </dd>
       </dl>
 
       <div class="login-submit">
-        <button class="button button--login" type="submit" disabled={isOAuthLoading}>
+        <button class="button button--login" type="submit" disabled={isOAuthLoading || isPassportLoading}>
           {#if isOAuthLoading}
             <LoadingSpinner color="#fff" size={20}></LoadingSpinner>
           {:else}
             {$_('oauth_login')}
           {/if}
         </button>
+
+        {#if !lockIdentifier}
+          <p class="login-or">{$_('login_or')}</p>
+
+          <button class="button button--border button--with-icon button--login" type="button" onclick={loginWithPassport} disabled={isOAuthLoading || isPassportLoading}>
+            {#if isPassportLoading}
+              <LoadingSpinner color="currentColor" size={20}></LoadingSpinner>
+            {:else}
+              <span class="passport-icon" aria-hidden="true"></span>
+              {$_('atpassport_login')}
+            {/if}
+          </button>
+        {/if}
 
         {#if mode === 'tabs'}
           <button class="text-button" onclick={(e) => { e.preventDefault(); cancel(); }} disabled={isOAuthLoading}>
@@ -338,6 +384,44 @@
             width: 100%;
             min-width: 0;
         }
+    }
+
+    .login-form__section--oauth {
+        .input-group {
+            margin-bottom: 0;
+        }
+
+        .login-submit {
+            margin-top: 0;
+        }
+    }
+
+    .login-or {
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 6px 0;
+        font-size: 13px;
+        line-height: 1;
+        color: var(--text-color-3);
+
+        &::before,
+        &::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: var(--border-color-1);
+        }
+    }
+
+    .passport-icon {
+        flex: none;
+        width: 20px;
+        height: 20px;
+        background-color: currentColor;
+        -webkit-mask: url('/atpassport.svg') center / contain no-repeat;
+        mask: url('/atpassport.svg') center / contain no-repeat;
     }
 
     .login-form__note {
