@@ -53,7 +53,6 @@
     editor = $bindable(),
     isEnabled = $bindable(),
     onadd,
-    onopen,
     onpublish,
     submitArea,
   }: Props = $props();
@@ -137,31 +136,6 @@
       200
     );
     watch(() => post.text, linkDebounce);
-
-    watch(() => postState.pulse, () => {
-      if (postState.pulse) {
-        if (!editor) {
-          return false;
-        }
-
-        onopen();
-        // const htmlContent = textToHtml(post.text);
-        // editor.setContent(htmlContent);
-        editor.setContent(post.text);
-        postState.pulse = false;
-      }
-    });
-
-    function textToHtml(text: string): string {
-      if (!text) return '';
-      const urlRegex = /https?:\/\/[^\s\u3000\n]+/g;
-      const escaped = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-      const withLinks = escaped.replace(urlRegex, url => `<a href="${url}">${url}</a>`);
-      return withLinks.replace(/\n/g, '<br>');
-    }
 
     type BeforeUploadImage = {
         image: Blob | File,
@@ -370,6 +344,12 @@
         links = [];
         editor.setContent(post.json || post.text);
         post.owner = _agent?.did();
+
+        return postState.provideEditor(() => {
+            if (postState.getPost(index) === post) {
+                editor.setContent(post.json || post.text);
+            }
+        });
     })
 
     function addThread() {
@@ -478,7 +458,6 @@
           {_agent}
           {isEnabled}
           {isThreadSplitting}
-          {onopen}
           {submitArea}
           {publishContentLength}
           {canPoll}

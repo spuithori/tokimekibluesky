@@ -31,8 +31,7 @@
 
   function handleEmbedClick() {
     const uri = `https://bsky.app/starter-pack/${getPackHandle()}/${getPackRkey()}`;
-    postState.posts[postState.index].text = uri;
-    postState.pulse = true;
+    postState.replacePlainText(uri);
     goto('/');
   }
 </script>

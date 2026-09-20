@@ -71,7 +71,7 @@
 
   function handleEmbedClick() {
       postState.posts[postState.index].quotePost = feed;
-      postState.pulse = true;
+      postState.requestOpen();
       goto('/');
   }
 </script>

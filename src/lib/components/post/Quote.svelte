@@ -14,7 +14,7 @@
 
   function handleClick() {
       postState.posts[postState.index].quotePost = post;
-      postState.pulse = true;
+      postState.requestOpen();
       publishState.show = true;
       modalState.isVideoModalOpen = false;
       modalState.isMediaModalOpen = false;

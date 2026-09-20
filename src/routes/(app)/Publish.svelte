@@ -110,9 +110,11 @@
           onClose();
           return true;
       });
+      const offOpener = postState.provideOpener(handleOpen);
       return () => {
           offOpen();
           offClose();
+          offOpener();
       };
   });
 
@@ -1190,7 +1192,6 @@
                     {index}
                     bind:_agent={_agent}
                     onadd={applyAddThread}
-                    onopen={handleOpen}
                     onpublish={publishAll}
                     bind:editor={editor}
                     bind:isEnabled={isEnabled}

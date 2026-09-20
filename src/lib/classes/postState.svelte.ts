@@ -1,5 +1,6 @@
 import {getContext, setContext} from "svelte";
 import {PersistedState} from "runed";
+import {textToJson} from "$lib/components/editor/richtext";
 
 type replyRef = {
     did: string,
@@ -19,7 +20,7 @@ export type Poll = {
 
 type Post = {
     text: string,
-    json: string,
+    json: any,
     images: any[],
     video: any,
     externalImageBlob: string | undefined,
@@ -37,7 +38,8 @@ type Post = {
 export class PostState {
     index = $state<number>(0);
     posts = $state<Post[] | undefined>();
-    pulse = $state(false);
+    #opener: (() => void) | undefined;
+    #editor: (() => void) | undefined;
 
     langs = new PersistedState('langs', 'auto');
     threadGate = new PersistedState('threadGate', 'everybody');
@@ -68,9 +70,42 @@ export class PostState {
         return this.posts[index];
     }
 
-    replaceText(text: string) {
+    provideOpener(opener: () => void) {
+        this.#opener = opener;
+
+        return () => {
+            if (this.#opener === opener) {
+                this.#opener = undefined;
+            }
+        };
+    }
+
+    requestOpen() {
+        this.#opener?.();
+    }
+
+    provideEditor(apply: () => void) {
+        this.#editor = apply;
+
+        return () => {
+            if (this.#editor === apply) {
+                this.#editor = undefined;
+            }
+        };
+    }
+
+    replaceText(html: string) {
+        this.posts[this.index].text = html;
+        this.posts[this.index].json = '';
+        this.#editor?.();
+        this.requestOpen();
+    }
+
+    replacePlainText(text: string) {
         this.posts[this.index].text = text;
-        this.pulse = true;
+        this.posts[this.index].json = textToJson(text);
+        this.#editor?.();
+        this.requestOpen();
     }
 
     replacePost(post) {
@@ -78,7 +113,7 @@ export class PostState {
             ...$state.snapshot(this.initPost),
             ...post,
         };
-        this.pulse = true;
+        this.requestOpen();
     }
 
     clearPosts() {
@@ -100,13 +135,13 @@ export class PostState {
                     ...$state.snapshot(this.initPost),
                     ...currentPost,
                     text: text,
-                    json: '',
+                    json: textToJson(text),
                 });
             } else {
                 newPosts.push({
                     ...$state.snapshot(this.initPost),
                     text: text,
-                    json: '',
+                    json: textToJson(text),
                     replyRef: currentPost.replyRef,
                     threadGate: currentPost.threadGate,
                     postGate: currentPost.postGate,
@@ -119,7 +154,7 @@ export class PostState {
         const beforePosts = this.posts.slice(0, this.index);
         const afterPosts = this.posts.slice(this.index + 1);
         this.posts = [...beforePosts, ...newPosts, ...afterPosts];
-        this.pulse = true;
+        this.requestOpen();
     }
 }
 

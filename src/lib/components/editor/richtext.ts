@@ -92,6 +92,52 @@ export function jsonToText(json) {
     return text;
 }
 
+export function textToJson(text: string) {
+    return {
+        type: 'doc',
+        content: text.split(/\r\n?|\n/).map(line => {
+            return line ? {type: 'paragraph', content: lineToNodes(line)} : {type: 'paragraph'};
+        }),
+    };
+}
+
+function lineToNodes(line: string) {
+    const unicode = new UnicodeString(line);
+    const facets = detectLinkFacetsFromText(line).sort((a, b) => a.index.byteStart - b.index.byteStart);
+    const nodes = [];
+    let cursor = 0;
+
+    facets.forEach(facet => {
+        const {byteStart, byteEnd} = facet.index;
+        if (byteStart < cursor) return;
+
+        if (byteStart > cursor) {
+            nodes.push({type: 'text', text: unicode.slice(cursor, byteStart)});
+        }
+
+        nodes.push({
+            type: 'text',
+            text: unicode.slice(byteStart, byteEnd),
+            marks: [{type: 'link', attrs: {href: facet.features[0].uri}}],
+        });
+        cursor = byteEnd;
+    });
+
+    if (cursor < unicode.length) {
+        nodes.push({type: 'text', text: unicode.slice(cursor)});
+    }
+
+    return nodes;
+}
+
+export function escapeHtml(text: string) {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function getByteLength(string: string) {
     const Unicode = new UnicodeString(string);
     return Unicode.length;

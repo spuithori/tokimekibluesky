@@ -2,6 +2,7 @@ import {AppBskyEmbedExternal, AppBskyEmbedRecord} from "$lib/atproto-guards";
 import {getRecordImages, hasGalleryImages} from "$lib/components/post/embedImages";
 import {getImageBase64FromBlob, getImageObjectFromBlob, getService} from "$lib/util";
 import {getTextArray} from "$lib/richtext";
+import {escapeHtml} from "$lib/components/editor/richtext";
 import type {Agent} from "$lib/agent";
 
 export async function getEditPost(data: any) {
@@ -90,13 +91,13 @@ export async function getEditPost(data: any) {
     let text = '';
     getTextArray(data.post.record).forEach(item => {
         if (item.isLink()) {
-            text = text + `<a href="${item.link.uri}">${item.text}</a>`
+            text = text + `<a href="${escapeHtml(item.link.uri)}">${escapeHtml(item.text)}</a>`
         } else if (item.isMention()) {
-            text = text + `<span class="editor-mention" data-type="mention" data-id="${item.text.slice(1)}">${item.text}</span>`
+            text = text + `<span class="editor-mention" data-type="mention" data-id="${escapeHtml(item.text.slice(1))}">${escapeHtml(item.text)}</span>`
         } else if (item.isTag()) {
-            text = text + `<span class="editor-hashtag">${item.text}</span>`
+            text = text + `<span class="editor-hashtag">${escapeHtml(item.text)}</span>`
         } else {
-            text = text + item.text.replaceAll('\n', '<br>');
+            text = text + escapeHtml(item.text).replaceAll('\n', '<br>');
         }
     })
     _post.text = text;
