@@ -111,6 +111,20 @@ describe('dispatch', () => {
         expect(page).toHaveBeenCalledTimes(1);
     });
 
+    it('suspends every shortcut while a modal dialog is open, even when focus sits on body', () => {
+        const page = vi.fn(() => true);
+        manager.provide('page.close', page);
+        document.body.insertAdjacentHTML('beforeend', '<dialog open id="modal"><button></button></dialog>');
+        document.body.focus();
+        expect(press(document.body, { key: 'Escape' }).defaultPrevented).toBe(false);
+        press(document.body, { key: 'ArrowDown' });
+        expect(document.activeElement).toBe(document.body);
+        expect(page).not.toHaveBeenCalled();
+        document.getElementById('modal')!.remove();
+        press(document.body, { key: 'Escape' });
+        expect(page).toHaveBeenCalledTimes(1);
+    });
+
     it('routes global commands: refresh bump, help toggle, column jump index', () => {
         const before = refreshSignal.count;
         press(document.body, { key: '.' });

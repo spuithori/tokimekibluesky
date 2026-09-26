@@ -33,7 +33,7 @@
         document.body.classList.toggle('scroll-lock', isOpen);
 
         if (isOpen) {
-            goto('#open', {noScroll: true});
+            goto('#open', {noScroll: true, keepFocus: true});
         }
     }
 

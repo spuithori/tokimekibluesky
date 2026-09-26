@@ -15,8 +15,8 @@ export function isEditableTarget(target: EventTarget | null): boolean {
     return target instanceof Element && target.closest(EDITABLE_SELECTOR) !== null;
 }
 
-export function isInsideOpenDialog(target: EventTarget | null): boolean {
-    return target instanceof Element && target.closest(MODAL_SELECTOR) !== null;
+export function hasOpenModal(doc: Document): boolean {
+    return doc.querySelector(MODAL_SELECTOR) !== null;
 }
 
 export function isInteractiveTarget(target: EventTarget | null): boolean {
@@ -123,10 +123,11 @@ export class ShortcutManager {
         if (!candidates) {
             return;
         }
-        const target = event.target;
-        if (isInsideOpenDialog(target)) {
+        const doc = event.view?.document ?? document;
+        if (hasOpenModal(doc)) {
             return;
         }
+        const target = event.target;
         if (ACTIVATION_COMBOS.has(combo) && isInteractiveTarget(target)) {
             return;
         }
@@ -135,7 +136,7 @@ export class ShortcutManager {
             combo,
             keys: [],
             event,
-            post: focusedPost(event.view?.document ?? document),
+            post: focusedPost(doc),
             invoke: this.invoke,
             toggleHelp: this.toggleHelp,
         };
