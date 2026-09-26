@@ -97,6 +97,20 @@ describe('dispatch', () => {
         expect(document.activeElement).toBe(document.body);
     });
 
+    it('leaves Escape to a modal lightbox that is not a dialog element', () => {
+        const page = vi.fn(() => true);
+        manager.provide('page.close', page);
+        document.body.insertAdjacentHTML('beforeend', '<div id="lightbox" role="dialog" aria-modal="true" tabindex="-1"><button id="in-lightbox"></button></div>');
+        const root = document.getElementById('lightbox')!;
+        root.focus();
+        expect(press(root, { key: 'Escape' }).defaultPrevented).toBe(false);
+        expect(press(document.getElementById('in-lightbox')!, { key: 'Escape' }).defaultPrevented).toBe(false);
+        expect(page).not.toHaveBeenCalled();
+        root.remove();
+        press(document.body, { key: 'Escape' });
+        expect(page).toHaveBeenCalledTimes(1);
+    });
+
     it('routes global commands: refresh bump, help toggle, column jump index', () => {
         const before = refreshSignal.count;
         press(document.body, { key: '.' });

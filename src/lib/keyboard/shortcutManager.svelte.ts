@@ -8,6 +8,7 @@ type Provider = (arg?: unknown) => boolean | void;
 
 const EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable]:not([contenteditable="false"]), .tiptap';
 const INTERACTIVE_SELECTOR = 'button, a[href], input, select, textarea, summary, video, audio, [role="button"], [role="link"]';
+const MODAL_SELECTOR = 'dialog[open], [role="dialog"][aria-modal="true"]';
 const ACTIVATION_COMBOS = new Set(['Enter', 'Space']);
 
 export function isEditableTarget(target: EventTarget | null): boolean {
@@ -15,7 +16,7 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export function isInsideOpenDialog(target: EventTarget | null): boolean {
-    return target instanceof Element && target.closest('dialog[open]') !== null;
+    return target instanceof Element && target.closest(MODAL_SELECTOR) !== null;
 }
 
 export function isInteractiveTarget(target: EventTarget | null): boolean {
