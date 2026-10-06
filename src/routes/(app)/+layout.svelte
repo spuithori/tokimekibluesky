@@ -40,6 +40,7 @@
     import { getColumnState, initColumns } from "$lib/classes/columnState.svelte";
     import { onboardingState } from "$lib/onboarding/onboardingState.svelte";
     import { on } from "svelte/events";
+    import { attachCompositorHeartbeat } from "$lib/compositorHeartbeat";
     import { sideState } from "$lib/classes/sideState.svelte";
     import TokBackground from "$lib/components/utils/TokBackground.svelte";
     import UpdateBanner from "$lib/components/utils/UpdateBanner.svelte";
@@ -177,6 +178,13 @@
             return;
         }
         return shortcutManager.attach();
+    });
+
+    $effect(() => {
+        if (localStorage.getItem("compositorHeartbeat") === "off") {
+            return;
+        }
+        return attachCompositorHeartbeat();
     });
 
     function outputInlineStyle(theme) {
@@ -376,6 +384,7 @@
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === "superstar"}
     class:bubble={$settings?.design?.bubbleTimeline}
+    class:bubble-legacy={$settings?.design?.bubbleTimeline && !!$theme?.options?.bubbleStyle}
     class:monochrome={$settings?.design?.monochrome}
     style={outputInlineStyle($theme)}
     dir={$_("dir")}

@@ -64,7 +64,7 @@
 </script>
 
 {#if node.type === 'split'}
-    <div class="layout-split layout-split--{node.direction}">
+    <div class="layout-split layout-split--{node.direction}" class:layout-split--root={depth === 0}>
         {#each node.children as child, i (childKey(child))}
             <div class="layout-split__pane" style="flex: {node.sizes[i]}">
                 <LayoutView
@@ -120,6 +120,10 @@
 
         &--column {
             flex-direction: column;
+        }
+
+        &--root {
+            border-radius: var(--deck-inner-radius, 0px);
         }
     }
 

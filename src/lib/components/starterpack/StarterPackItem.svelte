@@ -90,8 +90,8 @@
 <style lang="postcss">
   .starter-pack {
     margin-bottom: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px var(--box-shadow-color-1);
+    border-radius: var(--radius-card, 10px);
+    box-shadow: var(--elevation-1, 0 0 10px var(--box-shadow-color-1));
     background-color: var(--bg-color-1);
     position: relative;
 

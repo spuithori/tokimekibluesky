@@ -254,7 +254,7 @@
         text-align: left;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
 
         &__badge {
@@ -264,7 +264,7 @@
             padding: 0 6px;
             border-radius: 10px;
             background-color: var(--danger-color);
-            color: #fff;
+            color: var(--on-danger, #fff);
             font-size: 12px;
             font-weight: bold;
             display: grid;

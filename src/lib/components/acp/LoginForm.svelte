@@ -361,10 +361,10 @@
 
         &--active {
             background-color: var(--primary-color);
-            color: #fff;
+            color: var(--on-accent, #fff);
 
             &:hover {
-                color: #fff;
+                color: var(--on-accent, #fff);
             }
 
             &:disabled {
@@ -451,7 +451,7 @@
         transition: background-color .15s ease, color .15s ease;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
             color: var(--text-color-1);
         }
 

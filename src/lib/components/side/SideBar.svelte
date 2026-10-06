@@ -172,7 +172,7 @@
             right: 0;
             z-index: 999;
             background: var(--bar-bg-color);
-            backdrop-filter: blur(8px);
+            backdrop-filter: var(--bar-backdrop-filter);
             height: min-content;
             padding: 0 4px 0 8px;
             width: 100vw;
@@ -274,10 +274,11 @@
             width: var(--bar-current-bar-width);
             height: var(--bar-current-bar-height);
             border-radius: var(--bar-current-bar-border-radius);
-            background-color: var(--bar-current-bar-color);
+            background: var(--bar-current-bar-color);
             margin: auto;
             transform: scaleY(0);
             transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+            box-shadow: var(--accent-glow, none);
 
             @media (max-width: 767px) {
                 width: 20px;
@@ -309,7 +310,7 @@
             font-weight: bold;
             border-radius: 50%;
             background-color: var(--danger-color);
-            color: var(--bg-color-1);
+            color: var(--on-danger, var(--bg-color-1));
             display: grid;
             place-content: center;
             right: -2px;

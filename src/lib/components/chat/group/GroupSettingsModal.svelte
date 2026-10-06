@@ -280,7 +280,7 @@
           padding: 0 6px;
           border-radius: 10px;
           background-color: var(--danger-color);
-          color: #fff;
+          color: var(--on-danger, #fff);
           font-size: 12px;
           font-weight: bold;
           display: grid;

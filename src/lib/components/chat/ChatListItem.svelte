@@ -304,7 +304,7 @@
       height: 16px;
       border-radius: 50%;
       background-color: var(--danger-color);
-      color: #fff;
+      color: var(--on-danger, #fff);
       font-weight: bold;
       display: grid;
       place-content: center;

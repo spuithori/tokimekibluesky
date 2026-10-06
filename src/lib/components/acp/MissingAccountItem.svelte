@@ -96,7 +96,7 @@
           padding: 2px 6px;
           border-radius: 4px;
           background-color: var(--primary-color);
-          color: #fff;
+          color: var(--on-accent, #fff);
           margin-bottom: 8px;
       }
 

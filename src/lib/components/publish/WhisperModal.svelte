@@ -118,7 +118,7 @@
     display: inline-block;
     padding: 10px 20px;
     background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    color: var(--on-accent, var(--bg-color-1));
     border-radius: var(--border-radius-3);
     font-weight: bold;
     text-decoration: none;
@@ -178,7 +178,7 @@
 
     &--selected {
       background-color: var(--primary-color);
-      color: var(--bg-color-1);
+      color: var(--on-accent, var(--bg-color-1));
       border-color: var(--primary-color);
     }
 

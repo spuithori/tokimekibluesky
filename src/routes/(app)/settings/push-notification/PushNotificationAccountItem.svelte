@@ -85,8 +85,8 @@
 <style lang="postcss">
   .push-notification-account-item {
       padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px var(--box-shadow-color-1);
+      border-radius: var(--radius-card, 6px);
+      box-shadow: var(--elevation-1, 0 0 10px var(--box-shadow-color-1));
       margin-bottom: 20px;
 
       &__title {

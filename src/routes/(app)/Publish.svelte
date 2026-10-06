@@ -1383,7 +1383,7 @@
         height: 30px;
         width: 30px;
         border-radius: var(--border-radius-2);
-        background-color: var(--bg-color-1);
+        background-color: var(--publish-schedule-button-bg-color, var(--bg-color-1));
         color: var(--publish-tool-button-color);
         display: flex;
         align-items: center;

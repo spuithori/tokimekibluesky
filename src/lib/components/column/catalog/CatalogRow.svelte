@@ -85,14 +85,14 @@
 
 <style lang="postcss">
     .catalog-row {
-        --row-radius: var(--border-radius-4);
+        --row-radius: var(--radius-card, var(--border-radius-4));
 
         position: relative;
         display: flex;
         align-items: center;
         gap: 4px;
         min-height: 56px;
-        padding: 6px 8px 6px 6px;
+        padding: 6px 8px;
         border-radius: var(--row-radius);
         background-color: var(--bg-color-1);
         border: 1px solid var(--border-color-2);
@@ -128,7 +128,7 @@
         flex-shrink: 0;
         width: 40px;
         height: 40px;
-        border-radius: 12px;
+        border-radius: max(0px, calc(var(--radius-card, 21px) - 9px));
         display: grid;
         place-items: center;
         background-color: var(--bg-color-2);
@@ -203,7 +203,7 @@
         transition: background-color .15s ease;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
 
         &:disabled {
@@ -220,7 +220,7 @@
         padding: 0 5px;
         border-radius: 11px;
         background-color: var(--primary-color);
-        color: var(--bg-color-1);
+        color: var(--on-accent, var(--bg-color-1));
         font-size: 12px;
         font-weight: 700;
         animation: catalog-badge-in .3s cubic-bezier(.34, 1.56, .64, 1) both;
@@ -243,7 +243,7 @@
 
         &:hover {
             background-color: var(--primary-color);
-            color: var(--bg-color-1);
+            color: var(--on-accent, var(--bg-color-1));
         }
 
         &:active {

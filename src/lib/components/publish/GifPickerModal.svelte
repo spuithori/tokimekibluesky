@@ -43,7 +43,7 @@
         overflow: hidden !important;
 
         &::backdrop {
-            background-color: rgba(0, 0, 0, .6);
+            background-color: var(--scrim, rgba(0, 0, 0, .6));
         }
 
         @media (max-width: 767px) {
@@ -53,8 +53,8 @@
     }
 
     .gif-modal-contents {
-        border-radius: var(--border-radius-3);
-        background-color: var(--bg-color-1);
+        border-radius: var(--radius-overlay, var(--border-radius-3));
+        background: var(--surface-overlay, var(--bg-color-1));
         width: 516px;
         max-width: 100%;
         position: relative;
@@ -67,6 +67,7 @@
 
         @media (min-width: 768px) {
             scrollbar-color: var(--primary-color) var(--bg-color-3);
+            scrollbar-width: var(--scroll-bar-width, auto);
 
             &::-webkit-scrollbar {
                 width: 10px;
@@ -115,7 +116,7 @@
         align-items: center;
         justify-content: center;
         margin-bottom: 16px;
-        background-color: var(--bg-color-1);
+        background: var(--surface-overlay, var(--bg-color-1));
         z-index: 1;
         border-bottom: 1px solid var(--border-color-2);
     }

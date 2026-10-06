@@ -170,7 +170,7 @@
     display: inline-block;
     padding: 10px 20px;
     background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    color: var(--on-accent, var(--bg-color-1));
     border-radius: var(--border-radius-3);
     font-weight: bold;
     text-decoration: none;
@@ -244,7 +244,7 @@
     font-weight: bold;
 
     &:hover {
-      background-color: var(--bg-color-2);
+      background-color: var(--state-hover, var(--bg-color-2));
     }
   }
 
@@ -253,7 +253,7 @@
     border: none;
     border-radius: var(--border-radius-3);
     background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    color: var(--on-accent, var(--bg-color-1));
     font-size: 14px;
     font-weight: bold;
     display: flex;

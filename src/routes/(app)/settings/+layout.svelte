@@ -187,7 +187,7 @@
 
 <style lang="postcss">
   .settings-column {
-      background-color: var(--bg-color-1);
+      background: var(--surface-overlay, var(--bg-color-1));
       display: grid;
       grid-template-columns: 300px 1fr;
       height: 100%;
@@ -279,7 +279,7 @@
               }
 
               &:hover {
-                  background-color: var(--bg-color-1);
+                  background-color: var(--state-hover, var(--bg-color-1));
               }
           }
       }

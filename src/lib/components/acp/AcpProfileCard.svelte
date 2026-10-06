@@ -200,8 +200,8 @@
 <style lang="postcss">
   .acp-card {
       padding: 12px 20px;
-      box-shadow: 0 0 10px var(--box-shadow-color-1);
-      border-radius: 6px;
+      box-shadow: var(--elevation-1, 0 0 10px var(--box-shadow-color-1));
+      border-radius: var(--radius-card, 6px);
       border: 2px solid transparent;
       margin-bottom: 20px;
       position: relative;

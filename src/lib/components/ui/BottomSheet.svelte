@@ -196,10 +196,10 @@
       height: min(72dvh, calc(100% - 56px));
       display: flex;
       flex-direction: column;
-      background-color: var(--bg-color-1);
+      background: var(--surface-overlay, var(--bg-color-1));
       color: var(--text-color-1);
-      border-radius: 16px 16px 0 0;
-      box-shadow: 0 -8px 30px rgba(0, 0, 0, .25);
+      border-radius: var(--radius-overlay, 16px 16px 0 0);
+      box-shadow: var(--elevation-3, 0 -8px 30px rgba(0, 0, 0, .25));
       transition: transform .25s ease;
       z-index: 5;
 

@@ -100,7 +100,7 @@ button {
 }
 
 .button--soft-rect {
-    border-radius: var(--border-radius-3);
+    border-radius: var(--radius-control, var(--border-radius-3));
 }
 
 .buttons-group {

@@ -35,7 +35,7 @@
     }
 }
 
-.deck-popup-wrap .deck-row-wrap:has(.chat-view) {
+.deck-popup-wrap .deck-row-slot:has(.chat-view) {
     height: 100%;
 }
 

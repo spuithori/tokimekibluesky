@@ -27,7 +27,7 @@
   }
 
   .column-add-button {
-      color: var(--bg-color-1);
+      color: var(--on-accent, var(--bg-color-1));
       background-color: var(--primary-color);
       display: flex;
       align-items: center;

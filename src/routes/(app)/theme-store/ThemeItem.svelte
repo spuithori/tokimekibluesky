@@ -134,9 +134,9 @@
 <style lang="postcss">
   .theme-item {
       padding: 16px;
-      box-shadow: 0 0 10px var(--box-shadow-color-1);
+      box-shadow: var(--elevation-1, 0 0 10px var(--box-shadow-color-1));
       margin-bottom: 16px;
-      border-radius: var(--border-radius-3);
+      border-radius: var(--radius-card, var(--border-radius-3));
       display: grid;
       align-items: flex-start;
       grid-template-columns: 60px 1fr;
@@ -188,7 +188,7 @@
 
       &__bubble {
           background-color: var(--primary-color);
-          color: var(--bg-color-1);
+          color: var(--on-accent, var(--bg-color-1));
           padding: 4px 8px;
           border-radius: var(--border-radius-3);
           font-size: 13px;

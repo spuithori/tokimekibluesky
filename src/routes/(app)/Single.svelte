@@ -43,8 +43,9 @@
         currentTimeline.set(0);
     }
 
-    function handleScroll(event) {
-      const scroll = scrollDirection(event.currentTarget, 80, (scrollDir) => {
+    function handleScroll(event: Event & { currentTarget: Window }) {
+      if (!isMobile) return;
+      scrollDirection(event.currentTarget, 80, (scrollDir) => {
         scrollDirectionState.direction = scrollDir;
       });
     }
@@ -155,7 +156,7 @@
         border-left: var(--single-border);
         border-right: var(--single-border);
         min-height: 100vh;
-        background-color: var(--single-bg-color, var(--bg-color-1));
+        background: var(--single-bg-color, var(--surface-panel, var(--bg-color-1)));
         width: var(--single-column-width, var(--single-m-width));
         max-width: 100%;
 

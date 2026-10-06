@@ -47,9 +47,9 @@
         font-size: 13px;
         padding: 4px 8px;
         background-color: var(--primary-color);
-        color: var(--bg-color-1);
+        color: var(--on-accent, var(--bg-color-1));
         font-weight: bold;
-        border-radius: var(--border-radius-2);
+        border-radius: var(--radius-control, var(--border-radius-2));
     }
 
     .poll-duration {

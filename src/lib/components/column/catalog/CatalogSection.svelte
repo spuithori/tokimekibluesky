@@ -88,7 +88,7 @@
         transition: background-color .15s ease;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
     }
 
@@ -131,7 +131,7 @@
         border-radius: 50%;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
     }
 

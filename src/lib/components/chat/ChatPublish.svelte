@@ -91,7 +91,7 @@
 <style lang="postcss">
   .chat-publish {
       padding: 8px 16px;
-      background-color: var(--timeline-bg-color);
+      background: var(--timeline-bg-color);
 
       &__counter {
           text-align: right;

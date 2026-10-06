@@ -29,7 +29,7 @@
       display: grid;
       grid-template-columns: 64px 340px;
       padding-top:var(--side-padding-top, 8px);
-      padding-bottom: 4px;
+      padding-bottom: var(--side-padding-bottom, 4px);
       padding-right: var(--side-padding-right, 8px);
       position: fixed;
       top: 0;
@@ -37,6 +37,7 @@
       left: 0;
       z-index: 1002;
       background-color: var(--side-bg-color);
+      backdrop-filter: var(--side-backdrop-filter);
       border-radius: var(--side-border-radius, 0);
 
       @media (max-width: 767px) {
@@ -125,8 +126,7 @@
 
   .side-content {
       border-radius: var(--nav-content-border-radius);
-      background-color: var(--nav-content-bg-color);
-      background-image: var(--nav-content-bg-image, none);
+      background: var(--nav-content-bg-image, none), var(--nav-content-bg-color);
       border-width: var(--nav-content-border-width);
       border-color: var(--nav-content-border-color);
       border-style: solid;
@@ -142,6 +142,7 @@
 
       @media (min-width: 768px) {
           scrollbar-color: var(--scroll-bar-color) transparent;
+          scrollbar-width: var(--scroll-bar-width, auto);
 
           &::-webkit-scrollbar {
               width: 6px;

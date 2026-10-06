@@ -12,9 +12,9 @@
         gap: 4px;
         font-size: 13px;
         padding: 4px 8px;
-        background-color: var(--bg-color-2);
+        background-color: var(--publish-tag-bg-color, var(--bg-color-2));
         color: var(--text-color-2);
         font-weight: bold;
-        border-radius: var(--border-radius-2);
+        border-radius: var(--radius-control, var(--border-radius-2));
     }
 </style>

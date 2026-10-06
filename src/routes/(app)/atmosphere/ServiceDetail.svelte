@@ -181,7 +181,7 @@
           padding: 0 22px;
           border-radius: 999px;
           background-color: var(--primary-color);
-          color: var(--bg-color-1);
+          color: var(--on-accent, var(--bg-color-1));
           font-size: 14px;
           font-weight: bold;
           text-decoration: none;

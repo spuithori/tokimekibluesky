@@ -316,10 +316,11 @@
               width: var(--nav-current-bar-width);
               height: var(--nav-current-bar-height);
               border-radius: var(--nav-current-bar-border-radius);
-              background-color: var(--nav-current-bar-color);
+              background: var(--nav-current-bar-color);
               margin: auto;
               transform: scaleX(0);
               transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+              box-shadow: var(--accent-glow, none);
           }
 
         &::after {
@@ -352,7 +353,7 @@
           font-weight: bold;
           border-radius: 50%;
           background-color: var(--danger-color);
-          color: var(--bg-color-1);
+          color: var(--on-danger, var(--bg-color-1));
           display: grid;
           place-content: center;
           right: -2px;
@@ -425,10 +426,10 @@
       &__content {
           position: absolute;
           inset: 12px 16px;
-          box-shadow: 0 0 12px var(--box-shadow-color-1);
-          border-radius: var(--border-radius-3);
+          box-shadow: var(--elevation-2, 0 0 12px var(--box-shadow-color-1));
+          border-radius: var(--radius-overlay, var(--border-radius-3));
           overscroll-behavior-y: contain;
-          background-color: var(--bg-color-1);
+          background: var(--surface-raised, var(--bg-color-1));
           overflow-x: hidden;
           max-width: 308px;
 
@@ -438,6 +439,7 @@
 
           @media (min-width: 768px) {
               scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+              scrollbar-width: var(--scroll-bar-width, auto);
 
               &::-webkit-scrollbar {
                   width: 6px;

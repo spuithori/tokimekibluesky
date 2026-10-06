@@ -271,12 +271,12 @@
       top: 0;
       left: 0;
       padding: 16px;
-      border-radius: var(--border-radius-3);
-      background-color: var(--bg-color-1);
+      border-radius: var(--radius-overlay, var(--border-radius-3));
+      background: var(--surface-raised, var(--bg-color-1));
       min-width: 200px;
       min-height: 200px;
       z-index: 100;
-      box-shadow: 0 3px 6px var(--box-shadow-color-1);
+      box-shadow: var(--elevation-2, 0 3px 6px var(--box-shadow-color-1));
       border: none;
       color: var(--text-color-1);
       display: grid;

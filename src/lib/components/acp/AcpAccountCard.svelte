@@ -151,7 +151,7 @@
           padding: 0 8px;
           border-radius: 10px;
           background-color: var(--acp-main-label-bg-color);
-          color: #fff;
+          color: var(--on-accent, #fff);
 
           &--gray {
               background-color: var(--bg-color-2);

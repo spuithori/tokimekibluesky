@@ -21,8 +21,7 @@
         padding-inline: 0;
     }
 
-    &:has(.timeline__item--bubble),
-    &:has(.notifications-item--bubble) {
+    :where(.app.bubble) &:has(.timeline__item, .notifications-item) {
         padding-top: 0;
     }
 }
@@ -263,7 +262,7 @@
             pointer-events: none;
         }
 
-        &:not(.timeline__item--bubble) {
+        :where(.app:not(.bubble)) & {
             border-radius: var(--border-radius-3);
             background-color: var(--kb-focus-bg);
             box-shadow:
@@ -272,14 +271,14 @@
         }
     }
 
-    &--bubble {
+    :where(.app.bubble) & {
         --timeline-border-width: 0;
-        border-radius: var(--border-radius-4);
+        border-radius: var(--bubble-border-radius);
         margin: var(--bubble-marin, 16px 0);
         padding: var(--bubble-padding, 16px) !important;
         background-color: var(--bubble-bg-color, var(--timeline-bg-color));
         border: var(--bubble-border, 1px solid var(--border-color-2));
-        box-shadow: var(--bubble-box-shadow, 0 2px 8px rgba(0, 0, 0, .04));
+        box-shadow: var(--bubble-box-shadow, var(--elevation-1, 0 2px 8px rgba(0, 0, 0, .04)));
 
         .timeline-menu-toggle {
             top: 12px !important;
@@ -288,7 +287,7 @@
 
         &:focus-visible::after {
             inset: 0;
-            border-radius: var(--border-radius-4);
+            border-radius: var(--bubble-border-radius);
         }
     }
 }
@@ -445,7 +444,7 @@
     padding: 0 6px;
     border-radius: 999px;
     background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    color: var(--on-accent, var(--bg-color-1));
     font-size: 11px;
     font-weight: 600;
     line-height: 18px;
@@ -663,7 +662,7 @@
     }
 
     &:hover {
-        background-color: var(--bg-color-2);
+        background-color: var(--state-hover, var(--bg-color-2));
     }
 }
 
@@ -673,7 +672,7 @@
     border: var(--menu-border);
     border-radius: var(--menu-border-radius);
     width: max-content;
-    background-color: var(--menu-bg-color);
+    background: var(--menu-bg-color);
     z-index: 101;
     min-width: 180px;
     color: var(--text-color-1);
@@ -689,7 +688,7 @@
 
 .timeline-menu-list {
     list-style: none;
-    padding: 0 4px;
+    padding: 0 var(--menu-item-inset, 4px);
 
     &__item {
         display: flex;
@@ -716,7 +715,7 @@
 
         &:hover {
             background-color: var(--menu-hover-bg-color);
-            border-radius: var(--border-radius-3);
+            border-radius: var(--menu-item-border-radius, var(--border-radius-3));
             text-decoration: none;
         }
 
@@ -827,7 +826,7 @@
     flex-shrink: 0;
 
     &:hover {
-        background-color: var(--border-color-1);
+        background-color: var(--state-hover, var(--border-color-1));
     }
 }
 
@@ -944,7 +943,7 @@
         }
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
     }
 

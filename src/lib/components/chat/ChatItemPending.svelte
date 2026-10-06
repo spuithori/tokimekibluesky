@@ -48,7 +48,7 @@
 
       &__text {
           width: fit-content;
-          color: var(--bg-color-1);
+          color: var(--on-accent, var(--bg-color-1));
           background-color: var(--primary-color);
           opacity: .6;
           padding: 8px 16px;

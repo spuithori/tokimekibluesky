@@ -145,7 +145,7 @@
       padding: 8px 16px;
 
       &:hover {
-          background-color: var(--bg-color-3);
+          background-color: var(--state-hover, var(--bg-color-3));
       }
 
       &__avatar {
@@ -211,7 +211,7 @@
           height: 24px;
           border-radius: 12px;
           background-color: var(--danger-color);
-          color: #fff;
+          color: var(--on-danger, #fff);
           padding: 0 8px;
           display: grid;
           place-content: center;

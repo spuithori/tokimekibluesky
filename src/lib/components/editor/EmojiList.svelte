@@ -93,11 +93,11 @@
     .emoji-list {
         display: flex;
         flex-direction: column;
-        background-color: var(--bg-color-1);
+        background: var(--surface-raised, var(--bg-color-1));
         padding: 4px 8px;
         z-index: 100;
-        border-radius: var(--border-radius-3);
-        box-shadow: 0 0 10px var(--box-shadow-color-2);
+        border-radius: var(--radius-overlay, var(--border-radius-3));
+        box-shadow: var(--elevation-2, 0 0 10px var(--box-shadow-color-2));
 
         &__item {
             color: var(--text-color-1);
@@ -112,11 +112,11 @@
             align-items: center;
 
             &--selected {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-selected, var(--bg-color-2));
             }
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 

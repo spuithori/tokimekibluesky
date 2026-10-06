@@ -88,7 +88,7 @@
         gap: 10px;
         height: var(--deck-heading-height);
         padding: 0 12px;
-        background-color: var(--deck-heading-bg-color);
+        background: var(--deck-heading-bg-color);
         border-bottom: 1px solid var(--deck-border-color);
     }
 

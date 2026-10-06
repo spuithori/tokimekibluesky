@@ -5,6 +5,7 @@
     import {getDisplayNameByDid} from "$lib/util";
     import ColumnAutoScrolling from "$lib/components/column/ColumnAutoScrolling.svelte";
     import {scrollDirection} from "$lib/scrollDirection";
+    import {isMobileViewport} from "$lib/viewportQuery.svelte";
     import {smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
     import {onMount} from "svelte";
     import {toast} from "svelte-sonner";
@@ -36,7 +37,7 @@
     import {extractMergeSource} from "$lib/merge/mergeColumnOps";
     import {initialSoloState, soloFeedKey} from "$lib/merge/mergeSolo";
     import {startPointerDrag} from "$lib/pointerDrag";
-    import {insertionIndexAt, quadrantZone, type DropPreview, type Quad} from "$lib/attachments/sortable.svelte";
+    import {DECK_SLOT_SELECTOR, deckSlotElements, insertionIndexAt, quadrantZone, type DropPreview, type Quad} from "$lib/attachments/sortable.svelte";
     import {normalizeThreadSort, THREAD_SORTS} from "$lib/components/thread/threadV2";
     import type {ThreadSort} from "$lib/types/atproto";
 
@@ -224,7 +225,7 @@
             return { kind: 'split', id, zone, rect: { x: r.left, y: r.top, w: r.width, h: r.height } };
         }
 
-        const cols = Array.from(document.querySelectorAll<HTMLElement>('.deck > .deck-row-wrap'));
+        const cols = deckSlotElements();
         if (!cols.length) {
             return null;
         }
@@ -257,7 +258,7 @@
 
         const startX = event.clientX;
         const startY = event.clientY;
-        const originRect = (event.currentTarget as HTMLElement | null)?.closest('.deck-row-wrap')?.getBoundingClientRect() ?? null;
+        const originRect = (event.currentTarget as HTMLElement | null)?.closest(DECK_SLOT_SELECTOR)?.getBoundingClientRect() ?? null;
         let started = false;
         let cancelled = false;
 
@@ -350,8 +351,8 @@
         isIconPickerOpen = false;
     }
 
-    function handleScroll(event) {
-        if (!isJunk && !isSplit) {
+    function handleScroll(event: Event & { currentTarget: HTMLElement }) {
+        if (isMobileViewport.current && !isJunk && !isSplit) {
             scrollDirection(event.currentTarget, 80, (scrollDir) => {
                 scrollDirectionState.direction = scrollDir;
             });
@@ -626,6 +627,7 @@
         flex-shrink: 0;
         position: relative;
         overflow-y: scroll;
+        border-radius: var(--deck-inner-radius, 0px);
         outline: none;
 
         @supports (-moz-appearance: none) {
@@ -639,21 +641,21 @@
 
         &::-webkit-scrollbar-thumb {
             background: var(--scroll-bar-color);
+            background-clip: padding-box;
+            border: var(--scroll-bar-thumb-inset, 0px) solid transparent;
             border-radius: var(--scroll-bar-border-radius, 0);
         }
 
         &::-webkit-scrollbar-track {
             background: var(--scroll-bar-bg-color);
-            margin-top: 51px;
-            margin-bottom: 1px;
-            border-radius: 0 0 var(--deck-border-radius) 0;
+            margin-top: calc(var(--deck-heading-height) - 1px);
+            margin-bottom: var(--deck-scroll-bar-inset-end, 0px);
             border-top: 1px solid var(--deck-border-color);
         }
 
         @media (max-width: 767px) {
             scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
             scrollbar-width: thin;
-            box-shadow: none;
             padding-top: 46px;
         }
 
@@ -684,7 +686,6 @@
             overflow-y: visible;
             width: 100%;
             height: auto;
-            border: none;
 
             @media (max-width: 767px) {
                 padding-top: 0;
@@ -692,6 +693,10 @@
 
             .deck-heading {
                 top: 52px;
+
+                &:not(.deck-heading--sticky) {
+                    border-radius: var(--deck-inner-radius, 0px) var(--deck-inner-radius, 0px) 0 0;
+                }
             }
         }
 
@@ -699,7 +704,6 @@
             @media (min-width: 768px) {
                 width: 100%;
                 height: 100%;
-                border: none;
             }
         }
 
@@ -806,7 +810,6 @@
 
     .deck-heading {
         padding: 0 8px;
-        margin: 0 1px;
         text-align: left;
         display: flex;
         align-items: center;
@@ -816,10 +819,9 @@
         top: 0;
         left: 0;
         right: 0;
-        background-color: var(--deck-heading-bg-color);
+        background: var(--deck-heading-bg-color);
         z-index: 10;
         border-bottom: 1px solid var(--deck-border-color);
-        border-radius: var(--deck-border-radius) var(--deck-border-radius) 0 0;
         min-width: 0;
         backdrop-filter: var(--deck-heading-backdrop-filter);
 
@@ -836,7 +838,7 @@
         &__icon {
             width: 36px;
             height: 36px;
-            border-radius: 5px;
+            border-radius: var(--deck-heading-icon-border-radius, 5px);
             background-color: var(--deck-heading-icon-bg-color);
             display: grid;
             place-content: center;
@@ -955,12 +957,12 @@
         border-radius: var(--border-radius-2);
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
 
         &--open {
             background-color: var(--primary-color);
-            --deck-row-settings-button-color: var(--bg-color-1);
+            --deck-row-settings-button-color: var(--on-accent, var(--bg-color-1));
 
             &:hover {
                 background-color: var(--primary-color);
@@ -1004,7 +1006,7 @@
 
             &--active {
                 background-color: var(--primary-color);
-                color: var(--bg-color-1);
+                color: var(--on-accent, var(--bg-color-1));
             }
         }
     }
@@ -1018,7 +1020,7 @@
 
         &--active {
             background-color: var(--primary-color);
-            --deck-row-settings-button-color: var(--bg-color-1);
+            --deck-row-settings-button-color: var(--on-accent, var(--bg-color-1));
         }
     }
 
@@ -1031,7 +1033,7 @@
 
     .deck-drag-area {
         width: 24px;
-        height: 52px;
+        height: var(--deck-heading-height, 52px);
         display: grid;
         place-content: center;
         position: absolute;

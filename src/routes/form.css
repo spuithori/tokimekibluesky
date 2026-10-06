@@ -7,13 +7,13 @@
     }
 
     input {
-        border-radius: 4px;
+        border-radius: var(--radius-control, 4px);
         height: 50px;
         padding: 0 20px;
     }
 
     textarea {
-        border-radius: 4px;
+        border-radius: var(--radius-control, 4px);
         height: 200px;
         width: 100%;
         padding: 14px 20px;
@@ -142,7 +142,7 @@
             &:checked {
                 & + label {
                     background-color: var(--primary-color);
-                    color: var(--bg-color-1);
+                    color: var(--on-accent, var(--bg-color-1));
                     font-weight: bold;
                 }
             }
@@ -152,10 +152,10 @@
             background-color: var(--bg-color-2);
             width: 100%;
             padding: 8px;
-            border-radius: var(--border-radius-2);
+            border-radius: var(--radius-control, var(--border-radius-2));
 
             &:hover {
-                background-color: var(--bg-color-3);
+                background-color: var(--state-hover, var(--bg-color-3));
             }
         }
 
@@ -293,7 +293,7 @@
         border: 1px solid var(--border-color-2);
         background-color: var(--bg-color-2);
         height: 48px;
-        border-radius: var(--border-radius-4);
+        border-radius: var(--radius-control, var(--border-radius-4));
         width: 100%;
         padding: 0 16px;
         cursor: pointer;
@@ -304,7 +304,7 @@
 
 .form-textarea {
     padding: 10px;
-    border-radius: 6px;
+    border-radius: var(--radius-control, 6px);
     border: 1px solid var(--border-color-1);
     width: 100%;
     color: var(--text-color-1);
@@ -336,7 +336,7 @@
             justify-content: center;
             cursor: pointer;
             padding: 0 8px;
-            border-radius: var(--border-radius-3);
+            border-radius: var(--radius-control, var(--border-radius-3));
             min-width: 48px;
             background-color: var(--bg-color-2);
         }
@@ -350,7 +350,7 @@
 
             &:checked + label {
                 background-color: var(--primary-color);
-                color: var(--bg-color-1);
+                color: var(--on-accent, var(--bg-color-1));
             }
         }
 
@@ -365,7 +365,7 @@
 .input-with-pen {
     position: relative;
     border: 1px solid var(--border-color-1);
-    border-radius: 4px;
+    border-radius: var(--radius-control, 4px);
     height: 40px;
     padding: 0 10px;
     display: flex;
@@ -397,7 +397,7 @@
 
     &__input {
         border: 1px solid var(--border-color-1);
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-control, var(--border-radius-3));
         flex: 1;
         padding: 0 8px;
         color: var(--text-color-1);
@@ -632,7 +632,7 @@
         width: 250px;
         height: 100%;
         border: 2px solid var(--border-color-1);
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-control, var(--border-radius-3));
         padding: 16px 8px;
         display: grid;
         grid-template-columns: 28px 1fr;
@@ -699,7 +699,7 @@
         padding: 0 16px;
         border: 1px solid var(--border-color-1);
         color: var(--text-color-1);
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-control, var(--border-radius-3));
         width: 100%;
     }
 
@@ -744,7 +744,7 @@
     position: relative;
     border: 2px solid var(--radio-current-color);
     font-size: 13px;
-    border-radius: var(--border-radius-2);
+    border-radius: var(--radius-control, var(--border-radius-2));
 
     &--current {
         --radio-current-color: var(--primary-color);
@@ -775,7 +775,7 @@
     display: inline-flex;
     border: 1px solid var(--border-color-1);
     background-color: var(--bg-color-2);
-    border-radius: var(--border-radius-3);
+    border-radius: var(--radius-control, var(--border-radius-3));
     overflow: hidden;
     align-self: flex-start;
 
@@ -788,7 +788,7 @@
 
         &--on {
             background-color: var(--primary-color);
-            color: #fff;
+            color: var(--on-accent, #fff);
         }
     }
 }

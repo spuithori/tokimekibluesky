@@ -6,7 +6,7 @@
     import {firstLeafId} from "$lib/classes/deckLayout";
     import {clampDeckWidth} from "$lib/deckWidth";
     import {startPointerDrag} from "$lib/pointerDrag";
-    import { sortable } from "$lib/attachments/sortable.svelte";
+    import { sortable, DECK_SLOT_SELECTOR } from "$lib/attachments/sortable.svelte";
     import { canMergeColumns } from "$lib/merge/mergeColumnOps";
     import {publishState} from "$lib/classes/publishState.svelte";
     import {isMobileViewport} from "$lib/viewportQuery.svelte";
@@ -36,7 +36,6 @@
 
     let isScrollPaused = $state(false);
     const isMobile = $derived(isMobileViewport.current);
-    let slotEl = $state<HTMLElement | undefined>();
     let isWidthResizing = $state(false);
 
     function handleMouseEnter() { isScrollPaused = true; }
@@ -67,7 +66,8 @@
         && !$settings.general?.disableColumnDragResize
     );
 
-    function startWidthResize(event: PointerEvent) {
+    function startWidthResize(event: PointerEvent & { currentTarget: HTMLElement }) {
+        const slotEl = event.currentTarget.parentElement;
         if (isMobile || !slotEl || !column) return;
         const col = column;
         const startX = event.clientX;
@@ -83,61 +83,55 @@
 </script>
 
 <div
-    class="deck-row-wrap"
-     class:deck-row-wrap--single={$settings.design?.layout === 'default'}
-     {@attach !isJunk && sortable(() => ({
-         axis: 'x',
-         participantSelector: '.deck-row-wrap',
-         handle: '.deck-drag-area',
-         disabled: $settings.design?.layout === 'default',
-         onReorder: reorderColumns,
-         onDragStart: (dragId) => { columnState.isReordering = true; tilingDrag.begin(dragId ?? column?.id ?? ''); },
-         onDragEnd: () => { columnState.isReordering = false; tilingDrag.end(); },
-         tileSelector: $settings.design?.layout === 'decks' ? '[data-tile-id]' : undefined,
-         onTilePreview: (p) => tilingDrag.setPreview(p),
-         onDragMove: (x, y) => tilingDrag.setPointer(x, y),
-         onTile: (sourceId, target) => animateLayout(() => tilingDrag.applySplit(columnState, sourceId, target)),
-         onExtract: (sourceId, target) => {
-             if (!target) return;
-             const i = target.beforeId ? columnState.slotIndexOf(target.beforeId) : columnState.slots.length;
-             animateLayout(() => columnState.moveLeafToSlot(sourceId, i));
-         },
-         canMerge: (sourceId, targetId) => canMergeColumns(columnState.columnById.get(targetId), columnState.columnById.get(sourceId)),
-         onMerge: (sourceId, target) => animateLayout(() => tilingDrag.applyMerge(columnState, sourceId, target)),
-     }))}
+    class="deck-row-slot {typeof widthValue === 'string' ? `deck-row-slot--${widthValue}` : ''}"
+    class:deck-row-slot--split={useSplitLayout}
+    class:deck-row-slot--popup={column?.settings?.isPopup === true}
+    class:deck-row-slot--decks={$settings.design?.layout === 'decks'}
+    class:deck-row-slot--single={$settings.design?.layout === 'default'}
+    class:deck-row-slot--junk={isJunk}
+    class:deck-row-slot--compact={publishState.layout === 'bottom'}
+    style:--deck-col-width={typeof widthValue === 'number' ? `${widthValue}px` : null}
+    onmouseenter={handleMouseEnter}
+    onmouseleave={handleMouseLeave}
+    role="group"
+    {@attach !isJunk && sortable(() => ({
+        axis: 'x',
+        participantSelector: DECK_SLOT_SELECTOR,
+        handle: '.deck-drag-area',
+        disabled: $settings.design?.layout === 'default',
+        onReorder: reorderColumns,
+        onDragStart: (dragId) => { columnState.isReordering = true; tilingDrag.begin(dragId ?? column?.id ?? ''); },
+        onDragEnd: () => { columnState.isReordering = false; tilingDrag.end(); },
+        tileSelector: $settings.design?.layout === 'decks' ? '[data-tile-id]' : undefined,
+        onTilePreview: (p) => tilingDrag.setPreview(p),
+        onDragMove: (x, y) => tilingDrag.setPointer(x, y),
+        onTile: (sourceId, target) => animateLayout(() => tilingDrag.applySplit(columnState, sourceId, target)),
+        onExtract: (sourceId, target) => {
+            if (!target) return;
+            const i = target.beforeId ? columnState.slotIndexOf(target.beforeId) : columnState.slots.length;
+            animateLayout(() => columnState.moveLeafToSlot(sourceId, i));
+        },
+        canMerge: (sourceId, targetId) => canMergeColumns(columnState.columnById.get(targetId), columnState.columnById.get(sourceId)),
+        onMerge: (sourceId, target) => animateLayout(() => tilingDrag.applyMerge(columnState, sourceId, target)),
+    }))}
 >
-    <div
-        class="deck-row-slot {typeof widthValue === 'string' ? `deck-row-slot--${widthValue}` : ''}"
-        class:deck-row-slot--split={useSplitLayout}
-        class:deck-row-slot--popup={column?.settings?.isPopup === true}
-        class:deck-row-slot--decks={$settings.design?.layout === 'decks'}
-        class:deck-row-slot--single={$settings.design?.layout === 'default'}
-        class:deck-row-slot--junk={isJunk}
-        class:deck-row-slot--compact={publishState.layout === 'bottom'}
-        style:--deck-col-width={typeof widthValue === 'number' ? `${widthValue}px` : null}
-        onmouseenter={handleMouseEnter}
-        onmouseleave={handleMouseLeave}
-        role="group"
-        bind:this={slotEl}
-    >
-        {#if useSplitLayout && slot}
-            <LayoutView
-                node={slot.layout}
-                isJunk={false}
-                {isScrollPaused}
-                {showDragHandle}
-            ></LayoutView>
-        {:else if column}
-            <DeckColumn
-                index={leafIndex}
-                {isJunk}
-                {name}
-                {_agent}
-                {isScrollPaused}
-                {showDragHandle}
-            ></DeckColumn>
-        {/if}
-    </div>
+    {#if useSplitLayout && slot}
+        <LayoutView
+            node={slot.layout}
+            isJunk={false}
+            {isScrollPaused}
+            {showDragHandle}
+        ></LayoutView>
+    {:else if column}
+        <DeckColumn
+            index={leafIndex}
+            {isJunk}
+            {name}
+            {_agent}
+            {isScrollPaused}
+            {showDragHandle}
+        ></DeckColumn>
+    {/if}
 
     {#if showWidthBar}
         <div
@@ -152,59 +146,44 @@
 </div>
 
 <style lang="postcss">
-    .deck-row-wrap {
+    .deck-row-slot {
+        --deck-inner-radius: max(0px, calc(var(--deck-border-radius) - var(--deck-border-width)));
         position: relative;
         touch-action: auto !important;
-        padding: 1px .5px;
-
-        &::before {
-            content: '';
-            display: block;
-            position: absolute;
-            inset: 0;
-            border-radius: var(--deck-border-radius);
-            border: var(--deck-border-width) solid var(--deck-border-color);
-            border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
-            box-shadow: var(--deck-box-shadow);
-            background-color: var(--deck-content-bg-color);
-            pointer-events: none;
-
-            @media (max-width: 767px) {
-                border-radius: 0;
-                box-shadow: none;
-            }
-        }
-
-        &--single {
-            padding: 0;
-            position: static;
-            display: contents;
-
-            &::before {
-                content: none;
-            }
-        }
-
-        &:has(.deck-row-slot--junk) {
-            &::before {
-                border: none;
-            }
-        }
-    }
-
-    .deck-row-slot {
         width: var(--deck-col-width, var(--deck-m-width));
         flex-shrink: 0;
         height: 100%;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        border: var(--deck-border-width) solid var(--deck-border-color);
+        border-right: var(--deck-border-right, var(--deck-border-width) solid var(--deck-border-color));
+        border-radius: var(--deck-border-radius);
+        box-shadow: var(--deck-box-shadow);
+        background: var(--deck-content-bg-color);
+
+        &::after {
+            content: '';
+            display: var(--deck-rim-display, none);
+            position: absolute;
+            inset: calc(-1 * var(--deck-border-width));
+            z-index: 1;
+            padding: var(--deck-rim-width, 1px);
+            border-radius: inherit;
+            background: var(--deck-rim, none) border-box;
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+        }
 
         @media (max-width: 767px) {
+            --deck-inner-radius: 0px;
+            --deck-rim-display: none;
             width: 100vw;
+            height: 100dvh;
             scroll-snap-align: start;
             scroll-snap-stop: always;
-            height: calc(100dvh);
+            border-radius: 0;
+            box-shadow: none;
         }
 
         &--xxs { --deck-col-width: var(--deck-xxs-width); }
@@ -216,17 +195,24 @@
         &--xxl { --deck-col-width: var(--deck-xxl-width); }
 
         &--single {
-            height: auto;
+            --deck-inner-radius: 0px;
+            --deck-rim-display: none;
+            position: static;
             width: auto;
-            overflow: visible;
+            height: auto;
             display: block;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            background-color: transparent;
         }
 
         &--junk {
-            overflow: visible;
+            --deck-rim-display: none;
             width: 100%;
             height: auto;
             display: block;
+            border: none;
         }
 
         &--popup {
@@ -237,8 +223,7 @@
         }
     }
 
-    .deck-row-wrap:global(.dragging) {
-        position: relative;
+    .deck-row-slot:global(.dragging) {
         z-index: 100000;
         transition: none;
         box-shadow: 0 12px 32px rgba(0, 0, 0, .28);

@@ -104,11 +104,11 @@
       font-weight: initial;
       left: 0;
       top: calc(100% + 10px);
-      background-color: var(--bg-color-1);
+      background: var(--surface-raised, var(--bg-color-1));
       color: var(--text-color-1);
-      box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14);
+      box-shadow: var(--elevation-2, 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14));
       padding: 20px;
-      border-radius: 6px;
+      border-radius: var(--radius-overlay, 6px);
       z-index: 100000;
       width: 300px;
       border: none;

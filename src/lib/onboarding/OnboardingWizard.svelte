@@ -285,7 +285,7 @@
         animation: wizard-in .45s var(--wizard-ease);
 
         &::backdrop {
-            background-color: rgba(10, 16, 28, .55);
+            background-color: var(--scrim, rgba(10, 16, 28, .55));
             backdrop-filter: blur(6px);
         }
 
@@ -297,9 +297,9 @@
     }
 
     .wizard__card {
-        background-color: var(--bg-color-1);
-        border-radius: 28px;
-        box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .5);
+        background: var(--surface-overlay, var(--bg-color-1));
+        border-radius: var(--radius-overlay, 28px);
+        box-shadow: var(--elevation-3, 0 40px 80px -30px rgba(0, 0, 0, .5));
         display: flex;
         flex-direction: column;
         max-height: 94dvh;
@@ -307,7 +307,7 @@
         outline: none;
 
         @media (max-width: 767px) {
-            border-radius: 28px 28px 0 0;
+            border-radius: var(--radius-overlay, 28px 28px 0 0);
             max-height: 96dvh;
         }
     }
@@ -354,7 +354,7 @@
         transition: background-color .15s ease, color .15s ease;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
             color: var(--text-color-1);
         }
     }
@@ -677,13 +677,13 @@
             color: var(--text-color-2);
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 
         &--primary {
             background-color: var(--primary-color);
-            color: var(--bg-color-1);
+            color: var(--on-accent, var(--bg-color-1));
             min-width: 140px;
 
             &:hover {

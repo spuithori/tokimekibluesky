@@ -90,7 +90,7 @@
             position: relative;
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 
@@ -124,7 +124,7 @@
             border-radius: 6px;
 
             &:hover {
-                background-color: var(--border-color-1);
+                background-color: var(--state-hover, var(--border-color-1));
             }
         }
 

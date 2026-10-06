@@ -37,13 +37,13 @@
 <style lang="postcss">
   .column-icon-picker {
       position: absolute;
-      background-color: var(--bg-color-1);
+      background: var(--surface-raised, var(--bg-color-1));
       padding: 16px;
       top: 60px;
       left: 16px;
       right: 16px;
-      box-shadow: 0 0 10px var(--box-shadow-color-1);
-      border-radius: 6px;
+      box-shadow: var(--elevation-2, 0 0 10px var(--box-shadow-color-1));
+      border-radius: var(--radius-overlay, 6px);
       z-index: 1;
 
       &--mobileV2 {
@@ -70,7 +70,7 @@
           }
 
           &:hover {
-              background-color: var(--bg-color-3);
+              background-color: var(--state-hover, var(--bg-color-3));
           }
       }
 

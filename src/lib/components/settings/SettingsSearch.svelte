@@ -125,7 +125,7 @@
             height: 38px;
             padding: 0 12px 0 34px;
             border: 1px solid var(--border-color-2);
-            border-radius: var(--border-radius-4);
+            border-radius: var(--radius-control, var(--border-radius-4));
             background-color: var(--bg-color-2);
             color: var(--text-color-1);
             font-size: 14px;
@@ -160,7 +160,7 @@
 
         &:hover,
         &--selected {
-            background-color: var(--bg-color-1);
+            background-color: var(--state-hover, var(--bg-color-1));
         }
     }
 

@@ -24,7 +24,7 @@
 
 <div
     class="column-resume-placeholder column-resume-placeholder--{column?.settings?.width || 'medium'}"
-    class:deck-row-wrap={!inline}
+    class:deck-row-slot={!inline}
     class:column-resume-placeholder--inline={inline}
 >
   {#if phase === 'auth-required'}
@@ -83,7 +83,7 @@
       color: var(--text-color-3);
       border-radius: var(--deck-border-radius);
       border: var(--deck-border-width) solid var(--deck-border-color);
-      background-color: var(--deck-content-bg-color);
+      background: var(--deck-content-bg-color);
 
       @media (max-width: 767px) {
           width: 100vw;

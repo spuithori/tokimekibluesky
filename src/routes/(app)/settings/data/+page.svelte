@@ -43,8 +43,8 @@
 <style lang="postcss">
   .bookmark-import-export {
     padding: 16px;
-    border-radius: var(--border-radius-3);
-    box-shadow: 0 0 10px var(--box-shadow-color-1);
+    border-radius: var(--radius-card, var(--border-radius-3));
+    box-shadow: var(--elevation-1, 0 0 10px var(--box-shadow-color-1));
     margin-top: 16px;
 
     &__title {

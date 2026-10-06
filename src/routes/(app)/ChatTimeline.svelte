@@ -738,7 +738,7 @@
       padding: 0 14px;
       border-radius: 16px;
       background-color: var(--primary-color);
-      color: var(--bg-color-1);
+      color: var(--on-accent, var(--bg-color-1));
       font-size: 13px;
       font-weight: bold;
       box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
@@ -748,7 +748,7 @@
   .chat-input {
       flex-shrink: 0;
       border-top: 1px solid var(--border-color-2);
-      background-color: var(--timeline-bg-color);
+      background: var(--timeline-bg-color);
       padding-bottom: var(--safe-area-bottom);
   }
 

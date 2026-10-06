@@ -308,7 +308,7 @@
 
     .translation-badge--available {
         background-color: var(--primary-color);
-        color: #fff;
+        color: var(--on-accent, #fff);
     }
 
     .translation-badge--unavailable {

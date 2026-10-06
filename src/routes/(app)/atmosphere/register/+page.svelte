@@ -629,7 +629,7 @@
       color: var(--text-color-1);
 
       &:hover {
-          background-color: var(--bg-color-3);
+          background-color: var(--state-hover, var(--bg-color-3));
       }
 
       &:disabled {
@@ -698,7 +698,7 @@
 
           &--listed {
               background-color: var(--primary-color);
-              color: var(--bg-color-1);
+              color: var(--on-accent, var(--bg-color-1));
           }
       }
 
@@ -735,7 +735,7 @@
 
           &:hover {
               text-decoration: none;
-              background-color: var(--border-color-1);
+              background-color: var(--state-hover, var(--border-color-1));
           }
 
           &--danger {
@@ -747,7 +747,7 @@
               align-items: center;
               gap: 4px;
               background-color: var(--primary-color);
-              color: var(--bg-color-1);
+              color: var(--on-accent, var(--bg-color-1));
 
               &:hover {
                   background-color: var(--primary-color);

@@ -509,11 +509,11 @@
     }
 
     .editor-link-dialog {
-        background-color: var(--bg-color-1);
+        background: var(--surface-overlay, var(--bg-color-1));
         padding: 8px 16px;
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-overlay, var(--border-radius-3));
         border: none;
-        box-shadow: 0 0 10px var(--box-shadow-color-1);
+        box-shadow: var(--elevation-3, 0 0 10px var(--box-shadow-color-1));
         position: absolute;
         z-index: 100;
         margin: auto;
@@ -524,7 +524,7 @@
         }
 
         &::backdrop {
-            background-color: rgba(0, 0, 0, .6);
+            background-color: var(--scrim, rgba(0, 0, 0, .6));
         }
 
         form {

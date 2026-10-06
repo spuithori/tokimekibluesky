@@ -343,7 +343,7 @@
         }
 
         &--selected {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-selected, var(--bg-color-2));
         }
     }
 
@@ -486,7 +486,7 @@
         font-size: 12px;
         font-weight: bold;
         background-color: var(--primary-color);
-        color: var(--bg-color-1);
+        color: var(--on-accent, var(--bg-color-1));
     }
 
     .schedule-post-text {
@@ -544,7 +544,7 @@
         border-radius: 4px;
 
         &:hover {
-            background-color: var(--bg-color-3);
+            background-color: var(--state-hover, var(--bg-color-3));
         }
     }
 </style>

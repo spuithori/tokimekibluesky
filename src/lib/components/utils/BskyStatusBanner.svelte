@@ -77,7 +77,7 @@
         gap: 12px;
         padding: 10px 8px 10px 16px;
         max-width: calc(100vw - 32px);
-        background-color: var(--menu-bg-color);
+        background: var(--menu-bg-color);
         color: var(--text-color-1);
         border: var(--menu-border);
         border-radius: var(--menu-border-radius);
@@ -113,7 +113,7 @@
         padding: 6px 12px;
         font-size: 13px;
         font-weight: 700;
-        color: var(--bg-color-1);
+        color: var(--on-danger, var(--bg-color-1));
         background-color: var(--danger-color);
         border-radius: var(--border-radius-3);
         text-decoration: none;

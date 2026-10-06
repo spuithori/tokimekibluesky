@@ -44,7 +44,7 @@
     }
 </script>
 
-<div class="column-error-panel deck-row-wrap column-error-panel--{column?.settings?.width || 'medium'}">
+<div class="column-error-panel deck-row-slot column-error-panel--{column?.settings?.width || 'medium'}">
   <TriangleAlert size={40} color="var(--danger-color)" />
   <h2 class="column-error-panel__title">{$_('column_error_title')}</h2>
 
@@ -73,7 +73,7 @@
       color: var(--text-color-2);
       border-radius: var(--deck-border-radius);
       border: var(--deck-border-width) solid var(--deck-border-color);
-      background-color: var(--deck-content-bg-color);
+      background: var(--deck-content-bg-color);
 
       @media (max-width: 767px) {
           width: 100vw;

@@ -36,7 +36,7 @@
         gap: 10px;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
         }
 
         &__avatar {

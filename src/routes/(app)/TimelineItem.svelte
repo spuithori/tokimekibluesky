@@ -517,7 +517,6 @@
              class:timeline__item--compact={$settings?.design.postsLayout === 'compact' || $settings?.design.postsLayout === 'minimum'}
              class:timeline__item--minimum={$settings?.design.postsLayout === 'minimum'}
              class:timeline__item--hide={isHide}
-             class:timeline__item--bubble={$settings?.design?.bubbleTimeline}
              class:timeline__item--merge-source={mergeAccent}
              style:--merge-source-color={mergeAccent}
              tabindex="-1"
@@ -775,7 +774,7 @@
           background-color: var(--merge-source-color);
       }
 
-      &.timeline__item--bubble {
+      :global(.app.bubble) & {
           &::before {
               left: 0;
               top: 12px;

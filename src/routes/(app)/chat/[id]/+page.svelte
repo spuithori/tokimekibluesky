@@ -27,7 +27,7 @@
           flex: 1;
           min-height: 0;
 
-          :global(.deck-row-wrap) {
+          :global(.deck-row-slot) {
               height: 100%;
           }
       }

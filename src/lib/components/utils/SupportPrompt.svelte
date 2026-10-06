@@ -182,7 +182,7 @@
         backdrop-filter: blur(6px);
 
         &:hover {
-            background-color: var(--bg-color-1);
+            background-color: var(--state-hover, var(--bg-color-1));
         }
 
         &:focus-visible {
@@ -227,7 +227,7 @@
         gap: 2px;
         min-height: 56px;
         padding: 8px 16px;
-        color: var(--bg-color-1);
+        color: var(--on-accent, var(--bg-color-1));
         background-color: var(--primary-color);
         border-radius: 14px;
         text-decoration: none;

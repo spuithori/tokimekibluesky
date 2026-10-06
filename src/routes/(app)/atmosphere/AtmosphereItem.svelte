@@ -71,7 +71,7 @@
       transition: background-color .15s linear;
 
       &:hover {
-          background-color: var(--bg-color-2);
+          background-color: var(--state-hover, var(--bg-color-2));
 
           .atmos-app__name {
               color: var(--primary-color);
@@ -170,7 +170,7 @@
 
           &:hover {
               text-decoration: none;
-              background-color: var(--border-color-1);
+              background-color: var(--state-hover, var(--border-color-1));
           }
       }
   }

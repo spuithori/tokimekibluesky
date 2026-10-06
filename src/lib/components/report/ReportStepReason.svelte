@@ -66,7 +66,7 @@
             text-align: left;
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 

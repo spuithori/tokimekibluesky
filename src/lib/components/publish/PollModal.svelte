@@ -244,7 +244,7 @@
 
         &:hover {
             background-color: var(--danger-color);
-            color: white;
+            color: var(--on-danger, white);
         }
     }
 
@@ -253,7 +253,7 @@
         background-color: var(--primary-color);
         border: none;
         border-radius: 9999px;
-        color: white;
+        color: var(--on-accent, white);
         font-size: 14px;
         font-weight: 600;
         cursor: pointer;

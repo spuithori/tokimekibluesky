@@ -177,10 +177,10 @@
         top: calc(100% + 6px);
         left: 0;
         right: 0;
-        background-color: var(--bg-color-1);
+        background: var(--surface-raised, var(--bg-color-1));
         border: 1px solid var(--border-color-1);
-        border-radius: var(--border-radius-4);
-        box-shadow: 0 8px 24px var(--box-shadow-color-1);
+        border-radius: var(--radius-overlay, var(--border-radius-4));
+        box-shadow: var(--elevation-2, 0 8px 24px var(--box-shadow-color-1));
         z-index: 10;
         max-height: 60vh;
         overflow-y: auto;
@@ -196,7 +196,7 @@
             padding: 0 6px 0 16px;
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 
@@ -239,7 +239,7 @@
             border-radius: 50%;
 
             &:hover {
-                background-color: var(--bg-color-3);
+                background-color: var(--state-hover, var(--bg-color-3));
             }
         }
 

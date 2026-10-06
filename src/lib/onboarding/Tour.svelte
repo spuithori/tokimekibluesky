@@ -150,7 +150,7 @@
         inset: 0;
 
         &--full {
-            background-color: rgba(0, 0, 0, .55);
+            background-color: var(--scrim, rgba(0, 0, 0, .55));
         }
     }
 
@@ -165,10 +165,10 @@
     .tour__tooltip {
         position: fixed;
         width: min(340px, calc(100vw - 24px));
-        background-color: var(--bg-color-1);
+        background: var(--surface-raised, var(--bg-color-1));
         color: var(--text-color-1);
-        border-radius: 18px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, .12), 0 24px 48px -12px rgba(0, 0, 0, .35);
+        border-radius: var(--radius-overlay, 18px);
+        box-shadow: var(--elevation-2, 0 2px 6px rgba(0, 0, 0, .12), 0 24px 48px -12px rgba(0, 0, 0, .35));
         padding: 14px 18px 16px;
         outline: none;
         transition: top .35s cubic-bezier(.22, 1, .36, 1), left .35s cubic-bezier(.22, 1, .36, 1);
@@ -178,7 +178,7 @@
             position: absolute;
             width: 14px;
             height: 14px;
-            background-color: var(--bg-color-1);
+            background: var(--surface-raised, var(--bg-color-1));
             transform: rotate(45deg);
             border-radius: 2px;
         }
@@ -232,7 +232,7 @@
         margin-right: -6px;
 
         &:hover {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-hover, var(--bg-color-2));
             color: var(--text-color-1);
         }
     }
@@ -274,13 +274,13 @@
             color: var(--text-color-2);
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 
         &--primary {
             background-color: var(--primary-color);
-            color: var(--bg-color-1);
+            color: var(--on-accent, var(--bg-color-1));
 
             &:hover {
                 opacity: .85;

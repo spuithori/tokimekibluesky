@@ -589,7 +589,7 @@
       font-size: 12px;
       width: fit-content;
       background-color: var(--danger-color);
-      color: #fff;
+      color: var(--on-danger, #fff);
       font-weight: bold;
       padding: 3px 8px;
       line-height: 1.2;

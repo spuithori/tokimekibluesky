@@ -99,8 +99,8 @@
 
 <style lang="postcss">
     .keyword-mute {
-        box-shadow: 0 0 16px var(--box-shadow-color-1);
-        border-radius: 6px;
+        box-shadow: var(--elevation-1, 0 0 16px var(--box-shadow-color-1));
+        border-radius: var(--radius-card, 6px);
         padding: 4px 20px 16px;
         margin-top: 20px;
     }

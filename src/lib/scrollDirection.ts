@@ -1,3 +1,5 @@
+type ScrollTarget = { scrollTop: number } | Window;
+
 type ScrollDirectionState = {
     lastScrollY: number;
     ticking: boolean;
@@ -5,7 +7,11 @@ type ScrollDirectionState = {
 
 const states = new WeakMap<object, ScrollDirectionState>();
 
-export function scrollDirection(node, threshold, callback): 'up' | 'down' | undefined {
+export function scrollDirection(
+    node: ScrollTarget | null | undefined,
+    threshold: number,
+    callback: (direction: 'up' | 'down') => void,
+): void {
     if (!node) {
         return;
     }
@@ -16,21 +22,19 @@ export function scrollDirection(node, threshold, callback): 'up' | 'down' | unde
         states.set(node, state);
     }
 
-    const scrollY = node.scrollTop ?? node.scrollY ?? window.scrollY;
+    const scrollY = 'scrollTop' in node ? node.scrollTop : node.scrollY;
     if (state.ticking) {
         return;
     }
 
     state.ticking = true;
     requestAnimationFrame(() => {
-        let scrollDir;
-
         if (Math.abs(scrollY - state.lastScrollY) < threshold) {
             state.ticking = false;
             return;
         }
 
-        scrollDir = scrollY > state.lastScrollY ? 'down' : 'up';
+        const scrollDir = scrollY > state.lastScrollY ? 'down' : 'up';
         state.lastScrollY = scrollY > 0 ? scrollY : 0;
         state.ticking = false;
 

@@ -214,10 +214,10 @@
             z-index: 10;
             max-height: 240px;
             overflow-y: auto;
-            background-color: var(--bg-color-1);
+            background: var(--surface-raised, var(--bg-color-1));
             border: 1px solid var(--border-color-1);
-            border-radius: var(--border-radius-3);
-            box-shadow: 0 8px 24px var(--box-shadow-color-1);
+            border-radius: var(--radius-overlay, var(--border-radius-3));
+            box-shadow: var(--elevation-2, 0 8px 24px var(--box-shadow-color-1));
         }
 
         &__option {
@@ -232,11 +232,11 @@
             text-align: left;
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
 
             &--on {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-selected, var(--bg-color-2));
             }
         }
 

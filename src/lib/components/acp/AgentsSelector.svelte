@@ -120,7 +120,7 @@
             text-align: left;
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
 
             &--front {
@@ -138,7 +138,7 @@
 
         &__choices {
             border: 1px solid var(--border-color-2);
-            box-shadow: 0 0 10px var(--box-shadow-color-2);
+            box-shadow: var(--elevation-2, 0 0 10px var(--box-shadow-color-2));
             margin-left: -1px;
             margin-right: -1px;
             margin-top: -1px;

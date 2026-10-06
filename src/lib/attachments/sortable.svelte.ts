@@ -3,6 +3,12 @@ import type { Attachment } from 'svelte/attachments';
 
 type Rect = { x: number; y: number; w: number; h: number };
 
+export const DECK_SLOT_SELECTOR = '.deck-row-slot';
+
+export function deckSlotElements(): HTMLElement[] {
+	return Array.from(document.querySelectorAll<HTMLElement>(`.deck > ${DECK_SLOT_SELECTOR}`));
+}
+
 export interface TileTarget {
 	kind: 'split';
 	id: string;
@@ -124,7 +130,7 @@ export function dockZoneAt(
 }
 
 export function detectTileAt(clientX: number, clientY: number): ExtractTarget | null {
-	const cols = Array.from(document.querySelectorAll<HTMLElement>('.deck > .deck-row-wrap'));
+	const cols = deckSlotElements();
 	if (!cols.length) return null;
 	const rects = cols.map((c) => c.getBoundingClientRect());
 	const zone = dockZoneAt(rects, clientX, clientY);

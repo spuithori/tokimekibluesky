@@ -472,7 +472,7 @@
             &--on {
                 background-color: var(--primary-color);
                 border-color: var(--primary-color);
-                color: #fff;
+                color: var(--on-accent, #fff);
             }
         }
 

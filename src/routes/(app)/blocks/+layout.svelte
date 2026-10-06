@@ -62,7 +62,7 @@
 
 <style lang="postcss">
     .settings-column {
-        background-color: var(--bg-color-1);
+        background: var(--surface-overlay, var(--bg-color-1));
         display: grid;
         grid-template-columns: 320px 1fr;
         height: 100%;
@@ -108,7 +108,7 @@
         }
 
         &--current {
-            background-color: var(--bg-color-2);
+            background-color: var(--state-selected, var(--bg-color-2));
         }
     }
 </style>

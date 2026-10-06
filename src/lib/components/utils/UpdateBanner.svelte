@@ -38,7 +38,7 @@
         gap: 12px;
         padding: 8px 8px 8px 16px;
         max-width: calc(100vw - 32px);
-        background-color: var(--menu-bg-color);
+        background: var(--menu-bg-color);
         color: var(--text-color-1);
         border: var(--menu-border);
         border-radius: var(--menu-border-radius);
@@ -56,7 +56,7 @@
         padding: 6px 16px;
         font-size: 13px;
         font-weight: 700;
-        color: var(--bg-color-1);
+        color: var(--on-accent, var(--bg-color-1));
         background-color: var(--primary-color);
         border: none;
         border-radius: var(--border-radius-3);

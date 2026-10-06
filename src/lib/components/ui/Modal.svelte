@@ -68,33 +68,15 @@
       margin: auto;
       overflow: hidden;
       border: none;
-      border-radius: var(--border-radius-6);
-      background-color: var(--bg-color-1);
+      border-radius: var(--radius-overlay, var(--border-radius-6));
+      background: var(--surface-overlay, var(--bg-color-1));
       color: var(--text-color-1);
       transform: var(--modal-transition-scale);
       cursor: pointer;
 
       &::backdrop {
-          background-color: rgba(0, 0, 0, .6);
+          background-color: var(--scrim, rgba(0, 0, 0, .6));
           opacity: var(--modal-transition-opacity);
-      }
-
-      @media (min-width: 768px) {
-          scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
-
-          &::-webkit-scrollbar {
-              width: 6px;
-          }
-
-          &::-webkit-scrollbar-thumb {
-              background: var(--scroll-bar-color);
-              border-radius: 0;
-          }
-
-          &::-webkit-scrollbar-track {
-              background: var(--scroll-bar-bg-color);
-              border-radius: 0;
-          }
       }
 
       @media (max-width: 767px) {
@@ -104,7 +86,8 @@
 
       &__inner {
           cursor: initial;
-          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
           max-height: 90dvh;
       }
 
@@ -131,7 +114,30 @@
   }
 
   .v2-modal-contents {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
       padding: 24px 36px;
+
+      @media (min-width: 768px) {
+          scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
+          scrollbar-width: var(--scroll-bar-width, auto);
+
+          &::-webkit-scrollbar {
+              width: 6px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+              background: var(--scroll-bar-color);
+              background-clip: padding-box;
+              border: var(--scroll-bar-thumb-inset, 0px) solid transparent;
+              border-radius: var(--scroll-bar-border-radius, 0);
+          }
+
+          &::-webkit-scrollbar-track {
+              background: var(--scroll-bar-bg-color);
+          }
+      }
 
       @media (max-width: 767px) {
          padding: 24px 16px;
@@ -139,10 +145,8 @@
   }
 
   .v2-modal-footer {
-      position: sticky;
-      bottom: 0;
-      z-index: 20;
-      background-color: var(--bg-color-1);
+      flex-shrink: 0;
+      background: var(--surface-overlay, var(--bg-color-1));
       border-top: 1px solid var(--border-color-1);
       padding: 16px 36px;
 
@@ -152,10 +156,9 @@
   }
 
   .modal-heading {
-      background-color: var(--bg-color-1);
-      z-index: 21;
-      position: sticky;
-      top: 0;
+      background: var(--surface-overlay, var(--bg-color-1));
+      position: relative;
+      flex-shrink: 0;
       height: 64px;
       display: flex;
       align-items: center;

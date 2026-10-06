@@ -61,7 +61,7 @@
 
           &:has(input:checked) {
               background-color: var(--primary-color);
-              color: var(--bg-color-1);
+              color: var(--on-accent, var(--bg-color-1));
               border-radius: var(--border-radius-3);
           }
       }

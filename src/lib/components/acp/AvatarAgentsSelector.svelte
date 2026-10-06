@@ -94,9 +94,9 @@
       left: 0;
       top: calc(100% + 10px);
       z-index: 101;
-      background-color: var(--bg-color-1);
-      border-radius: var(--border-radius-3);
-      box-shadow: 0 0 8px var(--box-shadow-color-1);
+      background: var(--surface-overlay, var(--bg-color-1));
+      border-radius: var(--radius-overlay, var(--border-radius-3));
+      box-shadow: var(--elevation-3, 0 0 8px var(--box-shadow-color-1));
       padding: 8px;
       min-width: 200px;
   }

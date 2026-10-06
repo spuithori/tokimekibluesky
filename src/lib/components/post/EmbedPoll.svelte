@@ -441,7 +441,7 @@
         font-size: 11px;
         padding: 2px 6px;
         background-color: var(--primary-color);
-        color: #fff;
+        color: var(--on-accent, #fff);
         white-space: nowrap;
         border-radius: 10px;
     }
@@ -485,7 +485,7 @@
         background-color: var(--primary-color);
         border: none;
         border-radius: 9999px;
-        color: white;
+        color: var(--on-accent, white);
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;

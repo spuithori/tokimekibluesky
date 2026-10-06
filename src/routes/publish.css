@@ -66,7 +66,7 @@
     &--popup {
         @media (min-width: 768px) {
             top: 0;
-            background-color: rgba(0, 0, 0, .5);
+            background-color: var(--scrim, rgba(0, 0, 0, .5));
             place-content: center;
             display: none;
 
@@ -130,7 +130,7 @@
     position: relative;
     background-color: var(--publish-textarea-bg-color);
     border: var(--publish-textarea-border, none);
-    border-radius: var(--border-radius-3);
+    border-radius: var(--radius-control, var(--border-radius-3));
 
     @media (max-width: 767px) {
         border: none;

@@ -161,7 +161,7 @@
         box-shadow: var(--menu-box-shadow);
         border: var(--menu-border);
         border-radius: var(--menu-border-radius);
-        background-color: var(--menu-bg-color);
+        background: var(--menu-bg-color);
         display: flex;
         flex-direction: column;
         color: var(--text-color-1);

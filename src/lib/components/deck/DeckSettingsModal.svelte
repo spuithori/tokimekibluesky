@@ -826,10 +826,10 @@
 <style lang="postcss">
     .deck-settings-wrap {
         position: absolute;
-        top: 52px;
+        top: var(--deck-heading-height, 52px);
         left: 0;
         right: -6px;
-        height: calc(100dvh - 52px - var(--decks-margin));
+        height: calc(100dvh - var(--deck-heading-height, 52px) - var(--decks-margin));
         padding: 0;
         z-index: 100;
         background-color: var(--bg-color-1);
@@ -1012,7 +1012,7 @@
             border-radius: 50%;
 
             &:hover {
-                background-color: var(--border-color-2);
+                background-color: var(--state-hover, var(--border-color-2));
             }
         }
     }
@@ -1049,7 +1049,7 @@
     .split-modal-overlay {
         position: fixed;
         inset: 0;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: var(--scrim, rgba(0, 0, 0, 0.5));
         z-index: 1000;
         display: grid;
         place-items: center;
@@ -1058,9 +1058,9 @@
     }
 
     .split-modal {
-        background-color: var(--bg-color-1);
-        border-radius: var(--border-radius-5);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        background: var(--surface-overlay, var(--bg-color-1));
+        border-radius: var(--radius-overlay, var(--border-radius-5));
+        box-shadow: var(--elevation-3, 0 4px 24px rgba(0, 0, 0, 0.2));
         max-width: 500px;
         width: 100%;
         max-height: 80vh;
@@ -1095,7 +1095,7 @@
             border-radius: var(--border-radius-2);
 
             &:hover {
-                background-color: var(--bg-color-2);
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
 
@@ -1124,7 +1124,7 @@
             color: var(--text-color-1);
 
             &:hover {
-                background-color: var(--bg-color-3);
+                background-color: var(--state-hover, var(--bg-color-3));
             }
 
             &--danger {

@@ -245,7 +245,6 @@
   class:thread-list--tree={$settings.design?.threaded}
   class:thread-list--compact={$settings.design?.postsLayout === 'compact'}
   class:thread-list--minimum={$settings.design?.postsLayout === 'minimum'}
-  class:thread-list--bubble={$settings.design?.bubbleTimeline}
   class:end-filler={rows.length > 1}
   style:--thread-end-filler="{endFiller}px"
   bind:this={parent}

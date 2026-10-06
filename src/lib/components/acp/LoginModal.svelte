@@ -45,8 +45,8 @@
 
     .login-modal-contents {
         padding: 30px;
-        border-radius: 10px;
-        background-color: var(--bg-color-1);
+        border-radius: var(--radius-overlay, 10px);
+        background: var(--surface-overlay, var(--bg-color-1));
         max-width: 400px;
         width: 100%;
 

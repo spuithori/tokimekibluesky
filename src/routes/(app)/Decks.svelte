@@ -93,19 +93,21 @@
   .deck {
       display: flex;
       gap: var(--decks-gap);
+      overflow-x: var(--decks-overflow-x, auto);
       overflow-y: hidden;
       padding: var(--decks-padding-top, var(--decks-padding)) var(--decks-padding-right, var(--decks-padding)) var(--decks-padding-bottom, var(--decks-padding)) var(--decks-padding-left, var(--decks-padding));
       margin: var(--decks-margin) var(--decks-margin) var(--decks-margin-bottom, var(--decks-margin)) 0;
       height: var(--decks-height, calc(100dvh - var(--decks-margin, 0px) * 2));
       flex: var(--decks-flex, initial);
       background-color: var(--decks-bg-color, transparent);
+      border-radius: var(--decks-border-radius, 0);
       border: var(--decks-border, none);
       border-left: var(--decks-border-left, 0);
       border-bottom: var(--decks-border-bottom, 0);
       box-shadow: var(--decks-box-shadow, none);
 
       &::-webkit-scrollbar {
-          height: 8px;
+          height: var(--decks-scroll-bar-size, 8px);
 
           @media (max-width: 767px) {
               display: none;
@@ -114,10 +116,14 @@
 
       &::-webkit-scrollbar-thumb {
           background: var(--scroll-bar-color);
+          background-clip: padding-box;
+          border: var(--scroll-bar-thumb-inset, 0px) solid transparent;
+          border-radius: var(--scroll-bar-border-radius, 0);
       }
 
       &::-webkit-scrollbar-track {
           background: var(--scroll-bar-bg-color);
+          margin-inline: var(--decks-scroll-bar-inset, 0px);
       }
 
       @media (max-width: 767px) {
@@ -127,6 +133,7 @@
           height: 100dvh;
           margin: 0;
           border: none;
+          border-radius: 0;
           box-shadow: none;
       }
   }

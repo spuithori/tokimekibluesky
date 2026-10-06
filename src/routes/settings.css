@@ -128,7 +128,7 @@ input[type=checkbox] {
         border: 1px solid var(--border-color-2);
         background-color: var(--bg-color-2);
         height: 48px;
-        border-radius: var(--border-radius-4);
+        border-radius: var(--radius-control, var(--border-radius-4));
         width: 100%;
         padding: 0 16px;
         cursor: pointer;
@@ -242,7 +242,7 @@ input[type=checkbox] {
         display: flex;
         align-items: center;
         position: relative;
-        border-radius: 4px;
+        border-radius: var(--radius-control, 4px);
         padding: 6px 16px;
         gap: 10px;
         white-space: nowrap;
@@ -261,14 +261,15 @@ input[type=checkbox] {
             width: 4px;
             height: 20px;
             border-radius: 2px;
-            background-color: var(--primary-color);
+            background: var(--settings-nav-current-bar-color, var(--primary-color));
             margin: auto;
             transform: scaleY(0);
             transition: transform .25s cubic-bezier(0, 0, 0.18, 1);
+            box-shadow: var(--accent-glow, none);
         }
 
         &:hover {
-            background-color: var(--border-color-2);
+            background-color: var(--state-hover, var(--border-color-2));
         }
 
         &--current {
@@ -404,7 +405,7 @@ input[type=checkbox] {
     justify-content: center;
     text-align: center;
     background-color: var(--primary-color);
-    color: var(--bg-color-1);
+    color: var(--on-accent, var(--bg-color-1));
     font-weight: bold;
     font-size: 11px;
     margin-left: 4px;
@@ -439,7 +440,7 @@ input[type=checkbox] {
         border: 1px solid var(--border-color-1);
         background-color: var(--bg-color-2);
         height: 40px;
-        border-radius: 4px;
+        border-radius: var(--radius-control, 4px);
         width: 100%;
         padding: 0 10px;
         cursor: pointer;

@@ -339,7 +339,7 @@
         transition: background-color .2s ease-in-out;
 
         &:hover {
-            background-color: var(--border-color-1);
+            background-color: var(--state-hover, var(--border-color-1));
         }
     }
 

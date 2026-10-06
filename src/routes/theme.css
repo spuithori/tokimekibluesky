@@ -1,3 +1,15 @@
+@property --deck-border-width {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 1px;
+}
+
+@property --deck-border-radius {
+    syntax: '<length-percentage>';
+    inherits: true;
+    initial-value: 0px;
+}
+
 .font-size-1 {
     --timeline-repost-font-size: 12px;
     --timeline-content-font-size: 13px;
@@ -30,6 +42,8 @@
 
 :root, .app {
     --primary-color: var(--current-theme-color);
+    --link-color: var(--primary-color);
+    --text-color-primary-colored: var(--primary-color);
 
     /* Main */
     --app-bg-color: var(--base-bg-color);
@@ -38,16 +52,20 @@
 
     /* Side */
     --side-bg-color: var(--blurred-bg-color);
-    --side-backdrop-filter: blur(8px);
+    --side-backdrop-filter: none;
+    --side-padding-top: 8px;
     --side-padding-right: 8px;
+    --side-padding-bottom: 4px;
+    --side-border-radius: 0;
+    --single-side-border-radius: 0;
     --side-box-shadow: none;
-    --side-nav-hover-bg-color: var(--bg-color-1);
+    --side-nav-hover-bg-color: var(--state-hover, var(--bg-color-1));
 
     /* Bar */
     --bar-bg-color: var(--base-bg-color);
+    --bar-backdrop-filter: blur(8px);
     --bar-primary-icon-color: var(--primary-color);
     --bar-secondary-icon-color: var(--text-color-3);
-    --bar-icon-size: var(--default-icon-size);
     --bar-bottom-icon-color: var(--text-color-1);
     --bar-current-bar-color: var(--primary-color);
     --bar-current-bar-width: var(--default-bar-height);
@@ -57,8 +75,9 @@
     /* Nav */
     --nav-primary-icon-color: var(--text-color-1);
     --nav-secondary-icon-color: var(--text-color-3);
-    --nav-icon-size: var(--default-icon-size);
     --nav-content-bg-color: var(--bg-color-1);
+    --nav-content-bg-image: none;
+    --nav-content-padding: 0;
     --nav-content-border-color: var(--border-color-1);
     --nav-content-border-width: var(--default-border-width);
     --nav-content-border-radius: var(--border-radius-4);
@@ -66,6 +85,7 @@
     --nav-current-bar-width: var(--default-bar-width);
     --nav-current-bar-height: var(--default-bar-height);
     --nav-current-bar-border-radius: calc(var(--default-bar-height) / 2);
+    --settings-nav-current-bar-color: var(--primary-color);
 
     /* Icon */
     --icon-stroke-width: 2px;
@@ -77,6 +97,19 @@
     --decks-flex: initial;
     --decks-bg-color: transparent;
     --decks-border-radius: 0;
+    --decks-padding-top: var(--decks-padding);
+    --decks-padding-right: var(--decks-padding);
+    --decks-padding-bottom: var(--decks-padding);
+    --decks-padding-left: var(--decks-padding);
+    --decks-margin-bottom: var(--decks-margin);
+    --decks-height: calc(100dvh - var(--decks-margin, 0px) * 2);
+    --decks-border: none;
+    --decks-border-left: 0;
+    --decks-border-bottom: 0;
+    --decks-box-shadow: none;
+    --decks-overflow-x: auto;
+    --decks-scroll-bar-size: 8px;
+    --decks-scroll-bar-inset: 0px;
     --deck-xxs-width: 280px;
     --deck-xs-width: 320px;
     --deck-s-width: 350px;
@@ -85,21 +118,23 @@
     --deck-xl-width: 500px;
     --deck-xxl-width: 550px;
     --deck-divider-width: 414px;
+    --deck-divider-compact-width: 64px;
     --deck-border-radius: var(--border-radius-4);
     --deck-border-color: var(--border-color-2);
     --deck-border-width: var(--default-border-width);
     --deck-box-shadow: none;
+    --deck-rim: none;
+    --deck-rim-width: 1px;
+    --deck-rim-display: none;
 
     --deck-heading-height: 52px;
     --deck-heading-bg-color: var(--bg-color-1);
     --deck-heading-icon-bg-color: var(--bg-color-3);
+    --deck-heading-icon-border-radius: 5px;
     --deck-heading-title-color: var(--text-color-1);
     --deck-heading-subhead-color: var(--text-color-3);
     --deck-heading-backdrop-filter: none;
     --deck-heading-icon-color: var(--text-color-3);
-    --deck-heading-icon-size: var(--default-icon-size);
-    --deck-heading-button-icon-primary-color: var(--primary-color);
-    --deck-heading-button-icon-secondary-color: var(--text-color-3);
     --deck-border-right: inherit;
 
     /* Single */
@@ -111,13 +146,14 @@
     --single-xl-width: 680px;
     --single-xxl-width: 760px;
     --single-border: 1px solid var(--border-color-2);
+    --single-bg-color: var(--surface-panel, var(--bg-color-1));
 
-    --deck-content-bg-color: var(--bg-color-1);
-    --deck-content-backdrop-filter: none;
+    --deck-content-bg-color: var(--surface-panel, var(--bg-color-1));
     --bg-vail-bg-color: rgba(255, 255, 255, .35);
 
     /* Timeline */
     --timeline-padding: var(--default-padding);
+    --timeline-padding-x: var(--default-padding, 16px);
     --timeline-bg-color: var(--bg-color-1);
     --timeline-color: var(--text-color-1);
     --timeline-border-color: var(--border-color-2);
@@ -127,8 +163,7 @@
 
     --timeline-embed-bg-color: var(--bg-color-1);
     --timeline-embed-border: none;
-    --timeline-embed-box-shadow: 0 0 14px var(--box-shadow-color-2);
-    --timeline-embed-icon-color: var(--primary-color);
+    --timeline-embed-box-shadow: var(--elevation-1, 0 0 14px var(--box-shadow-color-2));
     --timeline-embed-color: var(--text-color-3);
 
     --timeline-reaction-icon-color: var(--text-color-3);
@@ -143,26 +178,29 @@
     --timeline-reaction-like-icon-hover-color: var(--timeline-reaction-icon-hover-color);
     --timeline-reaction-liked-icon-color: var(--primary-color);
     --timeline-reaction-bookmark-icon-hover-color: var(--timeline-reaction-icon-hover-color);
-    --timeline-reaction-hover-bg-color: var(--border-color-1);
+    --timeline-reaction-hover-bg-color: var(--state-hover, var(--border-color-1));
     --timeline-reaction-reply-hover-bg-color: var(--timeline-reaction-hover-bg-color);
     --timeline-reaction-repost-hover-bg-color: var(--timeline-reaction-hover-bg-color);
     --timeline-reaction-like-hover-bg-color: var(--timeline-reaction-hover-bg-color);
     --timeline-reaction-bookmark-hover-bg-color: var(--timeline-reaction-hover-bg-color);
 
     /* Menu */
-    --menu-bg-color: var(--bg-color-1);
-    --menu-box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14);
+    --menu-bg-color: var(--surface-raised, var(--bg-color-1));
+    --menu-box-shadow: var(--elevation-2, 0 0 2px rgba(0, 0, 0, .12), 0 8px 16px rgba(0, 0, 0, .14));
     --menu-border: none;
-    --menu-border-radius: var(--border-radius-4);
+    --menu-border-radius: var(--radius-overlay, var(--border-radius-4));
     --menu-padding: 16px 0;
-    --menu-hover-bg-color: var(--bg-color-2);
+    --menu-hover-bg-color: var(--state-hover, var(--bg-color-2));
+    --menu-item-inset: 4px;
+    --menu-item-border-radius: var(--border-radius-3);
+    --modal-page-bg-color: var(--surface-overlay, var(--bg-color-1));
 
     /* Avatar */
     --avatar-border-radius: 50%;
 
     /* Button */
     --button-bg-color: var(--primary-color);
-    --button-color: var(--bg-color-1);
+    --button-color: var(--on-accent, var(--bg-color-1));
     --button-height: 50px;
     --button-border: none;
     --button-border-radius: calc(var(--button-height) / 2);
@@ -171,26 +209,30 @@
 
     /* Publish */
     --publish-bg-color: var(--bg-color-1);
+    --publish-bg-image: none;
+    --publish-border-radius: 0;
     --publish-textarea-bg-color: var(--bg-color-2);
+    --publish-textarea-border: none;
+    --publish-schedule-button-bg-color: var(--bg-color-1);
+    --publish-tag-bg-color: var(--bg-color-2);
     --publish-textarea-color: var(--text-color-1);
     --publish-length-color: var(--text-color-3);
     --publish-tool-button-color: var(--text-color-1);
-    --publish-filepond-border-color: var(--primary-color);
-    --publish-filepond-border-width: 2px;
-    --publish-filepond-bg-color: var(--bg-color-1);
-    --publish-filepond-box-shadow: 0 0 6px rgba(0, 0, 0, .12);
     --publish-post-button-bg-color: var(--primary-color);
     --publish-post-button-border: none;
     --publish-post-button-height: 48px;
     --publish-post-button-box-shadow: none;
-    --publish-post-button-border-radius: calc(var(--publish-post-button-height) / 2);
-    --publish-post-button-color: var(--bg-color-1);
+    --publish-post-button-color: var(--on-accent, var(--bg-color-1));
     --publish-border: none;
 
     /* Notification */
-    --notification-highlight-color: var(--base-bg-color);
     --notification-link-color: var(--text-color-1);
     --notification-filter-border: 1px solid var(--border-color-2);
+    --notification-filter-bg-color: transparent;
+    --notification-filter-border-radius: 0;
+    --notification-filter-margin: 0;
+    --notifications-new-top: 4px;
+    --notifications-new-right: -12px;
 
     /* Profile */
     --acp-main-label-bg-color: var(--primary-color);
@@ -198,11 +240,20 @@
     /* ScrollBar */
     --scroll-bar-color: var(--border-color-1);
     --scroll-bar-bg-color: var(--bg-color-3);
+    --scroll-bar-border-radius: 0;
+    --scroll-bar-width: auto;
+    --scroll-bar-thumb-inset: 0px;
+    --deck-scroll-bar-inset-end: 0px;
 
     /* Bubble */
-    --bubble-marin: 16px 0;
+    --bubble-marin: 0 0 16px;
     --bubble-padding: 16px;
-    --bubble-bg-color: var(--timeline-bg-color);
+    --bubble-bg-color: var(--deck-content-bg-color);
+    --bubble-border: 1px solid var(--deck-border-color, var(--border-color-2));
+    --bubble-border-radius: var(--radius-card, var(--border-radius-4));
+    --bubble-box-shadow: var(--elevation-1, 0 2px 8px rgba(0, 0, 0, .04));
+    --bubble-heading-backdrop-filter: var(--deck-heading-backdrop-filter);
+    --bubble-canvas: var(--deck-heading-bubble-color, linear-gradient(var(--decks-bg-color) 0 0), var(--app-bg-color));
 
     /* env */
     --safe-area-bottom: env(safe-area-inset-bottom);
@@ -214,4 +265,44 @@
         --app-bg-image: var(--base-dark-bg-image);
         --bg-vail-bg-color: rgba(0, 0, 0, .3);
     }
+}
+
+.app.bubble-legacy {
+    --bubble-border: 1px solid var(--border-color-2);
+}
+
+.app.bubble:not(.bubble-legacy) .main {
+    --deck-content-bg-color: var(--bubble-column-bg-color, transparent);
+    --deck-border-width: 0px;
+    --deck-border-color: var(--bubble-column-border-color, transparent);
+    --deck-border-right: none;
+    --deck-box-shadow: none;
+    --deck-rim-display: none;
+    --scroll-bar-bg-color: transparent;
+    --scroll-bar-border-radius: var(--bubble-scroll-bar-border-radius, 3px);
+    --deck-heading-bg-color: var(--bubble-heading-bg-color, var(--bubble-canvas));
+    --deck-heading-backdrop-filter: var(--bubble-heading-backdrop-filter);
+    --deck-heading-icon-bg-color: var(--bubble-heading-icon-bg-color, transparent);
+    --timeline-bg-color: var(--bubble-heading-bg-color, var(--bubble-canvas));
+    --timeline-padding: 0 var(--bubble-inset, 8px);
+    --decks-gap: var(--bubble-decks-gap, 12px);
+    --decks-padding-left: var(--bubble-decks-padding-left, 8px);
+    --single-bg-color: var(--bubble-single-bg-color, var(--bubble-canvas));
+    --single-border: none;
+    --modal-page-bg-color: var(--bubble-canvas);
+    --notification-filter-border: none;
+    --notification-filter-bg-color: var(--bubble-bg-color);
+    --notification-filter-margin: 0 var(--bubble-inset, 8px) 16px;
+    --notification-filter-border-radius: var(--bubble-border-radius);
+    --notifications-new-right: 12px;
+    --notifications-new-top: 12px;
+}
+
+.app.bubble:not(.bubble-legacy) .modal-page {
+    --timeline-padding: 0 var(--bubble-page-inset, var(--default-padding, 16px));
+}
+
+.app.bubble:not(.bubble-legacy) .side-bar {
+    --bar-bg-color: var(--bubble-heading-bg-color, var(--bubble-canvas));
+    --bar-backdrop-filter: var(--bubble-heading-backdrop-filter);
 }

@@ -111,14 +111,14 @@
 .side-bar-button {
     &--current {
         svg {
-            stroke: var(--bar-current-bar-color);
+            stroke: var(--bar-current-icon-color, var(--bar-current-bar-color));
         }
     }
 
     &--intersecting {
         @media (max-width: 767px) {
             svg {
-                stroke: var(--bar-current-bar-color);
+                stroke: var(--bar-current-icon-color, var(--bar-current-bar-color));
             }
         }
     }
@@ -244,7 +244,7 @@ body .pcl {
 .chat-item {
     &--me {
         a {
-            color: #fff;
+            color: var(--on-accent, #fff);
             text-decoration: underline;
         }
     }
@@ -312,26 +312,6 @@ body .pcl {
 
     .deck-row__content {
         height: 100% !important;
-    }
-}
-
-.deck {
-    &:has([data-neodrag-state='dragging']) {
-        .deck-row {
-            transition: translate .3s cubic-bezier(0, 0, 0, 1);
-        }
-    }
-}
-
-.sortable-list {
-    &:has(.neodrag-dragging) {
-        .sortable-list__item {
-            transition: translate .3s cubic-bezier(0, 0, 0, 1);
-
-            &.neodrag-dragging {
-                transition: none;
-            }
-        }
     }
 }
 
