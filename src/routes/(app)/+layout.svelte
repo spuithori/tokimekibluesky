@@ -28,8 +28,8 @@
     import Single from "./Single.svelte";
     import Decks from "./Decks.svelte";
     import NotificationCountObserver from "$lib/components/utils/NotificationCountObserver.svelte";
-    import { builtInThemes } from "$lib/builtInThemes";
-    import { defaultColors } from "$lib/defaultColors";
+    import { findBuiltinTheme } from "$lib/theme/installed";
+    import { compileThemeStyle, resolveVariantKey } from "$lib/theme/format";
     import OfficialListAddObserver from "$lib/components/list/OfficialListAddObserver.svelte";
     import RealtimeListenersObserver from "$lib/components/realtime/RealtimeListenersObserver.svelte";
     import LinkWarningModal from "$lib/components/post/LinkWarningModal.svelte";
@@ -85,7 +85,7 @@
         window.matchMedia("(prefers-color-scheme: dark)").matches,
     );
     let isDarkMode = $derived.by(() => {
-        if ($theme?.options?.darkmodeDisabled) {
+        if ($theme && !$theme.record.dark) {
             return false;
         }
 
@@ -108,16 +108,22 @@
     }
 
     function getCurrentTheme(skin) {
-        const isBuiltInTheme = builtInThemes.find(
-            (_theme) => _theme.name === skin,
-        );
+        const builtin = findBuiltinTheme(skin);
 
         untrack(() => {
-            if (isBuiltInTheme) {
-                $theme = isBuiltInTheme;
+            if (builtin) {
+                $theme = builtin;
             } else {
-                themesDb.themes.get(skin).then((value) => {
-                    $theme = value;
+                themesDb.themes.get(skin).then(async (value) => {
+                    if (!value && typeof skin === "string" && skin.startsWith("at://")) {
+                        value = await import("$lib/theme/atproto")
+                            .then(async ({ fetchRemoteTheme, installRemoteTheme }) => installRemoteTheme(await fetchRemoteTheme(skin)))
+                            .then(({ installed }) => installed)
+                            .catch(() => undefined);
+                    }
+                    if ($settings.design?.skin === skin) {
+                        $theme = value;
+                    }
                 });
             }
         });
@@ -125,23 +131,33 @@
 
     function observeColor(theme) {
         if (!theme) {
-            return false;
+            return;
         }
 
         untrack(() => {
-            const colors = Array.isArray(theme.options?.colors)
-                ? theme.options.colors
-                : defaultColors;
-
-            if (!colors.length) {
-                return false;
-            }
-
-            if (!colors.some((color) => color.id === $settings.design?.theme)) {
-                $settings.design.theme = colors[0].id;
+            const key = resolveVariantKey(theme.record, $settings.design?.theme);
+            if (key && key !== $settings.design?.theme) {
+                $settings.design.theme = key;
             }
         });
     }
+
+    const themeImageUrls = $derived.by(() => {
+        const images = $theme?.images;
+        if (!images) {
+            return {};
+        }
+        return Object.fromEntries(Object.entries(images).map(([key, blob]) => [key, URL.createObjectURL(blob)]));
+    });
+
+    $effect(() => {
+        const urls = themeImageUrls;
+        return () => {
+            for (const url of Object.values(urls)) {
+                URL.revokeObjectURL(url);
+            }
+        };
+    });
 
     $effect(() => {
         if (!navigator.connection) {
@@ -192,33 +208,11 @@
             return false;
         }
 
-        let colorStyle = "";
-        let bubbleStyle = "";
-        let darkmodeStyle = "";
-
-        if (theme.options?.colors) {
-            const index = theme.options.colors.findIndex(
-                (color) => color.id === $settings.design?.theme,
-            );
-
-            if (index !== -1) {
-                colorStyle = theme.options?.colors[index].code
-                    ? theme.options.colors[index].code
-                    : "";
-            }
-        }
-
-        if ($settings?.design?.bubbleTimeline) {
-            bubbleStyle = theme?.options?.bubbleStyle || "";
-        }
-
-        if (isDarkMode) {
-            darkmodeStyle = theme.options?.darkmodeStyle
-                ? theme.options.darkmodeStyle
-                : "";
-        }
-
-        return theme.style + colorStyle + bubbleStyle + darkmodeStyle;
+        return compileThemeStyle(theme.record, {
+            variant: $settings.design?.theme,
+            dark: isDarkMode,
+            imageUrls: themeImageUrls,
+        });
     }
 
     appState.init();
@@ -384,7 +378,6 @@
     class:left-mode={$settings?.design?.leftMode}
     class:superstar={$settings.design?.reactionMode === "superstar"}
     class:bubble={$settings?.design?.bubbleTimeline}
-    class:bubble-legacy={$settings?.design?.bubbleTimeline && !!$theme?.options?.bubbleStyle}
     class:monochrome={$settings?.design?.monochrome}
     style={outputInlineStyle($theme)}
     dir={$_("dir")}

@@ -1,0 +1,29 @@
+{
+    "lexicon": 1,
+    "id": "tech.tokimeki.theme.approval",
+    "defs": {
+        "main": {
+            "type": "record",
+            "description": "A theme listed in the TOKIMEKI theme store, written by the official account. The subject pins the approved version by CID.",
+            "key": "any",
+            "record": {
+                "type": "object",
+                "required": ["subject", "createdAt"],
+                "properties": {
+                    "subject": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
+                    "access": {
+                        "type": "string",
+                        "knownValues": ["public", "code"],
+                        "default": "public"
+                    },
+                    "codeHash": {
+                        "type": "string",
+                        "description": "Hex SHA-256 of the unlock code when access is code.",
+                        "maxLength": 64
+                    },
+                    "createdAt": { "type": "string", "format": "datetime" }
+                }
+            }
+        }
+    }
+}

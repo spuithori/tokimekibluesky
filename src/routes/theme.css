@@ -253,7 +253,7 @@
     --bubble-border-radius: var(--radius-card, var(--border-radius-4));
     --bubble-box-shadow: var(--elevation-1, 0 2px 8px rgba(0, 0, 0, .04));
     --bubble-heading-backdrop-filter: var(--deck-heading-backdrop-filter);
-    --bubble-canvas: var(--deck-heading-bubble-color, linear-gradient(var(--decks-bg-color) 0 0), var(--app-bg-color));
+    --bubble-canvas: linear-gradient(var(--decks-bg-color) 0 0), var(--app-bg-color);
 
     /* env */
     --safe-area-bottom: env(safe-area-inset-bottom);
@@ -267,11 +267,7 @@
     }
 }
 
-.app.bubble-legacy {
-    --bubble-border: 1px solid var(--border-color-2);
-}
-
-.app.bubble:not(.bubble-legacy) .main {
+.app.bubble .main {
     --deck-content-bg-color: var(--bubble-column-bg-color, transparent);
     --deck-border-width: 0px;
     --deck-border-color: var(--bubble-column-border-color, transparent);
@@ -298,11 +294,11 @@
     --notifications-new-top: 12px;
 }
 
-.app.bubble:not(.bubble-legacy) .modal-page {
+.app.bubble .modal-page {
     --timeline-padding: 0 var(--bubble-page-inset, var(--default-padding, 16px));
 }
 
-.app.bubble:not(.bubble-legacy) .side-bar {
+.app.bubble .side-bar {
     --bar-bg-color: var(--bubble-heading-bg-color, var(--bubble-canvas));
     --bar-backdrop-filter: var(--bubble-heading-backdrop-filter);
 }

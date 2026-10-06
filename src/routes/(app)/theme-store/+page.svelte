@@ -4,21 +4,10 @@
     import Folder from '@lucide/svelte/icons/folder';
     import Ticket from '@lucide/svelte/icons/ticket';
   import {_} from "tokimeki-i18n";
-  import {onMount} from "svelte";
   import ThemeItem from "./ThemeItem.svelte";
+  import { listApprovedThemes } from "$lib/theme/atproto";
 
-  let themes = $state([]);
-
-  onMount(async () => {
-      const res = await fetch(`/api/get-themes`, {
-          method: 'post',
-          body: JSON.stringify({
-              code: null,
-          })
-      });
-      const data = await res.json();
-      themes = data;
-  })
+  const approved = listApprovedThemes().then((list) => list.filter((item) => item.access === 'public'));
 </script>
 
 <svelte:head>
@@ -43,27 +32,6 @@
   </div>
 
   <div class="theme-store-wrap">
-    {#if themes.length}
-      <!--
-      <section class="theme-store-slider">
-        <Splide options={{
-          type: 'loop',
-          rewind: true,
-          gap: '20px',
-          arrows: false,
-          pagination: false,
-          autoplay: true,
-      }}>
-          {#each themes as theme}
-            <SplideSlide>
-              <img src="{theme.options.cover}" alt="">
-            </SplideSlide>
-          {/each}
-        </Splide>
-      </section>
-      -->
-    {/if}
-
     <p class="theme-store-supporter-recommend">{$_('theme_store_supporter_recommend_1')}<a href="https://tokimeki.fanbox.cc/" target="_blank">pixivFANBOX</a>{$_('theme_store_supporter_recommend_2')}</p>
 
     <div class="theme-store-section only-mobile">
@@ -87,23 +55,18 @@
     <section class="theme-store-section">
       <h2 class="theme-store-section__title">{$_('new_theme')}</h2>
 
-      {#each themes as theme}
-        <ThemeItem {theme}></ThemeItem>
-      {/each}
+      {#await approved then list}
+        {#each list as item (item.approvalUri)}
+          <ThemeItem remote={item.theme}></ThemeItem>
+        {/each}
+      {:catch}
+        <p class="settings-description">{$_('theme_store_load_error')}</p>
+      {/await}
     </section>
   </div>
 </div>
 
 <style lang="postcss">
-  .theme-store-slider {
-      margin-bottom: 24px;
-
-      img {
-          width: 100%;
-          height: auto;
-      }
-  }
-
   .theme-store-supporter-recommend {
     margin-bottom: 16px;
   }

@@ -2,21 +2,17 @@
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import X from '@lucide/svelte/icons/x';
     import {_} from "tokimeki-i18n";
-    import {onMount} from "svelte";
     import ThemeItem from "../ThemeItem.svelte";
+    import { listApprovedThemes, sha256Hex, type ApprovedTheme } from "$lib/theme/atproto";
 
     let value = $state('');
-    let themes = $state([]);
+    let themes: ApprovedTheme[] = $state([]);
 
-    async function getThemes() {
-        const res = await fetch(`/api/get-themes`, {
-            method: 'post',
-            body: JSON.stringify({
-                code: value,
-            })
-        });
-        const data = await res.json();
-        themes = data;
+    async function getThemes(event: SubmitEvent) {
+        event.preventDefault();
+        const hash = await sha256Hex(value.trim());
+        const list = await listApprovedThemes();
+        themes = list.filter((item) => item.access === 'code' && item.codeHash === hash);
     }
 </script>
 
@@ -55,8 +51,8 @@
       <section class="theme-store-section">
         <h2 class="theme-store-section__title">{$_('find_theme')}</h2>
 
-        {#each themes as theme}
-          <ThemeItem {theme}></ThemeItem>
+        {#each themes as item (item.approvalUri)}
+          <ThemeItem remote={item.theme}></ThemeItem>
         {/each}
       </section>
     {/if}

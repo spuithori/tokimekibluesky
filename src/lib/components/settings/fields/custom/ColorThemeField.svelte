@@ -2,42 +2,29 @@
     import { _ } from 'tokimeki-i18n';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { theme } from '$lib/stores';
-    import { defaultColors } from '$lib/defaultColors';
     import Notice from '$lib/components/ui/Notice.svelte';
 
-    function detectColors(currentTheme: any) {
-        if (!currentTheme) {
-            return false;
-        }
-        if (currentTheme.options.colors && Array.isArray(currentTheme.options.colors)) {
-            return currentTheme.options.colors;
-        }
-        return defaultColors;
-    }
-
-    const colors = $derived(detectColors($theme));
+    const variants = $derived($theme?.record.variants ?? []);
 </script>
 
-{#if $theme ? $theme.options?.colorDisabled : false}
+{#if $theme && !variants.length}
     <Notice text={$_('color_disabled_theme')}></Notice>
 {/if}
 
 <ul class="theme-picker theme-picker--{settingsStore.design.theme}">
-    {#if colors}
-        {#each colors as color (color.id)}
-            <li
-                class="theme-picker__item"
-                class:theme-picker__item--current={settingsStore.design.theme === color.id}
-            >
-                <button
-                    class="theme-picker__button"
-                    onclick={() => { settingsStore.design.theme = color.id; }}
-                    aria-label={color.id}
-                    style:background={color.colorCode}
-                ></button>
-            </li>
-        {/each}
-    {/if}
+    {#each variants as variant (variant.key)}
+        <li
+            class="theme-picker__item"
+            class:theme-picker__item--current={settingsStore.design.theme === variant.key}
+        >
+            <button
+                class="theme-picker__button"
+                onclick={() => { settingsStore.design.theme = variant.key; }}
+                aria-label={variant.name}
+                style:background={variant.swatch}
+            ></button>
+        </li>
+    {/each}
 </ul>
 
 <style lang="postcss">

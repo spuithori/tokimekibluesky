@@ -1,6 +1,7 @@
 import type { Settings } from './types';
 import { createDefaultSettings } from './defaults';
-import { oldThemeConvert } from '$lib/builtInThemes';
+import { oldThemeConvert } from '$lib/theme/builtin';
+import { legacyThemeUri } from '$lib/theme/legacyMap';
 import { TOKIMEKI_LABELER_SETTINGS } from './defaults';
 
 /**
@@ -169,6 +170,15 @@ export function migrate(
             }
         }
         stored.version = 9;
+    }
+
+    if (stored.version < 10) {
+        const design = isPlainObject(stored.design) ? (stored.design as Record<string, any>) : undefined;
+        const uri = legacyThemeUri(design?.skin);
+        if (design && uri) {
+            design.skin = uri;
+        }
+        stored.version = 10;
     }
 
     return deepMerge(defaults, stored);

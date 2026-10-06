@@ -2,16 +2,12 @@
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import X from '@lucide/svelte/icons/x';
     import {_} from "tokimeki-i18n";
-    import {onMount} from "svelte";
     import {liveQuery} from "dexie";
     import {themesDb} from "$lib/db";
     import ThemeItem from "../ThemeItem.svelte";
-    import {builtInThemes} from "$lib/builtInThemes";
+    import { BUILTIN_THEMES } from "$lib/theme/installed";
 
-    let myThemes = $derived(liveQuery(async () => {
-        const myThemes = await themesDb.themes.toArray();
-        return myThemes;
-    }))
+    const myThemes = liveQuery(async () => await themesDb.themes.toArray());
 </script>
 
 <svelte:head>
@@ -40,8 +36,8 @@
       <h2 class="theme-store-section__title">{$_('installed_theme')}</h2>
 
       {#if ($myThemes)}
-        {#each $myThemes as theme}
-          <ThemeItem {theme}></ThemeItem>
+        {#each $myThemes as theme (theme.id)}
+          <ThemeItem installed={theme}></ThemeItem>
         {/each}
       {/if}
     </section>
@@ -49,8 +45,8 @@
     <section class="theme-store-section">
       <h2 class="theme-store-section__title">{$_('builtin_theme')}</h2>
 
-      {#each builtInThemes as theme}
-        <ThemeItem {theme} isBuiltIn={true}></ThemeItem>
+      {#each BUILTIN_THEMES as theme (theme.id)}
+        <ThemeItem installed={theme}></ThemeItem>
       {/each}
     </section>
   </div>

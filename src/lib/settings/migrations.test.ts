@@ -291,3 +291,15 @@ describe('v8 -> v9 TOKIMEKI labeler preference seeding', () => {
         expect(result.moderation.labelers.some((labeler) => labeler.did === TOKIMEKI_LABELER_SETTINGS.did)).toBe(true);
     });
 });
+
+describe('migrate v9 -> v10 (theme at-uri)', () => {
+    it('moves a skin that pointed at a migrated Supabase theme to its official at-uri', () => {
+        const result = migrate({ version: 9, design: { skin: '11ebee9d-aeee-48ad-9bd1-3cdb15fec8ef' } });
+        expect(result.design.skin).toBe('at://did:plc:4tr5dqti7nmu6g2czpthntak/tech.tokimeki.theme.theme/monstera');
+    });
+
+    it('leaves built-in and unknown skins as they are', () => {
+        expect(migrate({ version: 9, design: { skin: 'default' } }).design.skin).toBe('default');
+        expect(migrate({ version: 9, design: { skin: 'b891f211-3a57-4c5f-a53a-d4b26418a50a' } }).design.skin).toBe('b891f211-3a57-4c5f-a53a-d4b26418a50a');
+    });
+});

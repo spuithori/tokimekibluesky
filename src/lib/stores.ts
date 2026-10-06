@@ -1,6 +1,6 @@
 import {derived, readable, toStore, writable} from 'svelte/store';
 import type {Agent} from '$lib/agent';
-import type {Theme} from "$lib/types/theme";
+import type { InstalledTheme } from "$lib/theme/installed";
 import timerWorkerUrl from '$lib/workers/timer.js?url'
 import type { ReportModalState } from '$lib/components/report/reportTypes';
 import {settingsStore} from '$lib/settings/settings.svelte';
@@ -105,7 +105,7 @@ export const changedFollowData = writable(undefined);
 
 export const isColumnModalOpen = writable(false);
 
-export const theme = writable<Theme | undefined>(undefined);
+export const theme = writable<InstalledTheme | undefined>(undefined);
 
 type pulseDetach = {
     uri: string,

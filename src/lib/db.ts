@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type {SessionData as AtpSessionData} from '$lib/password-session';
-import type {Theme} from "$lib/types/theme";
+import { installedFromLegacy, isLegacyThemeRow, type InstalledTheme } from "$lib/theme/installed";
 import type {Column} from "$lib/types/column";
 import type {Slot} from "$lib/classes/deckLayout";
 
@@ -125,13 +125,27 @@ export class AccountSubClassDexie extends Dexie {
 export const accountsDb = new AccountSubClassDexie();
 
 export class ThemeSubClassDexie extends Dexie {
-    themes: Table<Theme>;
+    themes: Table<InstalledTheme>;
 
     constructor() {
         super('themeDatabase');
 
         this.version(2).stores({
             themes: '&id, createdAt, updatedAt, name, description, style, options, author, keyword, version, code'
+        });
+
+        this.version(3).stores({
+            themes: '&id, uri, installedAt'
+        }).upgrade(async (tx) => {
+            const table = tx.table('themes');
+            const rows = await table.toArray();
+            const converted = new Map<string, InstalledTheme>();
+            for (const row of rows) {
+                const theme = isLegacyThemeRow(row) ? installedFromLegacy(row) : (row as InstalledTheme);
+                if (theme) converted.set(theme.id, theme);
+            }
+            await table.clear();
+            await table.bulkAdd([...converted.values()]);
         });
     }
 }

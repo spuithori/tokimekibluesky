@@ -1,50 +1,59 @@
 <script lang="ts">
-    import Trash2 from '@lucide/svelte/icons/trash-2';
+  import Trash2 from '@lucide/svelte/icons/trash-2';
   import {themesDb} from "$lib/db";
   import {liveQuery} from "dexie";
   import {settings} from "$lib/stores";
   import {_} from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
+  import type { InstalledTheme } from "$lib/theme/installed";
+  import { installRemoteTheme, themeThumbnailUrl, ThemeFetchError, type RemoteTheme } from "$lib/theme/atproto";
+  import { previewSrc } from "$lib/theme/preview";
 
   interface Props {
-    theme: any;
-    isBuiltIn?: boolean;
+    installed?: InstalledTheme;
+    remote?: RemoteTheme;
   }
 
-  let { theme, isBuiltIn = false }: Props = $props();
+  let { installed, remote }: Props = $props();
 
   let isMenuOpen = $state(false);
+  let installing = $state(false);
 
-  let myTheme = $derived(liveQuery(async () => {
-      const myTheme = await themesDb.themes.get(theme.id);
-      return myTheme;
-  }))
+  const record = $derived(remote?.record ?? installed?.record);
+  const author = $derived(remote?.handle ?? installed?.handle ?? installed?.author ?? remote?.did ?? installed?.did);
 
-  async function download() {
-      const id = await themesDb.themes.put($state.snapshot({
-          id: theme.id,
-          createdAt: theme.created_at,
-          updatedAt: theme.updated_at,
-          name: theme.name,
-          description: theme.description,
-          style: theme.style,
-          options: theme.options,
-          author: theme.author,
-          keyword: theme.keyword,
-          version: theme.version,
-          code: theme.code,
-      }))
+  const mine = liveQuery(async () => {
+      if (installed && !installed.builtIn) return await themesDb.themes.get(installed.id);
+      if (remote) return await themesDb.themes.where('uri').equals(remote.uri).first();
+      return undefined;
+  });
+
+  const targetId = $derived($mine?.id ?? (installed?.builtIn ? installed.id : undefined));
+
+  async function install() {
+      if (!remote) return;
+      installing = true;
+      try {
+          const { installed: row, replacedIds } = await installRemoteTheme(remote);
+          if (replacedIds.includes($settings.design?.skin)) {
+              $settings.design.skin = row.id;
+          }
+      } catch (e) {
+          console.error(e);
+          toast.error($_(e instanceof ThemeFetchError ? e.messageKey : 'theme_install_error'));
+      } finally {
+          installing = false;
+      }
   }
 
   function activate() {
-      $settings.design.skin = theme.id;
+      if (targetId) $settings.design.skin = targetId;
   }
 
   async function uninstall() {
       try {
-          const id = await themesDb.themes.delete(theme.id);
-
+          if ($mine) await themesDb.themes.delete($mine.id);
           toast.success($_('theme_uninstall_success'));
       } catch (e) {
           console.error(e);
@@ -54,82 +63,76 @@
   }
 </script>
 
+{#if record}
 <section class="theme-item">
   <div class="theme-item__thumbnail">
-    {#if (theme.options?.thumbnail)}
-      <img src="{theme.options.thumbnail}" alt="">
+    {#if remote && remote.record.thumbnail}
+      <img src={themeThumbnailUrl(remote)} alt="">
+    {:else if installed?.thumbnail || installed?.previewUrl}
+      <img {@attach previewSrc(installed.thumbnail, installed.previewUrl)} alt="">
     {/if}
   </div>
 
   <div class="theme-item__content">
-    <h2 class="theme-item__title">{theme.name}</h2>
-    <p class="theme-item__text">{theme.description}</p>
+    <h2 class="theme-item__title">{record.name}</h2>
+    {#if record.description}
+      <p class="theme-item__text">{record.description}</p>
+    {/if}
 
     <dl class="theme-item-meta">
-      <div class="theme-item-meta__item">
-        <dl class="theme-item-meta__name">{$_('theme_author')}:</dl>
-        <dd class="theme-item-meta__content">{theme.author}</dd>
-      </div>
-
-      <div class="theme-item-meta__item">
-        <dl class="theme-item-meta__name">{$_('theme_version')}:</dl>
-        <dd class="theme-item-meta__content">{theme.version}</dd>
-      </div>
-
-      {#if theme.options.colors}
+      {#if author}
         <div class="theme-item-meta__item">
-          <dl class="theme-item-meta__name">{$_('theme_feature')}:</dl>
-          <dd class="theme-item-meta__content">{$_('theme_custom_color')}</dd>
+          <dt class="theme-item-meta__name">{$_('theme_author')}:</dt>
+          <dd class="theme-item-meta__content">{author}</dd>
         </div>
       {/if}
 
-      {#if theme?.keyword === 'bubble'}
-        <p class="theme-item-meta__bubble">{$_('theme_for_bubble')}</p>
+      <div class="theme-item-meta__item">
+        <dt class="theme-item-meta__name">{$_('theme_version')}:</dt>
+        <dd class="theme-item-meta__content">{record.version}</dd>
+      </div>
+
+      {#if record.variants?.length}
+        <div class="theme-item-meta__item">
+          <dt class="theme-item-meta__name">{$_('theme_feature')}:</dt>
+          <dd class="theme-item-meta__content">{$_('theme_custom_color')}</dd>
+        </div>
       {/if}
     </dl>
 
     <div class="theme-item__buttons">
-      {#if (!isBuiltIn)}
-        {#if (!$myTheme)}
-          <button class="button button--ss" onclick={download}>{$_('theme_install')}</button>
-        {:else}
-          <button class="text-button" onclick={download}>
-            {#if ($myTheme ? $myTheme.version === theme.version : true)}
-              {$_('theme_reinstall')}
-            {:else}
-              {$_('theme_update')}
-            {/if}
-          </button>
+      {#if remote}
+        {#if !$mine}
+          <button class="button button--ss" onclick={install} disabled={installing}>{$_('theme_install')}</button>
+        {:else if $mine.cid !== remote.cid}
+          <button class="text-button" onclick={install} disabled={installing}>{$_('theme_update')}</button>
         {/if}
       {/if}
 
-      {#if $settings.design?.skin === theme.id}
+      {#if targetId && $settings.design?.skin === targetId}
         <button class="button button--ss" disabled>{$_('theme_current')}</button>
-      {:else}
-        {#if ($myTheme || isBuiltIn)}
-          <button class="button button--ss" onclick={activate}>{$_('theme_activate')}</button>
-        {/if}
+      {:else if targetId}
+        <button class="button button--ss" onclick={activate}>{$_('theme_activate')}</button>
       {/if}
     </div>
   </div>
 
-  {#if (!isBuiltIn)}
+  {#if $mine && $settings.design?.skin !== $mine.id}
     <Menu bind:isMenuOpen={isMenuOpen}>
       {#snippet content()}
-            <ul class="timeline-menu-list" >
-          {#if $settings.design?.skin !== theme.id && $myTheme}
-            <li class="timeline-menu-list__item">
-              <button class="timeline-menu-list__button" onclick={uninstall}>
-                <Trash2 size={20} color="var(--danger-color)" />
-                <span>{$_('theme_uninstall')}</span>
-              </button>
-            </li>
-          {/if}
+        <ul class="timeline-menu-list">
+          <li class="timeline-menu-list__item">
+            <button class="timeline-menu-list__button" onclick={uninstall}>
+              <Trash2 size={20} color="var(--danger-color)" />
+              <span>{$_('theme_uninstall')}</span>
+            </button>
+          </li>
         </ul>
-          {/snippet}
+      {/snippet}
     </Menu>
   {/if}
 </section>
+{/if}
 
 <style lang="postcss">
   .theme-item {
@@ -184,14 +187,6 @@
       &__item {
           display: flex;
           gap: 4px;
-      }
-
-      &__bubble {
-          background-color: var(--primary-color);
-          color: var(--on-accent, var(--bg-color-1));
-          padding: 4px 8px;
-          border-radius: var(--border-radius-3);
-          font-size: 13px;
       }
   }
 </style>
