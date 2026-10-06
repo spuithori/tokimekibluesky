@@ -1,5 +1,6 @@
 export const THEME_COLLECTION = 'tech.tokimeki.theme.theme';
 export const APPROVAL_COLLECTION = 'tech.tokimeki.theme.approval';
+export const LIKE_COLLECTION = 'tech.tokimeki.theme.like';
 export const OFFICIAL_THEME_DID = 'did:plc:4tr5dqti7nmu6g2czpthntak';
 
 export interface ThemeToken {

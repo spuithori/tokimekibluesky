@@ -148,23 +148,57 @@ export function themeThumbnailUrl(theme: RemoteTheme): string | undefined {
     return theme.record.thumbnail ? blobUrl(theme.pds, theme.did, theme.record.thumbnail.ref.$link) : undefined;
 }
 
-export async function installRemoteTheme(theme: RemoteTheme, signal?: AbortSignal): Promise<{ installed: InstalledTheme; replacedIds: string[] }> {
+export async function previewRemoteTheme(theme: RemoteTheme, signal?: AbortSignal): Promise<InstalledTheme> {
     const images: Record<string, Blob> = {};
     await Promise.all((theme.record.images ?? []).map(async (image) => {
         images[image.key] = await fetchBlob(theme, image.image, signal);
     }));
-    const thumbnail = theme.record.thumbnail ? await fetchBlob(theme, theme.record.thumbnail, signal) : undefined;
+    const preview: InstalledTheme = { id: `preview:${theme.uri}`, uri: theme.uri, cid: theme.cid, did: theme.did, record: theme.record, installedAt: new Date().toISOString() };
+    if (Object.keys(images).length) preview.images = images;
+    return preview;
+}
+
+export interface ThemeAssets {
+    images?: Record<string, Blob>;
+    thumbnail?: Blob;
+}
+
+function reusableBlob(previous: InstalledTheme | undefined, link: string): Blob | undefined {
+    if (!previous) return undefined;
+    if (previous.record.thumbnail?.ref.$link === link && previous.thumbnail) return previous.thumbnail;
+    const image = previous.record.images?.find((item) => item.image.ref.$link === link);
+    return image ? previous.images?.[image.key] : undefined;
+}
+
+export async function downloadThemeAssets(theme: RemoteTheme, previous?: InstalledTheme, signal?: AbortSignal): Promise<ThemeAssets> {
+    const load = (blob: BlobRef) => reusableBlob(previous, blob.ref.$link) ?? fetchBlob(theme, blob, signal);
+    const images: Record<string, Blob> = {};
+    await Promise.all((theme.record.images ?? []).map(async (image) => {
+        images[image.key] = await load(image.image);
+    }));
+    const assets: ThemeAssets = {};
+    if (Object.keys(images).length) assets.images = images;
+    if (theme.record.thumbnail) assets.thumbnail = await load(theme.record.thumbnail);
+    return assets;
+}
+
+export async function installRemoteTheme(
+    theme: RemoteTheme,
+    { signal, channel }: { signal?: AbortSignal; channel?: InstalledTheme['channel'] } = {},
+): Promise<{ installed: InstalledTheme; replacedIds: string[] }> {
+    const existing = await themesDb.themes.where('uri').equals(theme.uri).first();
+    const assets = await downloadThemeAssets(theme, existing, signal);
     const installed: InstalledTheme = {
         id: theme.uri,
         uri: theme.uri,
         cid: theme.cid,
         did: theme.did,
         handle: theme.handle ?? undefined,
-        record: theme.record,
+        record: JSON.parse(JSON.stringify(theme.record)) as ThemeRecord,
         installedAt: new Date().toISOString(),
+        ...assets,
     };
-    if (Object.keys(images).length) installed.images = images;
-    if (thumbnail) installed.thumbnail = thumbnail;
+    if (channel === 'latest') installed.channel = 'latest';
     const replacedIds: string[] = [];
     await themesDb.transaction('rw', themesDb.themes, async () => {
         const sameUri = await themesDb.themes.where('uri').equals(theme.uri).toArray();

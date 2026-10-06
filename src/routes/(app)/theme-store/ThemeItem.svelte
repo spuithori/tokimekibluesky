@@ -1,21 +1,29 @@
 <script lang="ts">
   import Trash2 from '@lucide/svelte/icons/trash-2';
+  import Heart from '@lucide/svelte/icons/heart';
+  import Download from '@lucide/svelte/icons/download';
   import {themesDb} from "$lib/db";
   import {liveQuery} from "dexie";
-  import {settings} from "$lib/stores";
+  import {settings, agent} from "$lib/stores";
   import {_} from "tokimeki-i18n";
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
   import type { InstalledTheme } from "$lib/theme/installed";
   import { installRemoteTheme, themeThumbnailUrl, ThemeFetchError, type RemoteTheme } from "$lib/theme/atproto";
   import { previewSrc } from "$lib/theme/preview";
+  import { recordThemeInstall } from "$lib/theme/store";
 
   interface Props {
     installed?: InstalledTheme;
     remote?: RemoteTheme;
+    likeCount?: number;
+    installCount?: number;
+    liked?: boolean;
+    onlike?: () => void;
+    channel?: InstalledTheme['channel'];
   }
 
-  let { installed, remote }: Props = $props();
+  let { installed, remote, likeCount, installCount, liked = false, onlike, channel = 'approved' }: Props = $props();
 
   let isMenuOpen = $state(false);
   let installing = $state(false);
@@ -35,10 +43,11 @@
       if (!remote) return;
       installing = true;
       try {
-          const { installed: row, replacedIds } = await installRemoteTheme(remote);
+          const { installed: row, replacedIds } = await installRemoteTheme(remote, { channel });
           if (replacedIds.includes($settings.design?.skin)) {
               $settings.design.skin = row.id;
           }
+          recordThemeInstall($agent, row.id);
       } catch (e) {
           console.error(e);
           toast.error($_(e instanceof ThemeFetchError ? e.messageKey : 'theme_install_error'));
@@ -101,6 +110,28 @@
     </dl>
 
     <div class="theme-item__buttons">
+      {#if likeCount !== undefined || installCount !== undefined}
+        <div class="theme-item__stats">
+          {#if likeCount !== undefined}
+            <button
+              class="theme-item__stat theme-item__stat--like"
+              class:theme-item__stat--liked={liked}
+              onclick={onlike}
+              disabled={!onlike}
+              aria-pressed={liked}
+              aria-label={$_('theme_like')}
+            >
+              <Heart size={16} color="currentColor" fill={liked ? 'currentColor' : 'none'}></Heart>{likeCount}
+            </button>
+          {/if}
+          {#if installCount !== undefined}
+            <span class="theme-item__stat" aria-label={$_('theme_install_count')}>
+              <Download size={16} color="currentColor"></Download>{installCount}
+            </span>
+          {/if}
+        </div>
+      {/if}
+
       {#if remote}
         {#if !$mine}
           <button class="button button--ss" onclick={install} disabled={installing}>{$_('theme_install')}</button>
@@ -170,9 +201,34 @@
       &__buttons {
           display: flex;
           justify-content: flex-end;
+          align-items: center;
           flex-wrap: wrap;
           gap: 8px;
           margin-top: 16px;
+      }
+
+      &__stats {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-right: auto;
+      }
+
+      &__stat {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--text-color-3);
+          font-size: 13px;
+          font-variant-numeric: tabular-nums;
+
+          &--like:not(:disabled) {
+              cursor: pointer;
+          }
+
+          &--liked {
+              color: var(--timeline-reaction-liked-icon-color, var(--primary-color));
+          }
       }
   }
 

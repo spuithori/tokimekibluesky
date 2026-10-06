@@ -6,8 +6,11 @@
     import {themesDb} from "$lib/db";
     import ThemeItem from "../ThemeItem.svelte";
     import { BUILTIN_THEMES } from "$lib/theme/installed";
+    import { runThemeUpdateCheck } from "$lib/theme/updates";
 
     const myThemes = liveQuery(async () => await themesDb.themes.toArray());
+
+    runThemeUpdateCheck({ force: true }).catch((e) => console.error(e));
 </script>
 
 <svelte:head>

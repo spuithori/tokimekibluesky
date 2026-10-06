@@ -1,0 +1,19 @@
+{
+    "lexicon": 1,
+    "id": "tech.tokimeki.theme.like",
+    "defs": {
+        "main": {
+            "type": "record",
+            "description": "A like of a TOKIMEKI theme. The record key is the first 32 characters of the lowercase base32 SHA-256 of the subject uri, so an account has at most one like per theme.",
+            "key": "any",
+            "record": {
+                "type": "object",
+                "required": ["subject", "createdAt"],
+                "properties": {
+                    "subject": { "type": "ref", "ref": "com.atproto.repo.strongRef" },
+                    "createdAt": { "type": "string", "format": "datetime" }
+                }
+            }
+        }
+    }
+}

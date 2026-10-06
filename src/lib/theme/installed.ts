@@ -3,6 +3,14 @@ import { convertLegacyTheme, type LegacyTheme } from './legacy';
 import { legacyThemeUri } from './legacyMap';
 import { DEFAULT_THEME, DEFAULT_THEME_ID, DEFAULT_THEME_PREVIEW } from './builtin';
 
+export interface ThemeSnapshot {
+    record: ThemeRecord;
+    cid?: string;
+    images?: Record<string, Blob>;
+    thumbnail?: Blob;
+    previewUrl?: string;
+}
+
 export interface InstalledTheme {
     id: string;
     record: ThemeRecord;
@@ -16,6 +24,9 @@ export interface InstalledTheme {
     author?: string;
     legacyId?: string;
     builtIn?: boolean;
+    channel?: 'approved' | 'latest';
+    previous?: ThemeSnapshot;
+    declinedCid?: string;
     installedAt: string;
 }
 

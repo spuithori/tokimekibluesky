@@ -129,6 +129,12 @@
         });
     }
 
+    function checkThemeUpdates() {
+        import("$lib/theme/updates")
+            .then(({ runThemeUpdateCheck }) => runThemeUpdateCheck())
+            .catch((e) => console.error(e));
+    }
+
     function observeColor(theme) {
         if (!theme) {
             return;
@@ -316,10 +322,12 @@
         }
         bskyStatusState.boot();
         supportPromptState.boot();
+        (window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 3000)))(checkThemeUpdates);
 
         return on(document, "visibilitychange", () => {
             if (!document.hidden) {
                 bskyStatusState.checkIfStale();
+                checkThemeUpdates();
             }
         });
     });

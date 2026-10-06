@@ -6,6 +6,8 @@
     import Notice from '$lib/components/ui/Notice.svelte';
     import ThemeItem from '../ThemeItem.svelte';
     import { fetchRemoteTheme, listApprovedThemes, ThemeFetchError, type RemoteTheme } from '$lib/theme/atproto';
+    import { submitTheme, type ThemeSubmission } from '$lib/theme/store';
+    import { agent } from '$lib/stores';
 
     const initial = page.url.searchParams.get('uri') ?? '';
     let value = $state(initial);
@@ -20,9 +22,30 @@
         return { theme, approved };
     }
 
+    let submission: ThemeSubmission | null = $state(null);
+    let submitting = $state(false);
+    let submitFailed = $state(false);
+
+    async function requestListing(theme: RemoteTheme) {
+        if (!$agent) return;
+        submitting = true;
+        submitFailed = false;
+        try {
+            submission = await submitTheme($agent, theme.uri);
+        } catch (e) {
+            console.error(e);
+            submitFailed = true;
+        } finally {
+            submitting = false;
+        }
+    }
+
     function submit(event: SubmitEvent) {
         event.preventDefault();
-        if (value.trim()) result = load(value);
+        if (value.trim()) {
+            submission = null;
+            result = load(value);
+        }
     }
 </script>
 
@@ -61,7 +84,18 @@
           {#if !approved}
             <Notice text={$_('theme_unreviewed_notice')}></Notice>
           {/if}
-          <ThemeItem remote={theme}></ThemeItem>
+          <ThemeItem remote={theme} channel={approved ? 'approved' : 'latest'}></ThemeItem>
+
+          {#if !approved && $agent?.did() === theme.did}
+            {#if submission}
+              <p class="settings-description">{$_(`theme_submission_${submission.status}`)}{submission.rejectReason ? `: ${submission.rejectReason}` : ''}</p>
+            {:else}
+              <button class="button button--sm" onclick={() => requestListing(theme)} disabled={submitting}>{$_('theme_submit')}</button>
+              {#if submitFailed}
+                <p class="settings-description">{$_('theme_submit_error')}</p>
+              {/if}
+            {/if}
+          {/if}
         </section>
       {:catch error}
         <p class="settings-description">{$_(error instanceof ThemeFetchError ? error.messageKey : 'theme_install_error')}</p>

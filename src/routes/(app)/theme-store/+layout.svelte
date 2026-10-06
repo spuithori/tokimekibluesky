@@ -2,6 +2,9 @@
     import Palette from '@lucide/svelte/icons/palette';
     import Folder from '@lucide/svelte/icons/folder';
     import Ticket from '@lucide/svelte/icons/ticket';
+    import ShieldCheck from '@lucide/svelte/icons/shield-check';
+    import {agent} from '$lib/stores';
+    import {OFFICIAL_THEME_DID} from '$lib/theme/format';
     import {_} from 'tokimeki-i18n';
     import { fly } from 'svelte/transition';
     import type {LayoutData} from "./$types";
@@ -41,6 +44,15 @@
             </div>
             <p class="p-menu-nav__title"><a href="/theme-store/code">{$_('theme_store_code')}</a></p>
           </li>
+
+          {#if $agent?.did() === OFFICIAL_THEME_DID}
+            <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/theme-store/review'}>
+              <div class="p-menu-nav__icon">
+                <ShieldCheck color="var(--text-color-1)" />
+              </div>
+              <p class="p-menu-nav__title"><a href="/theme-store/review">{$_('theme_review')}</a></p>
+            </li>
+          {/if}
 
           <li class="p-menu-nav__item p-menu-nav__item--bottom">
             <div class="p-menu-nav__icon">
