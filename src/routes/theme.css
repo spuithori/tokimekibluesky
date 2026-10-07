@@ -4,6 +4,12 @@
     initial-value: 1px;
 }
 
+@property --deck-heading-height {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 52px;
+}
+
 @property --deck-border-radius {
     syntax: '<length-percentage>';
     inherits: true;
@@ -56,6 +62,10 @@
     --side-padding-top: 8px;
     --side-padding-right: 8px;
     --side-padding-bottom: 4px;
+    --side-rail-width: 64px;
+    --side-rail-padding-top: 4px;
+    --side-width: 340px;
+    --side-nav-height: 48px;
     --side-border-radius: 0;
     --single-side-border-radius: 0;
     --side-box-shadow: none;
@@ -117,8 +127,8 @@
     --deck-l-width: 450px;
     --deck-xl-width: 500px;
     --deck-xxl-width: 550px;
-    --deck-divider-width: 414px;
-    --deck-divider-compact-width: 64px;
+    --deck-divider-width: calc(var(--side-rail-width) + var(--side-width) + var(--side-padding-right) + 2px);
+    --deck-divider-compact-width: var(--side-rail-width);
     --deck-border-radius: var(--border-radius-4);
     --deck-border-color: var(--border-color-2);
     --deck-border-width: var(--default-border-width);
@@ -128,6 +138,8 @@
     --deck-rim-display: none;
 
     --deck-heading-height: 52px;
+    --single-deck-heading-height: 56px;
+    --modal-heading-height: 64px;
     --deck-heading-bg-color: var(--bg-color-1);
     --deck-heading-icon-bg-color: var(--bg-color-3);
     --deck-heading-icon-border-radius: 5px;

@@ -692,7 +692,7 @@
             }
 
             .deck-heading {
-                top: 52px;
+                top: var(--deck-heading-height, 52px);
 
                 &:not(.deck-heading--sticky) {
                     border-radius: var(--deck-inner-radius, 0px) var(--deck-inner-radius, 0px) 0 0;
@@ -935,7 +935,7 @@
 
         &--sticky {
             position: sticky !important;
-            top: 52px;
+            top: var(--deck-heading-height, 52px);
             border-radius: 0;
         }
 

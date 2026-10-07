@@ -159,12 +159,12 @@
       background: var(--surface-overlay, var(--bg-color-1));
       position: relative;
       flex-shrink: 0;
-      height: 64px;
+      height: var(--modal-heading-height, 64px);
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 0 64px;
+      padding: 0 var(--modal-heading-height, 64px);
   }
 
   .modal-title {
@@ -179,8 +179,8 @@
 
   .modal-back-button {
       position: absolute;
-      height: 64px;
-      width: 64px;
+      height: var(--modal-heading-height, 64px);
+      width: var(--modal-heading-height, 64px);
       top: 0;
       left: 0;
       display: grid;
@@ -189,8 +189,8 @@
 
   .modal-close-button {
       position: absolute;
-      height: 64px;
-      width: 64px;
+      height: var(--modal-heading-height, 64px);
+      width: var(--modal-heading-height, 64px);
       top: 0;
       right: 0;
       display: grid;

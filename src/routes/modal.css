@@ -155,7 +155,7 @@
         left: 0;
         right: var(--decks-margin);
         z-index: 1001;
-        margin: auto auto auto 64px;
+        margin: auto auto auto var(--side-rail-width, 64px);
         background-color: var(--scrim, rgba(0, 0, 0, .35));
         border-radius: var(--decks-border-radius);
 

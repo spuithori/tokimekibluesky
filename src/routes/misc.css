@@ -324,7 +324,7 @@ body .pcl {
 
 .deck-popup-wrap {
     .deck-settings-wrap {
-        top: 52px;
+        top: var(--deck-heading-height, 52px);
         bottom: auto;
         height: calc(var(--popup-height, 400) * 1px - 82px) !important;
     }

@@ -4,7 +4,7 @@
   import {_} from "tokimeki-i18n";
   import {beforeNavigate} from '$app/navigation';
   import {page} from '$app/stores';
-  import {settings} from '$lib/stores';
+  import {settings, theme} from '$lib/stores';
   import TimelineItem from "../../../routes/(app)/TimelineItem.svelte";
   import MoreDivider from "$lib/components/post/MoreDivider.svelte";
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
@@ -61,7 +61,11 @@
 
   let isSingleColumnMode = $derived($settings.design?.layout !== 'decks');
   let isPaused = $derived(isSingleColumnMode && !isJunk && $page.url.pathname !== '/');
-  let topMargin = $derived((isSingleColumnMode || isJunk) ? 52 : 0);
+  let topMargin = $derived.by(() => {
+    if (!isSingleColumnMode && !isJunk) return 0;
+    $theme;
+    return readHeadingHeight(parent);
+  });
   let refreshToTop = $derived(!!column.settings?.refreshToTop);
 
   let scrollSaveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -93,6 +97,11 @@
       });
     }
   });
+
+  function readHeadingHeight(el: HTMLElement | undefined): number {
+    const height = el ? Number.parseFloat(getComputedStyle(el).getPropertyValue('--deck-heading-height')) : Number.NaN;
+    return Number.isFinite(height) ? height : 52;
+  }
 
   let scrollContainer = $derived.by(() => {
     return resolveScrollContainer(parent, isSingleColumnMode, isJunk, column.scrollElement)

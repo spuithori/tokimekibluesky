@@ -297,6 +297,10 @@
           width: 48px;
           height: 48px;
           border-radius: 5px;
+
+          @media (min-width: 768px) {
+              height: var(--side-nav-height, 48px);
+          }
           position: relative;
           transition: background-color .2s linear;
 
@@ -407,13 +411,13 @@
 
   .side-modal {
       position: absolute;
-      top: 56px;
+      top: calc(var(--side-padding-top, 8px) + var(--side-nav-height, 48px));
       bottom: 16px;
-      left: 64px;
+      left: var(--side-rail-width, 64px);
       right: 8px;
-      height: calc(100dvh - 64px);
+      height: calc(100dvh - var(--side-padding-top, 8px) - var(--side-nav-height, 48px) - 8px);
       z-index: 9999;
-      width: calc(308px + 32px);
+      width: var(--side-width, 340px);
 
       @media (max-width: 767px) {
           top: auto;

@@ -154,7 +154,7 @@
         flex-direction: column;
         justify-content: space-between;
         gap: 8px;
-        padding: 4px 0 8px;
+        padding: var(--side-rail-padding-top, 4px) 0 8px;
         overflow: hidden;
         transition: transform .2s ease-in-out, opacity .2s ease-in-out, visibility .2s ease-in-out;
 

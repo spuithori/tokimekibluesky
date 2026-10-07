@@ -39,7 +39,7 @@
       position: absolute;
       background: var(--surface-raised, var(--bg-color-1));
       padding: 16px;
-      top: 60px;
+      top: calc(var(--deck-heading-height, 52px) + 8px);
       left: 16px;
       right: 16px;
       box-shadow: var(--elevation-2, 0 0 10px var(--box-shadow-color-1));
@@ -86,9 +86,9 @@
   .column-icon-picker-bg {
       outline: none;
       position: absolute;
-      top: 52px;
+      top: var(--deck-heading-height, 52px);
       left: 0;
       right: 0;
-      height: calc(100dvh - 52px);
+      height: calc(100dvh - var(--deck-heading-height, 52px));
   }
 </style>

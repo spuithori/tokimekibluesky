@@ -179,7 +179,7 @@
         }
 
         &--page&--bottom {
-            left: 64px;
+            left: var(--side-rail-width, 64px);
 
             @media (max-width: 767px) {
                 left: 0;

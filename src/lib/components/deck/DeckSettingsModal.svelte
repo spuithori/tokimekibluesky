@@ -840,7 +840,7 @@
         }
 
         &--split {
-            top: 48px;
+            top: calc(var(--deck-heading-height, 52px) - 4px);
             right: 0;
             bottom: 0;
             height: auto;

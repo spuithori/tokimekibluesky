@@ -27,7 +27,7 @@
 <style lang="postcss">
   .side {
       display: grid;
-      grid-template-columns: 64px 340px;
+      grid-template-columns: var(--side-rail-width, 64px) var(--side-width, 340px);
       padding-top:var(--side-padding-top, 8px);
       padding-bottom: var(--side-padding-bottom, 4px);
       padding-right: var(--side-padding-right, 8px);
@@ -68,7 +68,7 @@
 
       &--hidden {
           padding-right: 0;
-          grid-template-columns: 64px;
+          grid-template-columns: var(--side-rail-width, 64px);
 
           @media (max-width: 767px) {
               grid-template-columns: 0;
@@ -99,7 +99,7 @@
           .side-content {
               position: absolute;
               right: 0;
-              top: 60px;
+              top: calc(var(--side-padding-top, 8px) + var(--side-nav-height, 48px) + 4px);
               border: none;
           }
       }
@@ -131,7 +131,7 @@
       border-color: var(--nav-content-border-color);
       border-style: solid;
       flex: 1;
-      max-height: calc(100svh - 60px);
+      max-height: calc(100svh - var(--side-padding-top, 8px) - var(--side-nav-height, 48px) - var(--side-padding-bottom, 4px));
       box-shadow: var(--side-box-shadow);
       padding: var(--nav-content-padding, 0);
 

@@ -345,7 +345,7 @@
 
     .profile-tab {
         position: sticky;
-        top: 52px;
+        top: var(--deck-heading-height, 52px);
         z-index: 2;
         background-color: var(--bg-color-1);
     }
