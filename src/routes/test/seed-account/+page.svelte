@@ -1,6 +1,7 @@
 <script lang="ts">
     import { accountsDb } from '$lib/db';
     import { defaultDeckSettings } from '$lib/components/deck/defaultDeckSettings';
+    import { fetchRemoteTheme, installRemoteTheme } from '$lib/theme/atproto';
 
     const DEFAULT_DID = 'did:plc:qualityloop000000000000';
     const DEFAULT_HANDLE = 'quality.test';
@@ -140,6 +141,10 @@
                     columns: [homeColumn(did, handle)],
                 } as any);
                 return true;
+            },
+            async installTheme(uri: string, cid?: string) {
+                const { installed } = await installRemoteTheme(await fetchRemoteTheme(uri, { cid }));
+                return installed.id;
             },
             async clear() {
                 await accountsDb.accounts.clear();

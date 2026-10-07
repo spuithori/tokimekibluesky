@@ -3,6 +3,8 @@
     import Folder from '@lucide/svelte/icons/folder';
     import Ticket from '@lucide/svelte/icons/ticket';
     import ShieldCheck from '@lucide/svelte/icons/shield-check';
+    import PaintRoller from '@lucide/svelte/icons/paint-roller';
+    import { ensureBuilderLocale } from '$lib/theme/builder/i18n';
     import {agent} from '$lib/stores';
     import {OFFICIAL_THEME_DID} from '$lib/theme/format';
     import {_} from 'tokimeki-i18n';
@@ -17,6 +19,8 @@
 
   let { data, children }: Props = $props();
     let navs = [];
+    let builderReady = $state(false);
+    ensureBuilderLocale().then(() => (builderReady = true)).catch((e) => console.error(e));
 </script>
 
 <div class="settings-modal">
@@ -44,6 +48,15 @@
             </div>
             <p class="p-menu-nav__title"><a href="/theme-store/code">{$_('theme_store_code')}</a></p>
           </li>
+
+          {#if builderReady}
+            <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/theme-store/create'}>
+              <div class="p-menu-nav__icon">
+                <PaintRoller color="var(--text-color-1)" />
+              </div>
+              <p class="p-menu-nav__title"><a href="/theme-store/create">{$_('builder_create')}</a></p>
+            </li>
+          {/if}
 
           {#if $agent?.did() === OFFICIAL_THEME_DID}
             <li class="p-menu-nav__item" class:p-menu-nav__item--current={$page.url.pathname === '/theme-store/review'}>

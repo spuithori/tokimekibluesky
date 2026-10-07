@@ -128,7 +128,7 @@ export async function verifyBlobBytes(bytes: ArrayBuffer, link: string): Promise
     return digest.length === expected.length && digest.every((b, i) => b === expected[i]);
 }
 
-async function fetchBlob(theme: RemoteTheme, blob: BlobRef, signal?: AbortSignal): Promise<Blob> {
+export async function fetchThemeBlob(theme: RemoteTheme, blob: BlobRef, signal?: AbortSignal): Promise<Blob> {
     let res: Response;
     try {
         res = await fetch(blobUrl(theme.pds, theme.did, blob.ref.$link), { signal });
@@ -144,7 +144,7 @@ async function fetchBlob(theme: RemoteTheme, blob: BlobRef, signal?: AbortSignal
 export async function previewRemoteTheme(theme: RemoteTheme, signal?: AbortSignal): Promise<InstalledTheme> {
     const images: Record<string, Blob> = {};
     await Promise.all((theme.record.images ?? []).map(async (image) => {
-        images[image.key] = await fetchBlob(theme, image.image, signal);
+        images[image.key] = await fetchThemeBlob(theme, image.image, signal);
     }));
     const preview: InstalledTheme = { id: `preview:${theme.uri}`, uri: theme.uri, cid: theme.cid, did: theme.did, record: theme.record, installedAt: new Date().toISOString() };
     if (Object.keys(images).length) preview.images = images;
@@ -164,7 +164,7 @@ function reusableBlob(previous: InstalledTheme | undefined, link: string): Blob 
 }
 
 export async function downloadThemeAssets(theme: RemoteTheme, previous?: InstalledTheme, signal?: AbortSignal): Promise<ThemeAssets> {
-    const load = (blob: BlobRef) => reusableBlob(previous, blob.ref.$link) ?? fetchBlob(theme, blob, signal);
+    const load = (blob: BlobRef) => reusableBlob(previous, blob.ref.$link) ?? fetchThemeBlob(theme, blob, signal);
     const images: Record<string, Blob> = {};
     await Promise.all((theme.record.images ?? []).map(async (image) => {
         images[image.key] = await load(image.image);

@@ -8,79 +8,229 @@
             "key": "any",
             "record": {
                 "type": "object",
-                "required": ["name", "version", "tokens", "createdAt"],
+                "required": [
+                    "name",
+                    "version",
+                    "tokens",
+                    "createdAt"
+                ],
                 "properties": {
-                    "name": { "type": "string", "maxLength": 640, "maxGraphemes": 64 },
-                    "description": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 },
-                    "version": { "type": "string", "maxLength": 32 },
-                    "tokens": { "type": "ref", "ref": "#tokenList" },
-                    "dark": { "type": "ref", "ref": "#tokenList" },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 640,
+                        "maxGraphemes": 64
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 3000,
+                        "maxGraphemes": 300
+                    },
+                    "version": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "tokens": {
+                        "type": "ref",
+                        "ref": "#tokenList"
+                    },
+                    "dark": {
+                        "type": "ref",
+                        "ref": "#tokenList"
+                    },
                     "variants": {
                         "type": "array",
                         "maxLength": 32,
-                        "items": { "type": "ref", "ref": "#variant" }
+                        "items": {
+                            "type": "ref",
+                            "ref": "#variant"
+                        }
                     },
                     "images": {
                         "type": "array",
                         "maxLength": 8,
-                        "items": { "type": "ref", "ref": "#image" }
+                        "items": {
+                            "type": "ref",
+                            "ref": "#image"
+                        }
                     },
                     "thumbnail": {
                         "type": "blob",
-                        "accept": ["image/png", "image/jpeg", "image/webp"],
+                        "accept": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                        ],
                         "maxSize": 1000000
                     },
                     "cover": {
                         "type": "blob",
-                        "accept": ["image/png", "image/jpeg", "image/webp"],
+                        "accept": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                        ],
                         "maxSize": 1000000
+                    },
+                    "screenshots": {
+                        "type": "array",
+                        "maxLength": 4,
+                        "description": "Screenshots of TOKIMEKI with this theme applied, one per kind.",
+                        "items": {
+                            "type": "ref",
+                            "ref": "#screenshot"
+                        }
                     },
                     "tags": {
                         "type": "array",
                         "maxLength": 8,
-                        "items": { "type": "string", "maxLength": 320, "maxGraphemes": 32 }
+                        "items": {
+                            "type": "string",
+                            "maxLength": 320,
+                            "maxGraphemes": 32
+                        }
                     },
-                    "createdAt": { "type": "string", "format": "datetime" },
-                    "updatedAt": { "type": "string", "format": "datetime" }
+                    "createdAt": {
+                        "type": "string",
+                        "format": "datetime"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "datetime"
+                    }
                 }
             }
         },
         "tokenList": {
             "type": "array",
             "maxLength": 1024,
-            "items": { "type": "ref", "ref": "#token" }
+            "items": {
+                "type": "ref",
+                "ref": "#token"
+            }
         },
         "token": {
             "type": "object",
             "description": "One CSS custom property. Values may only use the functions the client allows; url() and other loaders are rejected.",
-            "required": ["name", "value"],
+            "required": [
+                "name",
+                "value"
+            ],
             "properties": {
-                "name": { "type": "string", "maxLength": 96 },
-                "value": { "type": "string", "maxLength": 4096 }
+                "name": {
+                    "type": "string",
+                    "maxLength": 96
+                },
+                "value": {
+                    "type": "string",
+                    "maxLength": 4096
+                }
             }
         },
         "variant": {
             "type": "object",
             "description": "A color choice. Its tokens are applied after the base tokens and before the dark tokens.",
-            "required": ["key", "name", "swatch", "tokens"],
+            "required": [
+                "key",
+                "name",
+                "swatch",
+                "tokens"
+            ],
             "properties": {
-                "key": { "type": "string", "maxLength": 64 },
-                "name": { "type": "string", "maxLength": 640, "maxGraphemes": 64 },
-                "swatch": { "type": "string", "maxLength": 64 },
-                "tokens": { "type": "ref", "ref": "#tokenList" }
+                "key": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 640,
+                    "maxGraphemes": 64
+                },
+                "swatch": {
+                    "type": "string",
+                    "maxLength": 64
+                },
+                "tokens": {
+                    "type": "ref",
+                    "ref": "#tokenList"
+                }
             }
         },
         "image": {
             "type": "object",
-            "required": ["key", "image"],
+            "required": [
+                "key",
+                "image"
+            ],
             "properties": {
-                "key": { "type": "string", "maxLength": 64 },
+                "key": {
+                    "type": "string",
+                    "maxLength": 64
+                },
                 "image": {
                     "type": "blob",
-                    "accept": ["image/png", "image/jpeg", "image/webp", "image/avif"],
+                    "accept": [
+                        "image/png",
+                        "image/jpeg",
+                        "image/webp",
+                        "image/avif"
+                    ],
                     "maxSize": 2000000
                 },
-                "alt": { "type": "string", "maxLength": 3000, "maxGraphemes": 300 }
+                "alt": {
+                    "type": "string",
+                    "maxLength": 3000,
+                    "maxGraphemes": 300
+                }
+            }
+        },
+        "screenshot": {
+            "type": "object",
+            "required": [
+                "kind",
+                "image",
+                "aspectRatio"
+            ],
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "maxLength": 32,
+                    "knownValues": [
+                        "desktop-light",
+                        "desktop-dark",
+                        "mobile-light",
+                        "mobile-dark"
+                    ]
+                },
+                "image": {
+                    "type": "blob",
+                    "accept": [
+                        "image/png",
+                        "image/jpeg",
+                        "image/webp"
+                    ],
+                    "maxSize": 1000000
+                },
+                "aspectRatio": {
+                    "type": "ref",
+                    "ref": "#aspectRatio"
+                }
+            }
+        },
+        "aspectRatio": {
+            "type": "object",
+            "required": [
+                "width",
+                "height"
+            ],
+            "properties": {
+                "width": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "height": {
+                    "type": "integer",
+                    "minimum": 1
+                }
             }
         }
     }

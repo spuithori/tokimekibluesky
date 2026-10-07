@@ -1,3 +1,4 @@
+import '$lib/i18n';
 import type { HandleClientError } from '@sveltejs/kit';
 import { recordError } from '$lib/errorLog';
 

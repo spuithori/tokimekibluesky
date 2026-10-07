@@ -3,23 +3,7 @@
     import { updated } from '$app/state';
     import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
     import X from '@lucide/svelte/icons/x';
-    import { agents } from '$lib/stores';
     import { bskyStatusState } from '$lib/classes/bskyStatusState.svelte';
-
-    const affectsMyPds = $derived.by(() => {
-        if (!bskyStatusState.downMonitors.length) {
-            return false;
-        }
-        const hosts = new Set(bskyStatusState.downMonitors);
-        for (const agent of $agents.values()) {
-            try {
-                if (hosts.has(new URL(agent.service()).hostname)) {
-                    return true;
-                }
-            } catch {}
-        }
-        return false;
-    });
 
     $effect(() => {
         const interval = setInterval(() => {
@@ -40,7 +24,7 @@
 
     <div class="bsky-status-banner__body">
         <p class="bsky-status-banner__text">
-            {affectsMyPds ? $_('bsky_status_pds_down') : $_('bsky_status_incident')}
+            {$_('bsky_status_incident')}
         </p>
 
         {#if bskyStatusState.incident?.title}
@@ -50,7 +34,7 @@
 
     <a
         class="bsky-status-banner__link"
-        href="https://status.bsky.app/"
+        href={bskyStatusState.incident?.url ?? 'https://status.bsky.app/'}
         target="_blank"
         rel="noopener noreferrer"
     >{$_('details')}</a>

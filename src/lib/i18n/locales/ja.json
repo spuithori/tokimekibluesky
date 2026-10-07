@@ -1370,7 +1370,6 @@
     "merge_chip_hint": "タップでソロ表示、ドラッグで別カラムに分離します。",
     "merge_non_chrono_note": "ソースは時系列順に統合されます。時系列でないフィード(ランキング型・おすすめ系など)は一部の投稿が取り込まれないことがあり、新着はカラム更新時にのみ反映されます。",
     "bsky_status_incident": "Blueskyのサーバーで障害が発生しているようです。",
-    "bsky_status_pds_down": "あなたのアカウントが使用しているBlueskyサーバーがダウンしているようです。TOKIMEKI側の不具合ではありません。",
     "settings_keyboard": "キーボードショートカット",
     "keyboard_shortcuts_enabled": "キーボードショートカットを有効にする",
     "keyboard_shortcuts_enabled_description": "矢印キーで投稿を選択し、選択中の投稿に対して単キーで操作できます。? キーでいつでも一覧を表示します。",

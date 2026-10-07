@@ -1,42 +1,61 @@
 export interface BskyIncident {
-    id: number;
-    title: string;
-    startedAt: number;
+    id: string;
+    title: string | null;
+    url: string | null;
 }
 
 export interface BskyStatusResponse {
     ok: boolean;
     incident?: BskyIncident | null;
-    downMonitors?: string[];
 }
 
-export function extractIncident(feed: unknown): BskyIncident | null {
-    const results = (feed as any)?.results;
-    if (!Array.isArray(results)) {
-        return null;
+interface Candidate {
+    id: unknown;
+    name: unknown;
+    url: unknown;
+    started: unknown;
+}
+
+export function extractIncident(summary: unknown): BskyIncident | null {
+    const s = summary as any;
+    const candidates: Candidate[] = [];
+
+    if (Array.isArray(s?.activeIncidents)) {
+        for (const incident of s.activeIncidents) {
+            if (!incident || incident.status === 'RESOLVED') continue;
+            candidates.push({ id: incident.id, name: incident.name, url: incident.url, started: incident.started });
+        }
+    }
+
+    if (Array.isArray(s?.activeMaintenances)) {
+        for (const maintenance of s.activeMaintenances) {
+            if (!maintenance || maintenance.status !== 'INPROGRESS') continue;
+            candidates.push({ id: maintenance.id, name: maintenance.name, url: maintenance.url, started: maintenance.start });
+        }
     }
 
     let latest: BskyIncident | null = null;
-    for (const event of results) {
-        if (!event || event.endDate || event.endDateGMT) continue;
-        if (typeof event.id !== 'number' || typeof event.title !== 'string' || typeof event.timestamp !== 'number') continue;
-        if (!latest || event.timestamp > latest.startedAt) {
-            latest = { id: event.id, title: event.title, startedAt: event.timestamp };
+    let latestStartedAt = -1;
+    for (const { id, name, url, started } of candidates) {
+        if (typeof id !== 'string' || typeof name !== 'string') continue;
+        const startedAt = (typeof started === 'string' && Date.parse(started)) || 0;
+        if (startedAt > latestStartedAt) {
+            latestStartedAt = startedAt;
+            latest = {
+                id,
+                title: name,
+                url: typeof url === 'string' && url.startsWith('https://') ? url : null,
+            };
         }
     }
-    return latest;
-}
 
-export function extractDownMonitors(monitors: unknown): string[] {
-    const data = (monitors as any)?.data;
-    if (!Array.isArray(data)) {
-        return [];
+    if (latest) {
+        return latest;
     }
 
-    const hosts = new Set<string>();
-    for (const monitor of data) {
-        if (monitor?.statusClass !== 'danger' || typeof monitor.name !== 'string') continue;
-        hosts.add(monitor.name.split('/')[0]);
+    const pageStatus = s?.page?.status;
+    if (typeof pageStatus === 'string' && pageStatus !== 'UP') {
+        return { id: `page:${pageStatus}`, title: null, url: null };
     }
-    return [...hosts];
+    return null;
 }

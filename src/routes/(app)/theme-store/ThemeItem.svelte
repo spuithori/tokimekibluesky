@@ -29,6 +29,11 @@
   let installing = $state(false);
 
   const record = $derived(remote?.record ?? installed?.record);
+  const pageHref = $derived.by(() => {
+      const uri = remote?.uri ?? installed?.uri;
+      const match = uri ? /^at:\/\/([^/]+)\/[^/]+\/([^/]+)$/.exec(uri) : null;
+      return match ? `/theme-store/theme/${match[1]}/${match[2]}` : null;
+  });
   const author = $derived(remote?.handle ?? installed?.handle ?? installed?.author ?? remote?.did ?? installed?.did);
 
   const mine = liveQuery(async () => {
@@ -83,7 +88,13 @@
   </div>
 
   <div class="theme-item__content">
-    <h2 class="theme-item__title">{record.name}</h2>
+    <h2 class="theme-item__title">
+      {#if pageHref}
+        <a href={pageHref}>{record.name}</a>
+      {:else}
+        {record.name}
+      {/if}
+    </h2>
     {#if record.description}
       <p class="theme-item__text">{record.description}</p>
     {/if}
@@ -191,6 +202,10 @@
           color: var(--text-color-1);
           font-size: 16px;
           margin-bottom: 4px;
+
+          & a {
+              color: inherit;
+          }
       }
 
       &__text {

@@ -1370,7 +1370,6 @@
     "merge_chip_hint": "Tap to solo. Drag out to split into its own column.",
     "merge_non_chrono_note": "Sources are merged in chronological order. Non-chronological feeds (ranked or discovery-style) may have some posts skipped, and their new posts may only appear when the column is refreshed.",
     "bsky_status_incident": "Bluesky servers are currently experiencing issues.",
-    "bsky_status_pds_down": "The Bluesky server hosting your account appears to be down.",
     "settings_keyboard": "Keyboard shortcuts",
     "keyboard_shortcuts_enabled": "Enable keyboard shortcuts",
     "keyboard_shortcuts_enabled_description": "Move between posts with the arrow keys and act on the selected post with single keys. Press ? at any time to see the list.",

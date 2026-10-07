@@ -3,6 +3,7 @@
     import X from '@lucide/svelte/icons/x';
     import { _ } from 'tokimeki-i18n';
     import { page } from '$app/state';
+    import { goto } from '$app/navigation';
     import Notice from '$lib/components/ui/Notice.svelte';
     import ThemeItem from '../ThemeItem.svelte';
     import { resolveThemeUri, ThemeFetchError, type RemoteTheme } from '$lib/theme/atproto';
@@ -11,7 +12,13 @@
 
     const initial = page.url.searchParams.get('uri') ?? '';
     let value = $state(initial);
-    let result: Promise<{ theme: RemoteTheme; approved: boolean }> | null = $state(initial ? load(initial) : null);
+    let result: Promise<{ theme: RemoteTheme; approved: boolean }> | null = $state(null);
+
+    if (initial) {
+        resolveThemeUri(initial)
+            .then(({ did, rkey }) => goto(`/theme-store/theme/${did}/${rkey}`, { replaceState: true }))
+            .catch(() => (result = load(initial)));
+    }
 
     async function load(input: string): Promise<{ theme: RemoteTheme; approved: boolean }> {
         const { uri } = await resolveThemeUri(input);

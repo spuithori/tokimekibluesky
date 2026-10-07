@@ -90,6 +90,15 @@ describe('validateThemeRecord', () => {
         expect(validateThemeRecord({ ...base, images: [{ key: 'bg', image: blob('image/png', 3_000_000) }] }).ok).toBe(false);
         expect(validateThemeRecord({ ...base, images: [{ key: 'bg', image: { ...blob(), ref: { $link: 'javascript:x' } } }] }).ok).toBe(false);
     });
+
+    it('スクリーンショットは種類ごとに1枚、知らない種類は落とし、壊れたものは導入させない', () => {
+        const shot = (kind: string, extra: Record<string, unknown> = {}) => ({ kind, image: blob('image/webp'), aspectRatio: { width: 1440, height: 900 }, ...extra });
+        const ok = validateThemeRecord({ ...base, screenshots: [shot('desktop-light'), shot('mobile-dark'), shot('tablet-sepia')] });
+        expect(ok.ok && ok.record.screenshots?.map((s) => s.kind)).toEqual(['desktop-light', 'mobile-dark']);
+        expect(validateThemeRecord({ ...base, screenshots: [shot('desktop-light'), shot('desktop-light')] }).ok).toBe(false);
+        expect(validateThemeRecord({ ...base, screenshots: [shot('desktop-light', { aspectRatio: { width: 0, height: 900 } })] }).ok).toBe(false);
+        expect(validateThemeRecord({ ...base, screenshots: [shot('desktop-light', { image: blob('image/webp', 2_000_000) })] }).ok).toBe(false);
+    });
 });
 
 describe('compileThemeStyle', () => {

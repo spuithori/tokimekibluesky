@@ -28,6 +28,15 @@ export interface ThemeImage {
     alt?: string;
 }
 
+export const SCREENSHOT_KINDS = ['desktop-light', 'desktop-dark', 'mobile-light', 'mobile-dark'] as const;
+export type ScreenshotKind = (typeof SCREENSHOT_KINDS)[number];
+
+export interface ThemeScreenshot {
+    kind: ScreenshotKind;
+    image: BlobRef;
+    aspectRatio: { width: number; height: number };
+}
+
 export interface ThemeRecord {
     $type?: typeof THEME_COLLECTION;
     name: string;
@@ -39,6 +48,7 @@ export interface ThemeRecord {
     images?: ThemeImage[];
     thumbnail?: BlobRef;
     cover?: BlobRef;
+    screenshots?: ThemeScreenshot[];
     tags?: string[];
     createdAt: string;
     updatedAt?: string;
@@ -211,7 +221,7 @@ export function validateThemeRecord(value: unknown, { strict = true } = {}): The
                 const vname = checkString(item?.name, 640);
                 const swatchProblem = checkTokenValue(item?.swatch);
                 if (typeof key !== 'string' || !KEY.test(key) || seen.has(key) || !vname || swatchProblem) {
-                    errors.push(`色の選択肢が不正: ${String(key)}`);
+                    errors.push(`カラーが不正: ${String(key)}`);
                     continue;
                 }
                 seen.add(key);
@@ -225,6 +235,26 @@ export function validateThemeRecord(value: unknown, { strict = true } = {}): The
     if (v.thumbnail !== undefined && !thumbnail) errors.push('thumbnail が不正');
     const cover = v.cover === undefined ? undefined : checkBlob(v.cover, PREVIEW_TYPES, LIMITS.previewSize);
     if (v.cover !== undefined && !cover) errors.push('cover が不正');
+
+    const screenshots: ThemeScreenshot[] = [];
+    if (v.screenshots !== undefined) {
+        if (!Array.isArray(v.screenshots) || v.screenshots.length > SCREENSHOT_KINDS.length) errors.push('screenshots が不正');
+        else {
+            for (const item of v.screenshots as Array<Record<string, unknown>>) {
+                const kind = item?.kind;
+                if (!SCREENSHOT_KINDS.includes(kind as ScreenshotKind)) continue;
+                const image = checkBlob(item.image, PREVIEW_TYPES, LIMITS.previewSize);
+                const ratio = item.aspectRatio as { width?: unknown; height?: unknown } | undefined;
+                const width = ratio?.width;
+                const height = ratio?.height;
+                if (!image || !Number.isInteger(width) || !Number.isInteger(height) || (width as number) < 1 || (height as number) < 1 || screenshots.some((s) => s.kind === kind)) {
+                    errors.push(`スクリーンショットが不正: ${String(kind)}`);
+                    continue;
+                }
+                screenshots.push({ kind: kind as ScreenshotKind, image, aspectRatio: { width: width as number, height: height as number } });
+            }
+        }
+    }
 
     const tags = Array.isArray(v.tags)
         ? (v.tags as unknown[]).filter((t): t is string => typeof t === 'string' && t.length > 0 && t.length <= 320).slice(0, LIMITS.tags)
@@ -246,6 +276,7 @@ export function validateThemeRecord(value: unknown, { strict = true } = {}): The
     if (images.length) record.images = images;
     if (thumbnail) record.thumbnail = thumbnail;
     if (cover) record.cover = cover;
+    if (screenshots.length) record.screenshots = screenshots;
     if (tags?.length) record.tags = tags;
     const updatedAt = checkString(v.updatedAt, 64);
     if (updatedAt) record.updatedAt = updatedAt;

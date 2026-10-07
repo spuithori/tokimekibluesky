@@ -6,20 +6,13 @@ const STALE_INTERVAL = 5 * 60 * 1000;
 
 class BskyStatusState {
     incident = $state.raw<BskyIncident | null>(null);
-    downMonitors = $state.raw<string[]>([]);
     #dismissedKey = $state('');
     #lastCheckedAt = 0;
     #checking = false;
     #booted = false;
 
     get #currentKey(): string {
-        if (this.incident) {
-            return `i${this.incident.id}`;
-        }
-        if (this.downMonitors.length) {
-            return `m${this.downMonitors.join(',')}`;
-        }
-        return '';
+        return this.incident ? `i${this.incident.id}` : '';
     }
 
     get isVisible(): boolean {
@@ -78,7 +71,6 @@ class BskyStatusState {
                 return;
             }
             this.incident = data.incident ?? null;
-            this.downMonitors = data.downMonitors ?? [];
         } catch {
         } finally {
             this.#checking = false;

@@ -1,5 +1,5 @@
 import type { Agent } from '$lib/agent';
-import { APPROVAL_COLLECTION, LIKE_COLLECTION, OFFICIAL_THEME_DID, validateThemeRecord } from './format';
+import { APPROVAL_COLLECTION, LIKE_COLLECTION, OFFICIAL_THEME_DID, SCREENSHOT_KINDS, validateThemeRecord, type ScreenshotKind } from './format';
 import type { RemoteTheme } from './atproto';
 
 export const THEME_SERVICE_URL = 'https://themes.tokimeki.tech';
@@ -7,12 +7,21 @@ const THEME_SERVICE = { proxyDid: `did:web:${new URL(THEME_SERVICE_URL).hostname
 
 export type StoreSort = 'new' | 'likes' | 'installs';
 
+export interface StoreScreenshot {
+    kind: ScreenshotKind;
+    thumb: string;
+    fullsize: string;
+    aspectRatio: { width: number; height: number };
+}
+
 export interface StoreTheme {
     theme: RemoteTheme;
     access: 'public' | 'code';
     likeCount: number;
     installCount: number;
     viewerLike?: string;
+    cover?: string;
+    screenshots: StoreScreenshot[];
 }
 
 export interface StoreThemeDetail extends StoreTheme {
@@ -50,6 +59,23 @@ interface ListedRow {
     viewer?: { like?: string };
     approved?: boolean;
     thumbnail?: string;
+    cover?: string;
+    screenshots?: unknown;
+}
+
+const CDN = 'https://cdn.bsky.app/';
+
+function screenshotsOf(value: unknown): StoreScreenshot[] {
+    if (!Array.isArray(value)) return [];
+    return value.flatMap((item) => {
+        const shot = item as Partial<StoreScreenshot> | null;
+        const ratio = shot?.aspectRatio;
+        const ok = shot && SCREENSHOT_KINDS.includes(shot.kind as ScreenshotKind)
+            && typeof shot.thumb === 'string' && shot.thumb.startsWith(CDN)
+            && typeof shot.fullsize === 'string' && shot.fullsize.startsWith(CDN)
+            && Number.isInteger(ratio?.width) && Number.isInteger(ratio?.height) && (ratio?.width as number) > 0 && (ratio?.height as number) > 0;
+        return ok ? [{ kind: shot.kind as ScreenshotKind, thumb: shot.thumb as string, fullsize: shot.fullsize as string, aspectRatio: { width: ratio!.width as number, height: ratio!.height as number } }] : [];
+    });
 }
 
 const BASE32 = 'abcdefghijklmnopqrstuvwxyz234567';
@@ -79,8 +105,10 @@ function toStoreTheme(row: ListedRow): StoreTheme | null {
         access: row.access === 'code' ? 'code' : 'public',
         likeCount: Number(row.likeCount) || 0,
         installCount: Number(row.installCount) || 0,
+        screenshots: screenshotsOf(row.screenshots),
     };
     if (typeof row.viewer?.like === 'string') item.viewerLike = row.viewer.like;
+    if (typeof row.cover === 'string' && row.cover.startsWith(CDN)) item.cover = row.cover;
     if (typeof row.thumbnail === 'string') item.theme.thumbnailUrl = row.thumbnail;
     return item;
 }
@@ -115,9 +143,38 @@ export async function fetchStoreTheme(agent: Agent | undefined, uri: string, sig
     return item ? { ...item, approved: json.theme?.approved === true } : null;
 }
 
+export interface AuthorTheme extends StoreTheme {
+    approved: boolean;
+    submission?: { status: ThemeSubmission['status']; rejectReason: string | null };
+}
+
+export async function fetchAuthorThemes(agent: Agent, signal?: AbortSignal): Promise<AuthorTheme[]> {
+    const json = await query<{ themes?: Array<ListedRow & { submission?: AuthorTheme['submission'] }> }>(agent, 'tech.tokimeki.theme.getAuthorThemes', { actor: agent.did(), limit: '100' }, signal);
+    return (json.themes ?? []).flatMap((row) => {
+        const item = toStoreTheme(row);
+        if (!item) return [];
+        const theme: AuthorTheme = { ...item, approved: row.approved === true };
+        if (row.submission) theme.submission = row.submission;
+        return [theme];
+    });
+}
+
 export async function submitTheme(agent: Agent, uri: string): Promise<ThemeSubmission> {
     const res = await agent.callWithProxy<{ theme: ThemeSubmission }>('tech.tokimeki.theme.submitTheme', undefined, { method: 'POST', data: { uri }, ...THEME_SERVICE });
     return res.theme;
+}
+
+export interface RenderedScreenshot {
+    kind: string;
+    mimeType: string;
+    width: number;
+    height: number;
+    data: string;
+}
+
+export async function renderScreenshots(agent: Agent, uri: string, cid: string): Promise<RenderedScreenshot[]> {
+    const res = await agent.callWithProxy<{ screenshots: RenderedScreenshot[] }>('tech.tokimeki.theme.renderScreenshots', undefined, { method: 'POST', data: { uri, cid }, ...THEME_SERVICE });
+    return res.screenshots ?? [];
 }
 
 export async function getSubmissions(agent: Agent, status: ThemeSubmission['status'] = 'pending'): Promise<ThemeSubmission[]> {
