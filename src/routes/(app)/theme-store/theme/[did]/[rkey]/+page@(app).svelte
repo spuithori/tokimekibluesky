@@ -20,6 +20,7 @@
     import { fetchStoreTheme, recordThemeInstall, setThemeLike, submitTheme, type StoreScreenshot, type StoreThemeDetail, type ThemeSubmission } from '$lib/theme/store';
     import { ensureBuilderLocale } from '$lib/theme/builder/i18n';
     import { builderHref } from '$lib/theme/builder/session';
+    import { attachScreenshots } from '$lib/theme/builder/screenshots';
 
     const SHOT_ORDER = ['desktop-light', 'desktop-dark', 'mobile-light', 'mobile-dark'];
 
@@ -31,6 +32,8 @@
     let submission = $state<ThemeSubmission | null>(null);
     let submitting = $state(false);
     let installed = $state<InstalledTheme | undefined>();
+    let shooting = $state(false);
+    let shootFailed = $state(false);
     let watching: { unsubscribe(): void } | null = null;
 
     async function load(did: string, rkey: string) {
@@ -107,6 +110,35 @@
             toast.error($_('theme_submit_error'));
         } finally {
             submitting = false;
+        }
+    }
+
+    async function takeScreenshots() {
+        if (!$agent || !detail) return;
+        const { theme: target } = detail;
+        shooting = true;
+        shootFailed = false;
+        try {
+            const result = await attachScreenshots($agent, {
+                uri: target.uri,
+                cid: target.cid,
+                rkey: target.rkey,
+                installed: { id: target.uri, uri: target.uri, cid: target.cid, did: target.did, record: target.record, installedAt: '' },
+            });
+            const record = result.published.installed.record;
+            const cdn = (kind: string, cid: string) => `https://cdn.bsky.app/img/${kind}/plain/${target.did}/${cid}@webp`;
+            detail.theme = { ...target, cid: result.published.cid, record };
+            detail.screenshots = (record.screenshots ?? []).map((shot) => ({
+                kind: shot.kind,
+                thumb: cdn('feed_thumbnail', shot.image.ref.$link),
+                fullsize: cdn('feed_fullsize', shot.image.ref.$link),
+                aspectRatio: shot.aspectRatio,
+            }));
+        } catch (e) {
+            console.error(e);
+            shootFailed = true;
+        } finally {
+            shooting = false;
         }
     }
 
@@ -193,7 +225,19 @@
           <p class="theme-page__description">{record.description}</p>
         {/if}
 
-        {#if shots.length}
+        {#if owner && !shots.length}
+          <section class="theme-page__section">
+            <h2>{$_('theme_page_screenshots')}</h2>
+            {#if shooting}
+              <p class="theme-page__note" role="status">{$_('builder_shots_working')}</p>
+            {:else}
+              {#if shootFailed}
+                <p class="theme-page__note" role="alert">{$_('builder_shots_failed')}</p>
+              {/if}
+              <button class="button button--sm theme-page__shoot" onclick={takeScreenshots}>{$_('theme_page_take_shots')}</button>
+            {/if}
+          </section>
+        {:else if shots.length}
           <section class="theme-page__section">
             <h2>{$_('theme_page_screenshots')}</h2>
             <ul class="theme-page__shots">
@@ -537,6 +581,10 @@
           margin: 0;
           color: var(--text-color-1);
       }
+  }
+
+  .theme-page__shoot {
+      align-self: flex-start;
   }
 
   .theme-page__note {

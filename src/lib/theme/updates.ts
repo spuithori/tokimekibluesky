@@ -20,6 +20,7 @@ export interface ThemeUpdate {
 export interface AppliedThemeUpdate {
     before: InstalledTheme;
     after: InstalledTheme;
+    silent: boolean;
 }
 
 interface UpdateRow {
@@ -80,6 +81,14 @@ export async function fetchThemeUpdates(rows: InstalledTheme[], signal?: AbortSi
     return updates;
 }
 
+function appearance(record: ThemeRecord): string {
+    return JSON.stringify([record.tokens, record.dark ?? [], record.variants ?? [], (record.images ?? []).map((image) => [image.key, image.image.ref.$link])]);
+}
+
+export function changesAppearance(before: ThemeRecord, after: ThemeRecord): boolean {
+    return appearance(before) !== appearance(after);
+}
+
 function snapshot(row: InstalledTheme): ThemeSnapshot {
     const snap: ThemeSnapshot = { record: row.record };
     if (row.cid) snap.cid = row.cid;
@@ -94,15 +103,17 @@ export async function applyThemeUpdate(row: InstalledTheme, update: ThemeUpdate,
     return themesDb.transaction('rw', themesDb.themes, async () => {
         const current = await themesDb.themes.get(row.id);
         if (!current || current.cid !== row.cid) return null;
-        const { images: _images, thumbnail: _thumbnail, previewUrl, declinedCid: _declined, previous: _previous, ...rest } = current;
+        const { images: _images, thumbnail: _thumbnail, previewUrl, declinedCid: _declined, previous, ...rest } = current;
+        const visible = changesAppearance(current.record, update.theme.record);
         const next: InstalledTheme = {
             ...rest,
             cid: update.theme.cid,
             did: update.theme.did,
             record: JSON.parse(JSON.stringify(update.theme.record)) as ThemeRecord,
-            previous: snapshot(current),
             ...assets,
         };
+        if (visible) next.previous = snapshot(current);
+        else if (previous) next.previous = previous;
         if (update.theme.handle) next.handle = update.theme.handle;
         if (!assets.thumbnail && previewUrl) next.previewUrl = previewUrl;
         await themesDb.themes.put(next);
@@ -137,7 +148,7 @@ export async function checkThemeUpdates({ force = false, signal, now = Date.now(
         if (!row || !shouldApplyUpdate(row, update)) continue;
         try {
             const after = await applyThemeUpdate(row, update, signal);
-            if (after) applied.push({ before: row, after });
+            if (after) applied.push({ before: row, after, silent: !changesAppearance(row.record, after.record) });
         } catch (e) {
             console.error(e);
         }
@@ -176,7 +187,7 @@ export function runThemeUpdateCheck(options: { force?: boolean } = {}): Promise<
 
 async function applyAndNotify(options: { force?: boolean }): Promise<AppliedThemeUpdate[]> {
     const applied = await checkThemeUpdates(options);
-    const active = applied.find((item) => item.after.id === get(settings).design?.skin);
+    const active = applied.find((item) => !item.silent && item.after.id === get(settings).design?.skin);
     if (active) {
         currentTheme.set(active.after);
         if (active.before.cid) notify(active);
