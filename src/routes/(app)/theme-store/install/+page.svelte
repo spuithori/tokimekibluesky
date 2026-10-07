@@ -5,21 +5,19 @@
     import { page } from '$app/state';
     import Notice from '$lib/components/ui/Notice.svelte';
     import ThemeItem from '../ThemeItem.svelte';
-    import { fetchRemoteTheme, listApprovedThemes, ThemeFetchError, type RemoteTheme } from '$lib/theme/atproto';
-    import { submitTheme, type ThemeSubmission } from '$lib/theme/store';
+    import { resolveThemeUri, ThemeFetchError, type RemoteTheme } from '$lib/theme/atproto';
+    import { fetchStoreTheme, submitTheme, type ThemeSubmission } from '$lib/theme/store';
     import { agent } from '$lib/stores';
 
     const initial = page.url.searchParams.get('uri') ?? '';
     let value = $state(initial);
     let result: Promise<{ theme: RemoteTheme; approved: boolean }> | null = $state(initial ? load(initial) : null);
 
-    async function load(input: string) {
-        const [theme, approvedList] = await Promise.all([
-            fetchRemoteTheme(input),
-            listApprovedThemes().catch(() => []),
-        ]);
-        const approved = approvedList.some((item) => item.theme.uri === theme.uri && item.theme.cid === theme.cid);
-        return { theme, approved };
+    async function load(input: string): Promise<{ theme: RemoteTheme; approved: boolean }> {
+        const { uri } = await resolveThemeUri(input);
+        const item = await fetchStoreTheme($agent, uri);
+        if (!item) throw new ThemeFetchError('not-found', 'theme not found');
+        return { theme: item.theme, approved: item.approved };
     }
 
     let submission: ThemeSubmission | null = $state(null);

@@ -9,7 +9,7 @@
   import Menu from "$lib/components/ui/Menu.svelte";
   import { toast } from "svelte-sonner";
   import type { InstalledTheme } from "$lib/theme/installed";
-  import { installRemoteTheme, themeThumbnailUrl, ThemeFetchError, type RemoteTheme } from "$lib/theme/atproto";
+  import { installRemoteTheme, ThemeFetchError, type RemoteTheme } from "$lib/theme/atproto";
   import { previewSrc } from "$lib/theme/preview";
   import { recordThemeInstall } from "$lib/theme/store";
 
@@ -75,8 +75,8 @@
 {#if record}
 <section class="theme-item">
   <div class="theme-item__thumbnail">
-    {#if remote && remote.record.thumbnail}
-      <img src={themeThumbnailUrl(remote)} alt="">
+    {#if remote?.thumbnailUrl}
+      <img src={remote.thumbnailUrl} alt="">
     {:else if installed?.thumbnail || installed?.previewUrl}
       <img {@attach previewSrc(installed.thumbnail, installed.previewUrl)} alt="">
     {/if}

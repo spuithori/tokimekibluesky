@@ -8,11 +8,13 @@
         key,
         item,
         empty = undefined,
+        error: errorMessage = undefined,
     }: {
         load: (cursor: string | undefined, signal: AbortSignal) => Promise<{ items: T[], cursor?: string }>,
         key: (item: T) => string,
         item: Snippet<[T]>,
         empty?: Snippet,
+        error?: Snippet,
     } = $props();
 
     let items = $state<T[]>([]);
@@ -52,7 +54,11 @@
 </script>
 
 {#if loadedOnce && error && !items.length}
-    <p class="search-result-list__message">{$_('search_error')}</p>
+    {#if errorMessage}
+        {@render errorMessage()}
+    {:else}
+        <p class="search-result-list__message">{$_('search_error')}</p>
+    {/if}
 {:else if loadedOnce && !items.length}
     {#if empty}
         {@render empty()}

@@ -25,7 +25,7 @@
         const strict = validateThemeRecord(submission.record);
         const loose = validateThemeRecord(submission.record, { strict: false });
         const remote: RemoteTheme | null = loose.ok
-            ? { uri: submission.uri, cid: submission.cid, did: submission.did, rkey: submission.rkey, handle: submission.handle, pds: submission.pds.replace(/\/$/, ''), record: loose.record }
+            ? { uri: submission.uri, cid: submission.cid, did: submission.did, rkey: submission.rkey, handle: submission.handle, pds: submission.pds.replace(/\/$/, ''), record: loose.record, thumbnailUrl: submission.thumbnail }
             : null;
         return { remote, errors: strict.ok ? [] : strict.errors };
     }

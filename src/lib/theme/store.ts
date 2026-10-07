@@ -1,6 +1,6 @@
 import type { Agent } from '$lib/agent';
 import { APPROVAL_COLLECTION, LIKE_COLLECTION, OFFICIAL_THEME_DID, validateThemeRecord } from './format';
-import { listApprovedThemes, type RemoteTheme } from './atproto';
+import type { RemoteTheme } from './atproto';
 
 export const THEME_SERVICE_URL = 'https://themes.tokimeki.tech';
 const THEME_SERVICE = { proxyDid: `did:web:${new URL(THEME_SERVICE_URL).hostname}`, proxyServiceId: 'tokimeki_theme' };
@@ -12,6 +12,11 @@ export interface StoreTheme {
     access: 'public' | 'code';
     likeCount: number;
     installCount: number;
+    viewerLike?: string;
+}
+
+export interface StoreThemeDetail extends StoreTheme {
+    approved: boolean;
 }
 
 export interface ThemeSubmission {
@@ -22,6 +27,7 @@ export interface ThemeSubmission {
     handle: string | null;
     pds: string;
     record: unknown;
+    thumbnail?: string;
     status: 'pending' | 'approved' | 'rejected';
     rejectReason: string | null;
     approvedCid: string | null;
@@ -41,6 +47,9 @@ interface ListedRow {
     access: string;
     likeCount: number;
     installCount: number;
+    viewer?: { like?: string };
+    approved?: boolean;
+    thumbnail?: string;
 }
 
 const BASE32 = 'abcdefghijklmnopqrstuvwxyz234567';
@@ -65,34 +74,45 @@ export async function subjectRkey(subjectUri: string): Promise<string> {
 function toStoreTheme(row: ListedRow): StoreTheme | null {
     const result = validateThemeRecord(row.record);
     if (!result.ok || typeof row.cid !== 'string' || typeof row.pds !== 'string') return null;
-    return {
+    const item: StoreTheme = {
         theme: { uri: row.uri, cid: row.cid, did: row.did, rkey: row.rkey, handle: row.handle, pds: row.pds.replace(/\/$/, ''), record: result.record },
         access: row.access === 'code' ? 'code' : 'public',
         likeCount: Number(row.likeCount) || 0,
         installCount: Number(row.installCount) || 0,
     };
+    if (typeof row.viewer?.like === 'string') item.viewerLike = row.viewer.like;
+    if (typeof row.thumbnail === 'string') item.theme.thumbnailUrl = row.thumbnail;
+    return item;
+}
+
+async function query<T>(agent: Agent | undefined, nsid: string, params: Record<string, string>, signal?: AbortSignal): Promise<T> {
+    if (agent) return agent.callWithProxy<T>(nsid, params, THEME_SERVICE);
+    const res = await fetch(`${THEME_SERVICE_URL}/xrpc/${nsid}?${new URLSearchParams(params)}`, { signal });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(`${nsid} ${res.status}`), { error: (json as { error?: string }).error });
+    return json as T;
 }
 
 export async function fetchStoreThemes(
-    { sort = 'new', cursor, codeHash, signal }: { sort?: StoreSort; cursor?: string; codeHash?: string; signal?: AbortSignal } = {},
+    { agent, sort = 'new', cursor, codeHash, signal }: { agent?: Agent; sort?: StoreSort; cursor?: string; codeHash?: string; signal?: AbortSignal } = {},
 ): Promise<{ themes: StoreTheme[]; cursor?: string }> {
-    const params = new URLSearchParams({ sort, limit: '30' });
-    if (cursor) params.set('cursor', cursor);
-    if (codeHash) params.set('codeHash', codeHash);
+    const params: Record<string, string> = { sort, limit: '30' };
+    if (cursor) params.cursor = cursor;
+    if (codeHash) params.codeHash = codeHash;
+    const json = await query<{ themes?: ListedRow[]; cursor?: string }>(agent, 'tech.tokimeki.theme.getThemes', params, signal);
+    return { themes: (json.themes ?? []).flatMap((row) => toStoreTheme(row) ?? []), cursor: json.cursor };
+}
+
+export async function fetchStoreTheme(agent: Agent | undefined, uri: string, signal?: AbortSignal): Promise<StoreThemeDetail | null> {
+    let json: { theme?: ListedRow };
     try {
-        const res = await fetch(`${THEME_SERVICE_URL}/xrpc/tech.tokimeki.theme.getThemes?${params}`, { signal });
-        if (!res.ok) throw new Error(`getThemes ${res.status}`);
-        const json = (await res.json()) as { themes?: ListedRow[]; cursor?: string };
-        return { themes: (json.themes ?? []).flatMap((row) => toStoreTheme(row) ?? []), cursor: json.cursor };
+        json = await query<{ theme?: ListedRow }>(agent, 'tech.tokimeki.theme.getTheme', { uri }, signal);
     } catch (e) {
-        if (signal?.aborted || cursor) throw e;
-        const approved = await listApprovedThemes(signal);
-        return {
-            themes: approved
-                .filter((a) => (codeHash ? a.access === 'code' && a.codeHash === codeHash : a.access === 'public'))
-                .map((a) => ({ theme: a.theme, access: a.access, likeCount: 0, installCount: 0 })),
-        };
+        if ((e as { error?: string }).error === 'ThemeNotFound') return null;
+        throw e;
     }
+    const item = json.theme ? toStoreTheme(json.theme) : null;
+    return item ? { ...item, approved: json.theme?.approved === true } : null;
 }
 
 export async function submitTheme(agent: Agent, uri: string): Promise<ThemeSubmission> {
@@ -144,37 +164,19 @@ export async function unlistTheme(agent: Agent, approvalUri: string): Promise<vo
     await syncApproval(agent, approvalUri);
 }
 
-export async function listLikedThemeUris(agent: Agent): Promise<Set<string>> {
-    const liked = new Set<string>();
-    let cursor: string | undefined;
-    do {
-        const res = await agent.xrpc.get<{ cursor?: string; records?: Array<{ value?: { subject?: { uri?: string } } }> }>('com.atproto.repo.listRecords', {
-            repo: agent.did(),
-            collection: LIKE_COLLECTION,
-            limit: 100,
-            ...(cursor ? { cursor } : {}),
-        });
-        for (const record of res.records ?? []) {
-            const uri = record.value?.subject?.uri;
-            if (typeof uri === 'string') liked.add(uri);
-        }
-        cursor = res.records?.length ? res.cursor : undefined;
-    } while (cursor);
-    return liked;
-}
-
-export async function setThemeLike(agent: Agent, theme: Pick<RemoteTheme, 'uri' | 'cid'>, like: boolean): Promise<void> {
-    const rkey = await subjectRkey(theme.uri);
-    if (like) {
-        await agent.xrpc.post('com.atproto.repo.putRecord', {
-            repo: agent.did(),
-            collection: LIKE_COLLECTION,
-            rkey,
-            record: { $type: LIKE_COLLECTION, subject: { uri: theme.uri, cid: theme.cid }, createdAt: new Date().toISOString() },
-        });
-    } else {
-        await agent.xrpc.post('com.atproto.repo.deleteRecord', { repo: agent.did(), collection: LIKE_COLLECTION, rkey });
+export async function setThemeLike(agent: Agent, theme: Pick<RemoteTheme, 'uri' | 'cid'>, likeUri: string | undefined): Promise<string | undefined> {
+    if (likeUri) {
+        const [, repo, collection, rkey] = /^at:\/\/([^/]+)\/([^/]+)\/([^/]+)$/.exec(likeUri) ?? [];
+        await agent.xrpc.post('com.atproto.repo.deleteRecord', { repo: repo ?? agent.did(), collection: collection ?? LIKE_COLLECTION, rkey: rkey ?? (await subjectRkey(theme.uri)) });
+        return undefined;
     }
+    const res = await agent.xrpc.post<{ uri: string }>('com.atproto.repo.putRecord', {
+        repo: agent.did(),
+        collection: LIKE_COLLECTION,
+        rkey: await subjectRkey(theme.uri),
+        record: { $type: LIKE_COLLECTION, subject: { uri: theme.uri, cid: theme.cid }, createdAt: new Date().toISOString() },
+    });
+    return res.uri;
 }
 
 export function recordThemeInstall(agent: Agent | undefined, uri: string): void {

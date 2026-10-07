@@ -8,62 +8,33 @@
   import { toast } from "svelte-sonner";
   import { agent } from "$lib/stores";
   import ThemeItem from "./ThemeItem.svelte";
-  import { fetchStoreThemes, listLikedThemeUris, setThemeLike, type StoreSort, type StoreTheme } from "$lib/theme/store";
+  import SearchResultList from "$lib/components/search/SearchResultList.svelte";
+  import { fetchStoreThemes, setThemeLike, type StoreSort, type StoreTheme } from "$lib/theme/store";
 
   const SORTS: StoreSort[] = ['new', 'likes', 'installs'];
 
   let sort: StoreSort = $state('new');
-  let themes: StoreTheme[] = $state([]);
-  let cursor: string | undefined = $state();
-  let loading = $state(false);
-  let failed = $state(false);
-  const liked = new SvelteSet<string>();
-  let request = 0;
+  const pendingLikes = new SvelteSet<string>();
 
-  async function load(append = false) {
-      const id = ++request;
-      loading = true;
-      failed = false;
-      try {
-          const page = await fetchStoreThemes({ sort, cursor: append ? cursor : undefined });
-          if (id !== request) return;
-          themes = append ? [...themes, ...page.themes] : page.themes;
-          cursor = page.cursor;
-      } catch (e) {
-          console.error(e);
-          if (id === request) failed = true;
-      } finally {
-          if (id === request) loading = false;
-      }
-  }
-
-  function changeSort(next: StoreSort) {
-      if (next === sort) return;
-      sort = next;
-      cursor = undefined;
-      load();
+  async function loadPage(cursor: string | undefined, signal: AbortSignal) {
+      const page = await fetchStoreThemes({ agent: $agent, sort, cursor, signal });
+      return { items: page.themes, cursor: page.cursor };
   }
 
   async function toggleLike(item: StoreTheme) {
-      if (!$agent) return;
-      const like = !liked.has(item.theme.uri);
-      if (like) liked.add(item.theme.uri);
-      else liked.delete(item.theme.uri);
-      item.likeCount += like ? 1 : -1;
+      if (!$agent || pendingLikes.has(item.theme.uri)) return;
+      const previous = item.viewerLike;
+      pendingLikes.add(item.theme.uri);
+      item.likeCount += previous ? -1 : 1;
       try {
-          await setThemeLike($agent, item.theme, like);
+          item.viewerLike = await setThemeLike($agent, item.theme, previous);
       } catch (e) {
           console.error(e);
-          if (like) liked.delete(item.theme.uri);
-          else liked.add(item.theme.uri);
-          item.likeCount += like ? -1 : 1;
+          item.likeCount += previous ? 1 : -1;
           toast.error($_('theme_like_error'));
+      } finally {
+          pendingLikes.delete(item.theme.uri);
       }
-  }
-
-  load();
-  if ($agent) {
-      listLikedThemeUris($agent).then((uris) => uris.forEach((uri) => liked.add(uri))).catch(() => {});
   }
 </script>
 
@@ -89,8 +60,6 @@
   </div>
 
   <div class="theme-store-wrap">
-    <p class="theme-store-supporter-recommend">{$_('theme_store_supporter_recommend_1')}<a href="https://tokimeki.fanbox.cc/" target="_blank">pixivFANBOX</a>{$_('theme_store_supporter_recommend_2')}</p>
-
     <div class="theme-store-section only-mobile">
       <ul class="p-menu-nav p-menu-nav--2columns">
         <li class="p-menu-nav__item p-menu-nav__item--border">
@@ -116,26 +85,26 @@
             class="theme-store-sort__button"
             class:theme-store-sort__button--active={sort === value}
             aria-pressed={sort === value}
-            onclick={() => changeSort(value)}
+            onclick={() => (sort = value)}
           >{$_(`theme_sort_${value}`)}</button>
         {/each}
       </div>
 
-      {#each themes as item (item.theme.uri)}
-        <ThemeItem
-          remote={item.theme}
-          likeCount={item.likeCount}
-          installCount={item.installCount}
-          liked={liked.has(item.theme.uri)}
-          onlike={$agent ? () => toggleLike(item) : undefined}
-        ></ThemeItem>
-      {/each}
-
-      {#if failed}
-        <p class="settings-description">{$_('theme_store_load_error')}</p>
-      {:else if cursor}
-        <button class="text-button theme-store-more" onclick={() => load(true)} disabled={loading}>{$_('theme_store_more')}</button>
-      {/if}
+      {#key sort}
+        <SearchResultList load={loadPage} key={(item: StoreTheme) => item.theme.uri}>
+          {#snippet item(item: StoreTheme)}
+            <ThemeItem
+              remote={item.theme}
+              likeCount={item.likeCount}
+              liked={pendingLikes.has(item.theme.uri) ? !item.viewerLike : !!item.viewerLike}
+              onlike={$agent ? () => toggleLike(item) : undefined}
+            ></ThemeItem>
+          {/snippet}
+          {#snippet error()}
+            <p class="settings-description">{$_('theme_store_load_error')}</p>
+          {/snippet}
+        </SearchResultList>
+      {/key}
     </section>
   </div>
 </div>
@@ -166,10 +135,5 @@
               color: var(--on-accent, var(--bg-color-1));
           }
       }
-  }
-
-  .theme-store-more {
-      display: block;
-      margin: 0 auto;
   }
 </style>

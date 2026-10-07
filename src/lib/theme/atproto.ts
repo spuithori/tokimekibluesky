@@ -3,9 +3,8 @@ import { resolveDidDocument, getPdsEndpoint, resolveHandle } from '$lib/oauth/re
 import { handleFromDidDocument, blobUrl } from '$lib/atmosphere/registry';
 import { themesDb } from '$lib/db';
 import {
-    APPROVAL_COLLECTION,
-    OFFICIAL_THEME_DID,
     THEME_COLLECTION,
+    themeUri,
     validateThemeRecord,
     type BlobRef,
     type ThemeRecord,
@@ -32,14 +31,7 @@ export interface RemoteTheme {
     handle: string | null;
     pds: string;
     record: ThemeRecord;
-}
-
-export interface ApprovedTheme {
-    approvalUri: string;
-    access: 'public' | 'code';
-    codeHash?: string;
-    createdAt: string;
-    theme: RemoteTheme;
+    thumbnailUrl?: string;
 }
 
 interface Repo {
@@ -95,7 +87,7 @@ async function loadTheme(did: string, rkey: string, repo: Repo, cid: string | un
     return { uri: `at://${did}/${THEME_COLLECTION}/${rkey}`, cid: json.cid, did, rkey, handle: repo.handle, pds: repo.pds, record: result.record };
 }
 
-export async function fetchRemoteTheme(input: string, { cid, signal }: { cid?: string; signal?: AbortSignal } = {}): Promise<RemoteTheme> {
+export async function resolveThemeUri(input: string): Promise<{ uri: string; did: string; rkey: string }> {
     const parsed = parseThemeUri(input);
     if (!parsed) throw new ThemeFetchError('invalid-uri', 'not a theme at-uri');
     let did = parsed.authority;
@@ -106,7 +98,12 @@ export async function fetchRemoteTheme(input: string, { cid, signal }: { cid?: s
             throw new ThemeFetchError('network', `could not resolve ${parsed.authority}`, [String(e)]);
         }
     }
-    return loadTheme(did, parsed.rkey, await resolveRepo(did, signal), cid, signal);
+    return { uri: themeUri(did, parsed.rkey), did, rkey: parsed.rkey };
+}
+
+export async function fetchRemoteTheme(input: string, { cid, signal }: { cid?: string; signal?: AbortSignal } = {}): Promise<RemoteTheme> {
+    const { did, rkey } = await resolveThemeUri(input);
+    return loadTheme(did, rkey, await resolveRepo(did, signal), cid, signal);
 }
 
 async function sha256(bytes: ArrayBuffer): Promise<Uint8Array> {
@@ -142,10 +139,6 @@ async function fetchBlob(theme: RemoteTheme, blob: BlobRef, signal?: AbortSignal
     const bytes = await res.arrayBuffer();
     if (!(await verifyBlobBytes(bytes, blob.ref.$link))) throw new ThemeFetchError('blob-mismatch', 'image bytes do not match the record');
     return new Blob([bytes], { type: blob.mimeType });
-}
-
-export function themeThumbnailUrl(theme: RemoteTheme): string | undefined {
-    return theme.record.thumbnail ? blobUrl(theme.pds, theme.did, theme.record.thumbnail.ref.$link) : undefined;
 }
 
 export async function previewRemoteTheme(theme: RemoteTheme, signal?: AbortSignal): Promise<InstalledTheme> {
@@ -211,41 +204,4 @@ export async function installRemoteTheme(
         await themesDb.themes.put(installed);
     });
     return { installed, replacedIds };
-}
-
-export async function listApprovedThemes(signal?: AbortSignal): Promise<ApprovedTheme[]> {
-    const official = await resolveRepo(OFFICIAL_THEME_DID, signal);
-    const approvals: Array<{ uri: string; value: Record<string, unknown> }> = [];
-    let cursor: string | undefined;
-    do {
-        const params = new URLSearchParams({ repo: OFFICIAL_THEME_DID, collection: APPROVAL_COLLECTION, limit: '100' });
-        if (cursor) params.set('cursor', cursor);
-        const res = await fetch(`${official.pds}/xrpc/com.atproto.repo.listRecords?${params}`, { signal });
-        if (!res.ok) throw new ThemeFetchError('network', `could not list the store (${res.status})`);
-        const json = (await res.json()) as { cursor?: string; records?: Array<{ uri: string; value: Record<string, unknown> }> };
-        approvals.push(...(json.records ?? []));
-        cursor = json.records?.length ? json.cursor : undefined;
-    } while (cursor);
-
-    const repos = new Map<string, Promise<Repo>>([[OFFICIAL_THEME_DID, Promise.resolve(official)]]);
-    const results = await Promise.allSettled(approvals.map(async ({ uri, value }) => {
-        const subject = value.subject as { uri?: unknown; cid?: unknown } | undefined;
-        const parsed = typeof subject?.uri === 'string' ? THEME_URI.exec(subject.uri) : null;
-        if (!parsed || parsed[2] !== THEME_COLLECTION || !parsed[1].startsWith('did:') || typeof subject?.cid !== 'string') return null;
-        const did = parsed[1];
-        if (!repos.has(did)) repos.set(did, resolveRepo(did, signal));
-        const theme = await loadTheme(did, parsed[3], await repos.get(did)!, subject.cid, signal);
-        const access = value.access === 'code' ? 'code' : 'public';
-        const approved: ApprovedTheme = {
-            approvalUri: uri,
-            access,
-            createdAt: typeof value.createdAt === 'string' ? value.createdAt : '',
-            theme,
-        };
-        if (access === 'code' && typeof value.codeHash === 'string') approved.codeHash = value.codeHash.toLowerCase();
-        return approved;
-    }));
-    return results
-        .flatMap((r) => (r.status === 'fulfilled' && r.value ? [r.value] : []))
-        .sort((a, b) => b.theme.record.createdAt.localeCompare(a.theme.record.createdAt));
 }

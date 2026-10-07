@@ -17,6 +17,10 @@ export const LEGACY_THEME_RKEYS: Readonly<Record<string, string>> = {
     '59ad4759-62d0-4691-abab-9fa6dfb1a5ce': 'sukoshi-aki',
     '44f4b378-13a0-406e-bb0d-e21915ac902e': 'galactic-trip',
     '4ff38923-9fea-427b-b1f9-5b9b743267a5': 'sky',
+    '29c86945-da1c-410a-a9de-8ab0fa979e06': 'vivid-world',
+    '98fbdf34-9ae5-4ae0-b95e-7e90219e2282': 'horizon-pro',
+    '344da082-7b63-4f45-bf10-c9f8673f99cd': 'dracula',
+    '3b7baf0a-ee47-42df-9431-5816ce65018e': 'grass',
 };
 
 export function legacyThemeUri(id: string | undefined | null): string | undefined {
