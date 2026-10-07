@@ -21,6 +21,7 @@ export const LEGACY_THEME_RKEYS: Readonly<Record<string, string>> = {
     '98fbdf34-9ae5-4ae0-b95e-7e90219e2282': 'horizon-pro',
     '344da082-7b63-4f45-bf10-c9f8673f99cd': 'dracula',
     '3b7baf0a-ee47-42df-9431-5816ce65018e': 'grass',
+    'b891f211-3a57-4c5f-a53a-d4b26418a50a': 'nord-frost',
 };
 
 export function legacyThemeUri(id: string | undefined | null): string | undefined {

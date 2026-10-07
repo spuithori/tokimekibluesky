@@ -3,6 +3,7 @@
     import X from '@lucide/svelte/icons/x';
     import Folder from '@lucide/svelte/icons/folder';
     import Ticket from '@lucide/svelte/icons/ticket';
+    import PaintRoller from '@lucide/svelte/icons/paint-roller';
   import {_} from "tokimeki-i18n";
   import { SvelteSet } from "svelte/reactivity";
   import { toast } from "svelte-sonner";
@@ -10,11 +11,14 @@
   import ThemeItem from "./ThemeItem.svelte";
   import SearchResultList from "$lib/components/search/SearchResultList.svelte";
   import { fetchStoreThemes, setThemeLike, type StoreSort, type StoreTheme } from "$lib/theme/store";
+  import { ensureBuilderLocale } from "$lib/theme/builder/i18n";
 
   const SORTS: StoreSort[] = ['new', 'likes', 'installs'];
 
   let sort: StoreSort = $state('new');
   const pendingLikes = new SvelteSet<string>();
+  let builderReady = $state(false);
+  ensureBuilderLocale().then(() => (builderReady = true)).catch((e) => console.error(e));
 
   async function loadPage(cursor: string | undefined, signal: AbortSignal) {
       const page = await fetchStoreThemes({ agent: $agent, sort, cursor, signal });
@@ -75,6 +79,15 @@
           </div>
           <p class="p-menu-nav__title"><a href="/theme-store/code">{$_('theme_store_code')}</a></p>
         </li>
+
+        {#if builderReady}
+          <li class="p-menu-nav__item p-menu-nav__item--border">
+            <div class="p-menu-nav__icon">
+              <PaintRoller color="var(--text-color-1)" />
+            </div>
+            <p class="p-menu-nav__title"><a href="/theme-store/create">{$_('builder_create')}</a></p>
+          </li>
+        {/if}
       </ul>
     </div>
 
