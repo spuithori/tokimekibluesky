@@ -107,7 +107,7 @@
           border-top: 1px solid var(--border-color-1);
 
           &:hover {
-              background-color: var(--state-hover, var(--bg-color-2));
+              background: linear-gradient(var(--state-hover, var(--bg-color-2)) 0 0), var(--bg-color-1);
           }
 
           &--front {
