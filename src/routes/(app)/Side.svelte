@@ -97,6 +97,8 @@
           }
 
           .side-content {
+              --side-rim-display: none;
+              --side-glow-display: none;
               position: absolute;
               right: 0;
               top: calc(var(--side-padding-top, 8px) + var(--side-nav-height, 48px) + 4px);
@@ -141,6 +143,7 @@
       }
 
       @media (min-width: 768px) {
+          position: relative;
           scrollbar-color: var(--scroll-bar-color) transparent;
           scrollbar-width: var(--scroll-bar-width, auto);
 
@@ -156,6 +159,53 @@
           &::-webkit-scrollbar-track {
               background: transparent;
               border-radius: 0;
+          }
+
+          &::after {
+              content: '';
+              display: var(--side-rim-display, none);
+              position: absolute;
+              inset: calc(-1 * var(--nav-content-border-width));
+              z-index: 1;
+              padding: var(--side-rim-width, var(--nav-content-border-width));
+              border-radius: inherit;
+              background: var(--side-rim, var(--deck-rim, none)) border-box;
+              mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask-composite: exclude;
+              pointer-events: none;
+              opacity: var(--side-rim-opacity, var(--deck-rim-opacity, 1));
+              transition: var(--side-rim-transition, var(--deck-rim-transition, none));
+
+              @media (prefers-reduced-motion: reduce) {
+                  transition: none;
+              }
+          }
+
+          &::before {
+              content: '';
+              display: var(--side-glow-display, none);
+              position: absolute;
+              inset: calc(-1 * var(--nav-content-border-width));
+              border-radius: inherit;
+              box-shadow: var(--side-glow, var(--deck-glow, none));
+              opacity: 0;
+              transition: var(--side-glow-transition, var(--side-rim-transition, var(--deck-rim-transition, none)));
+              pointer-events: none;
+
+              @media (prefers-reduced-motion: reduce) {
+                  transition: none;
+              }
+          }
+
+          &:hover::before,
+          &:has(:global(:focus-visible))::before {
+              opacity: 1;
+          }
+
+          &:hover::after,
+          &:has(:global(:focus-visible))::after {
+              background: var(--side-rim-active, var(--side-rim, var(--deck-rim, none))) border-box;
+              opacity: var(--side-rim-active-opacity, var(--deck-rim-active-opacity, var(--side-rim-opacity, 1)));
           }
       }
   }

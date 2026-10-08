@@ -159,9 +159,11 @@
         background: var(--single-bg-color, var(--surface-panel, var(--bg-color-1)));
         width: var(--single-column-width, var(--single-m-width));
         max-width: 100%;
+        margin-left: var(--single-gap, 0px);
 
         @media (max-width: 767px) {
             width: 100vw;
+            margin-left: 0;
         }
 
         &--page {

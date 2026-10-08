@@ -286,6 +286,7 @@
     --deck-border-right: none;
     --deck-box-shadow: none;
     --deck-rim-display: none;
+    --deck-glow-display: none;
     --scroll-bar-bg-color: transparent;
     --scroll-bar-border-radius: var(--bubble-scroll-bar-border-radius, 3px);
     --deck-heading-bg-color: var(--bubble-heading-bg-color, var(--bubble-canvas));

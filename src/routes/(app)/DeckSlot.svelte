@@ -173,11 +173,45 @@
             mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
             mask-composite: exclude;
             pointer-events: none;
+            opacity: var(--deck-rim-opacity, 1);
+            transition: var(--deck-rim-transition, none);
+
+            @media (prefers-reduced-motion: reduce) {
+                transition: none;
+            }
+        }
+
+        &::before {
+            content: '';
+            display: var(--deck-glow-display, none);
+            position: absolute;
+            inset: calc(-1 * var(--deck-border-width));
+            border-radius: inherit;
+            box-shadow: var(--deck-glow, none);
+            opacity: 0;
+            transition: var(--deck-glow-transition, var(--deck-rim-transition, none));
+            pointer-events: none;
+
+            @media (prefers-reduced-motion: reduce) {
+                transition: none;
+            }
+        }
+
+        &:hover::after,
+        &:has(:global(:focus-visible))::after {
+            background: var(--deck-rim-active, var(--deck-rim, none)) border-box;
+            opacity: var(--deck-rim-active-opacity, var(--deck-rim-opacity, 1));
+        }
+
+        &:hover::before,
+        &:has(:global(:focus-visible))::before {
+            opacity: 1;
         }
 
         @media (max-width: 767px) {
             --deck-inner-radius: 0px;
             --deck-rim-display: none;
+            --deck-glow-display: none;
             width: 100vw;
             height: 100dvh;
             scroll-snap-align: start;
@@ -197,6 +231,7 @@
         &--single {
             --deck-inner-radius: 0px;
             --deck-rim-display: none;
+            --deck-glow-display: none;
             position: static;
             width: auto;
             height: auto;
@@ -209,6 +244,7 @@
 
         &--junk {
             --deck-rim-display: none;
+            --deck-glow-display: none;
             width: 100%;
             height: auto;
             display: block;
