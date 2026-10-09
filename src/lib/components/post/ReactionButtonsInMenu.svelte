@@ -70,7 +70,7 @@
       display: flex;
       gap: 8px;
       align-items: center;
-      padding: 0 12px 12px;
+      padding: 12px calc(var(--menu-item-inset, 4px) + 12px);
       border-bottom: 1px solid var(--border-color-2);
       margin-bottom: 4px;
   }

@@ -88,7 +88,6 @@ export const CATALOG: ReadonlyArray<readonly [string, TokenGroup, TokenKind]> = 
     ['--radius-overlay', 'role', 'length'],
     ['--radius-media', 'role', 'length'],
     ['--radius-round', 'role', 'length'],
-    ['--state-pressed', 'role', 'color'],
     ['--focus-ring', 'role', 'border'],
     ['--focus-ring-offset', 'role', 'length'],
     ['--selection-bg', 'role', 'color'],

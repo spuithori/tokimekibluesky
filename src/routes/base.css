@@ -65,10 +65,6 @@ body {
     color: var(--selection-color, currentColor);
 }
 
-.app.theme-pressed :is(button, [role='button'], [role='menuitem'], [role='tab'], [role='option']):not(:empty, [data-press='none']):active {
-    box-shadow: inset 0 0 0 100vmax var(--state-pressed);
-}
-
 .app.monochrome {
     filter: grayscale(100%);
 }

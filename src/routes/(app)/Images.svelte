@@ -193,7 +193,7 @@
   {#if (blobs[index]?.image.mimeType === 'image/gif')}
     <GifImage {did} blob={blobs[index]?.image} alt={image.alt} aspectRatio={image.aspectRatio}></GifImage>
   {:else}
-    <button onclick={() => handleOpen(index)} aria-label="Open image." data-press="none">
+    <button onclick={() => handleOpen(index)} aria-label="Open image.">
       <ImageLoader {image} naturalWidth={(v) => {galleryImages[index].width = v}} naturalHeight={(v) => {galleryImages[index].height = v}}></ImageLoader>
     </button>
     {#if image.alt}

@@ -685,6 +685,10 @@
     &--bookmark {
         top: 40px;
     }
+
+    &:has(> .menu-sub-list > .timeline-reaction-in-menu) {
+        padding-top: 0;
+    }
 }
 
 .timeline-menu-list {

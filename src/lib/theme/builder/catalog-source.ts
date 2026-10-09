@@ -18,7 +18,7 @@ export const ROLE_KINDS: Readonly<Record<string, TokenKind>> = {
     '--accent-glow': 'shadow', '--elevation-1': 'shadow', '--elevation-2': 'shadow', '--elevation-3': 'shadow',
     '--radius-control': 'length', '--radius-card': 'length', '--radius-overlay': 'length',
     '--radius-media': 'length', '--radius-round': 'length',
-    '--state-pressed': 'color', '--focus-ring': 'border', '--focus-ring-offset': 'length',
+    '--focus-ring': 'border', '--focus-ring-offset': 'length',
     '--selection-bg': 'color', '--selection-color': 'color', '--caret-color': 'color', '--control-accent': 'color',
     '--motion-duration-hover': 'other', '--motion-easing-hover': 'other', '--motion-duration-overlay': 'other', '--motion-easing-overlay': 'other',
 };

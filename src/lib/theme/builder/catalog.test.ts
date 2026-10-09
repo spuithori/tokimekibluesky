@@ -27,8 +27,8 @@ describe('トークンのカタログ', () => {
         }
     });
 
-    it('役割トークン28個をすべて含み、名前は重複しない', () => {
-        expect(TOKEN_CATALOG.filter((t) => t.group === 'role')).toHaveLength(28);
+    it('役割トークン27個をすべて含み、名前は重複しない', () => {
+        expect(TOKEN_CATALOG.filter((t) => t.group === 'role')).toHaveLength(27);
         expect(new Set(TOKEN_CATALOG.map((t) => t.name)).size).toBe(TOKEN_CATALOG.length);
     });
 

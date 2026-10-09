@@ -223,7 +223,6 @@
 
     const themeStyle = $derived(outputInlineStyle($theme));
     const themeSelection = $derived(!!themeStyle && themeStyle.includes("--selection-bg:"));
-    const themePressed = $derived(!!themeStyle && themeStyle.includes("--state-pressed:"));
 
     appState.init();
     viewPortSetting();
@@ -392,7 +391,6 @@
     class:bubble={$settings?.design?.bubbleTimeline}
     class:monochrome={$settings?.design?.monochrome}
     class:theme-selection={themeSelection}
-    class:theme-pressed={themePressed}
     style={themeStyle}
     dir={$_("dir")}
     bind:this={app}
