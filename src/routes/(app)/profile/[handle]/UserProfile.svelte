@@ -170,7 +170,7 @@
 
     <div class="profile-banner">
       {#if (profile.banner)}
-        <button onclick={() => imageState.open([{ src: profile.banner, msrc: profile.banner, alt: '', width: 3000, height: 1000 }], 0)}>
+        <button data-press="none" onclick={() => imageState.open([{ src: profile.banner, msrc: profile.banner, alt: '', width: 3000, height: 1000 }], 0)}>
           <img in:fade={{ duration: 200 }} src="{profile.banner}" alt="" width="740" height="247">
         </button>
       {/if}

@@ -479,6 +479,7 @@
             <div
                     role="button"
                     tabindex="0"
+                    data-press="none"
                     class="deck-heading__scroll-area"
                     onclick={() => {handleHeaderClick($settings.design?.layout === 'decks' ? scrollEl : (document.querySelector(':root') as HTMLElement | null))}}
                     use:createLongPress={{callback: forceRefresh, duration: 500}}

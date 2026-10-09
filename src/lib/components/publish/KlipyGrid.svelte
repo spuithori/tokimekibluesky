@@ -73,7 +73,7 @@
 <div class="klipy-grid-wrap">
   <div class="klipy-grid">
     {#each gifs as gif}
-      <button class="klipy-grid__item" onclick={() => handleClick(gif)}>
+      <button class="klipy-grid__item" data-press="none" onclick={() => handleClick(gif)}>
         <img loading="lazy" src={gif?.file?.xs?.gif?.url} alt={gif.title ?? ''}>
       </button>
     {/each}
