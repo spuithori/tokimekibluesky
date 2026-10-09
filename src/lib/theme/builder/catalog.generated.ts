@@ -144,6 +144,7 @@ export const CATALOG: ReadonlyArray<readonly [string, TokenGroup, TokenKind]> = 
     ['--menu-item-inset', 'side', 'length'],
     ['--menu-item-border-radius', 'side', 'length'],
     ['--bar-current-icon-color', 'side', 'color'],
+    ['--side-column-add-button-box-shadow', 'side', 'shadow'],
     ['--single-side-border-radius', 'deck', 'length'],
     ['--decks-gap', 'deck', 'length'],
     ['--decks-padding', 'deck', 'length'],

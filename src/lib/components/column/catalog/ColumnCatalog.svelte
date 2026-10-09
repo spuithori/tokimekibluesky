@@ -351,7 +351,7 @@
         width: 100%;
         height: 46px;
         padding: 0 40px 0 42px;
-        border-radius: 23px;
+        border-radius: var(--radius-round, 23px);
         border: 1.5px solid var(--border-color-1);
         background-color: var(--bg-color-2);
         color: var(--text-color-1);

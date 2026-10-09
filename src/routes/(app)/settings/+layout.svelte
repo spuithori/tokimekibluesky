@@ -292,7 +292,7 @@
     width: 100%;
     background-color: var(--bg-color-2);
     padding: 8px 8px 6px;
-    border-radius: var(--border-radius-4);
+    border-radius: var(--radius-card, var(--border-radius-4));
 
     &__item {
       width: 30px;
@@ -315,7 +315,7 @@
     gap: 12px;
     padding: 16px;
     background-color: var(--bg-color-2);
-    border-radius: var(--border-radius-4);
+    border-radius: var(--radius-card, var(--border-radius-4));
     border: 1px solid var(--primary-color);
 
     &__close {

@@ -260,7 +260,7 @@ input[type=checkbox] {
             bottom: 0;
             width: 4px;
             height: 20px;
-            border-radius: 2px;
+            border-radius: var(--radius-round, 2px);
             background: var(--settings-nav-current-bar-color, var(--primary-color));
             margin: auto;
             transform: scaleY(0);
@@ -350,7 +350,7 @@ input[type=checkbox] {
     align-items: center;
     justify-content: space-between;
     border: 1px solid var(--border-color-2);
-    border-radius: var(--border-radius-2);
+    border-radius: var(--radius-control, var(--border-radius-2));
     padding: 0 16px;
     position: relative;
     background-color: var(--bg-color-2);

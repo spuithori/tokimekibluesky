@@ -64,7 +64,7 @@ button {
 
 .button--ss {
     height: 30px;
-    border-radius: 15px;
+    border-radius: var(--radius-round, 15px);
     min-width: 100px;
     font-size: 12px;
     padding: 0 8px;
@@ -72,7 +72,7 @@ button {
 
 .button--ssl {
     height: 36px;
-    border-radius: 18px;
+    border-radius: var(--radius-round, 18px);
     min-width: 120px;
     font-size: 14px;
     padding: 0 12px;
@@ -80,7 +80,7 @@ button {
 
 .button--sm {
     height: 36px;
-    border-radius: 18px;
+    border-radius: var(--radius-round, 18px);
     min-width: 120px;
     font-size: 14px;
     padding: 0 16px;

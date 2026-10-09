@@ -333,9 +333,9 @@
     .side-column-add-button {
         width: 40px;
         height: 40px;
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-control, var(--border-radius-3));
         border: 1px solid var(--primary-color);
-        box-shadow: rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.04) 0 2px 4px -1px;
+        box-shadow: var(--side-column-add-button-box-shadow, rgba(0, 0, 0, 0.1) 0 4px 6px -1px, rgba(0, 0, 0, 0.04) 0 2px 4px -1px);
         background-color: var(--nav-content-bg-color);
 
         @media (max-width: 767px) {
@@ -350,7 +350,7 @@
         --bar-primary-icon-color: var(--bg-color-1);
         width: 40px;
         height: 40px;
-        border-radius: 5px;
+        border-radius: var(--radius-control, 5px);
         display: grid;
         place-content: center;
         background-color: var(--primary-color);

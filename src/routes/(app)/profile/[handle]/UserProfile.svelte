@@ -332,14 +332,14 @@
     }
 
     .profile-banner {
-        border-radius: 10px;
+        border-radius: var(--radius-card, 10px);
         overflow: hidden;
         margin-bottom: 16px;
         aspect-ratio: 740 / 247;
         background-color: var(--bg-color-2);
 
         @media (max-width: 767px) {
-            border-radius: 10px;
+            border-radius: var(--radius-card, 10px);
             margin-bottom: 20px;
         }
 
@@ -513,11 +513,11 @@
         &__left {
             padding: 16px;
             background-color: var(--bg-color-2);
-            border-radius: 10px;
+            border-radius: var(--radius-card, 10px);
         }
 
         &__right {
-            border-radius: 10px;
+            border-radius: var(--radius-card, 10px);
             position: relative;
             min-width: 0;
             height: 100%;
@@ -526,7 +526,7 @@
                 content: '';
                 position: absolute;
                 inset: 0;
-                border-radius: 10px;
+                border-radius: var(--radius-card, 10px);
                 border: 3px solid transparent;
                 background: linear-gradient(65deg, rgba(88, 220, 174, .7) 0%, rgba(167, 136, 223, .7) 20%, rgba(236, 103, 219, .7) 40%, rgba(218, 119, 142, .7) 60%, rgba(228, 142, 138, .7) 80%, rgba(236, 189, 94, .7) 100%) border-box border-box;
                 mask: linear-gradient(#fff 0%, #fff 100%) padding-box, linear-gradient(#fff 0%, #fff 100%) border-box;

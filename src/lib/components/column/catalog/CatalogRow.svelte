@@ -218,7 +218,7 @@
         height: 22px;
         min-width: 22px;
         padding: 0 5px;
-        border-radius: 11px;
+        border-radius: var(--radius-round, 11px);
         background-color: var(--primary-color);
         color: var(--on-accent, var(--bg-color-1));
         font-size: 12px;

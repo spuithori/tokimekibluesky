@@ -1,10 +1,12 @@
 import type { Draft } from './draft';
+import { THEME_LINK_PREFIX } from './link';
 
 export type BuilderSource =
     | { kind: 'draft'; id: string }
     | { kind: 'default' }
     | { kind: 'installed'; id: string }
-    | { kind: 'own'; uri: string };
+    | { kind: 'own'; uri: string }
+    | { kind: 'link'; hash: string };
 
 export function sourceFromParams(params: URLSearchParams): BuilderSource {
     const draft = params.get('draft');
@@ -17,7 +19,13 @@ export function sourceFromParams(params: URLSearchParams): BuilderSource {
     return { kind: 'default' };
 }
 
+export function sourceFromUrl(url: URL): BuilderSource {
+    if (url.hash.startsWith(THEME_LINK_PREFIX)) return { kind: 'link', hash: url.hash };
+    return sourceFromParams(url.searchParams);
+}
+
 export function builderHref(source: BuilderSource): string {
+    if (source.kind === 'link') return `/theme-store/builder${source.hash}`;
     const params = new URLSearchParams();
     if (source.kind === 'draft') params.set('draft', source.id);
     else if (source.kind === 'installed') params.set('from', 'installed'), params.set('id', source.id);

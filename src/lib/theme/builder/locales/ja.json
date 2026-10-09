@@ -113,5 +113,9 @@
     "theme_page_modes": "対応",
     "theme_page_light": "ライト",
     "theme_page_light_dark": "ライト・ダーク",
-    "theme_page_take_shots": "スクリーンショットを撮る"
+    "theme_page_take_shots": "スクリーンショットを撮る",
+    "builder_copy_link": "リンクをコピー",
+    "builder_link_copied": "リンクをコピーしました",
+    "builder_link_copied_without_images": "画像を除いたリンクをコピーしました",
+    "builder_link_invalid": "リンクのテーマを読み込めませんでした"
 }

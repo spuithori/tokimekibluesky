@@ -1238,7 +1238,7 @@
         bottom: calc(16px + var(--safe-area-bottom));
         width: 52px;
         height: 52px;
-        border-radius: 16px;
+        border-radius: var(--radius-overlay, 16px);
         background-color: var(--primary-color);
         align-items: center;
         justify-content: center;
@@ -1289,7 +1289,7 @@
     .publish-submit-button {
         z-index: 12;
         min-width: 72px;
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-control, var(--border-radius-3));
         background-color: var(--publish-post-button-bg-color);
         color: var(--publish-post-button-color);
         border: var(--publish-post-button-border);
@@ -1382,7 +1382,7 @@
         z-index: 12;
         height: 30px;
         width: 30px;
-        border-radius: var(--border-radius-2);
+        border-radius: var(--radius-control, var(--border-radius-2));
         background-color: var(--publish-schedule-button-bg-color, var(--bg-color-1));
         color: var(--publish-tool-button-color);
         display: flex;

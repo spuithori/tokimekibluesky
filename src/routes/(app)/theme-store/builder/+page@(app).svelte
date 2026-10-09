@@ -8,8 +8,9 @@
     import { fetchRemoteTheme, ThemeFetchError } from '$lib/theme/atproto';
     import { ensureBuilderLocale } from '$lib/theme/builder/i18n';
     import { loadDraft } from '$lib/theme/builder/storage';
-    import { draftFromDefault, draftFromInstalled, draftFromOwn } from '$lib/theme/builder/start';
-    import { builderHref, editDraftId, sourceFromParams, type BuilderSource } from '$lib/theme/builder/session';
+    import { draftFromDefault, draftFromInstalled, draftFromOwn, draftFromRecord } from '$lib/theme/builder/start';
+    import { builderHref, editDraftId, sourceFromUrl, type BuilderSource } from '$lib/theme/builder/session';
+    import { decodeThemeHash, THEME_LINK_PREFIX } from '$lib/theme/builder/link';
     import type { Draft } from '$lib/theme/builder/draft';
     import BuilderPanel from '$lib/theme/builder/BuilderPanel.svelte';
 
@@ -36,12 +37,17 @@
             const row = await themesDb.themes.get(source.id);
             return row ? { draft: draftFromInstalled(row), persisted: false } : null;
         }
+        if (source.kind === 'link') {
+            const record = await decodeThemeHash(source.hash);
+            if (!record) toast.error(t('builder_link_invalid'));
+            return record ? { draft: draftFromRecord(record, undefined), persisted: false } : null;
+        }
         return { draft: draftFromDefault(t('builder_untitled')), persisted: false };
     }
 
     async function open() {
         await ensureBuilderLocale();
-        const resolved = await resolve(sourceFromParams(page.url.searchParams));
+        const resolved = await resolve(sourceFromUrl(page.url));
         if (!resolved) {
             await replace('/theme-store/create');
             return;
@@ -55,6 +61,10 @@
         replace('/theme-store/create');
     });
 </script>
+
+<svelte:window onhashchange={() => {
+    if (location.hash.startsWith(THEME_LINK_PREFIX)) location.reload();
+}} />
 
 <svelte:head>
   <title>{session?.draft.name ?? ''} - TOKIMEKI</title>

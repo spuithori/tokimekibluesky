@@ -3,11 +3,14 @@
     import { get } from 'svelte/store';
     import { _ } from 'tokimeki-i18n';
     import X from '@lucide/svelte/icons/x';
+    import Link from '@lucide/svelte/icons/link';
+    import { toast } from 'svelte-sonner';
     import { agent, settings, theme } from '$lib/stores';
     import { validateThemeRecord, type ThemeRecord } from '../format';
     import { composeRecord, previewRecord, type Draft } from './draft';
     import { deleteDraft, saveDraft } from './storage';
-    import { draftSignature, editDraftId } from './session';
+    import { builderHref, draftSignature, editDraftId } from './session';
+    import { encodeThemeHash } from './link';
     import { readContrast, renderIcon, type ContrastReading } from './thumbnail';
     import { publishDraft, PublishError, type Published } from './publish';
     import EasyTab from './EasyTab.svelte';
@@ -54,6 +57,12 @@
     let paletteVersion = $state(0);
 
     const composed = $derived(composeRecord(draft));
+
+    async function copyLink() {
+        const hash = await encodeThemeHash(composed);
+        await navigator.clipboard.writeText(new URL(builderHref({ kind: 'link', hash }), location.origin).href);
+        toast.success($_(draft.images.length || draft.icon || draft.cover ? 'builder_link_copied_without_images' : 'builder_link_copied'));
+    }
     const errors = $derived.by(() => {
         const placeholder = (blob: Blob) => ({ $type: 'blob', ref: { $link: 'bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' }, mimeType: blob.type, size: blob.size });
         const result = validateThemeRecord({ ...composed, images: draft.images.map((image) => ({ key: image.key, image: placeholder(image.blob) })) });
@@ -191,6 +200,9 @@
 
   <header class="builder__header">
     <input class="builder__name" aria-label={$_('builder_name')} bind:value={draft.name} maxlength="64">
+    <button class="builder__icon-button" aria-label={$_('builder_copy_link')} title={$_('builder_copy_link')} onclick={copyLink}>
+      <Link size={20} color="currentColor"></Link>
+    </button>
     <button class="builder__icon-button" aria-label={$_('builder_close')} onclick={onclose}>
       <X size={20} color="currentColor"></X>
     </button>

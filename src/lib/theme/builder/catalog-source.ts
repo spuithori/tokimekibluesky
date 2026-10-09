@@ -32,6 +32,7 @@ export const UNDECLARED: readonly string[] = [
     '--feed-avatar-border-radius', '--timeline-embed-border-radius',
     '--thread-guide-width', '--thread-guide-color', '--thread-guide-radius', '--thread-guide-hover-color',
     '--focus-item-border', '--focus-item-bg', '--focus-item-border-radius',
+    '--side-column-add-button-box-shadow',
 ];
 
 const BASE = /^--(bg-color|text-color|border-color|color-theme|primary-color|secondary-color|success-color|danger-color|warning-color|follow-color|current-theme-color|base-|link-|box-shadow-color|blurred-|border-radius-|app-|default-|avatar-|icon-stroke)/;

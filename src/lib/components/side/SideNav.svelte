@@ -296,7 +296,7 @@
           place-content: center;
           width: 48px;
           height: 48px;
-          border-radius: 5px;
+          border-radius: var(--radius-control, 5px);
 
           @media (min-width: 768px) {
               height: var(--side-nav-height, 48px);
@@ -335,7 +335,7 @@
             right: 6px;
             bottom: 6px;
             top: 6px;
-            border-radius: var(--border-radius-2);
+            border-radius: var(--radius-control, var(--border-radius-2));
             background-color: var(--side-nav-hover-bg-color);
             z-index: -1;
             opacity: 0;

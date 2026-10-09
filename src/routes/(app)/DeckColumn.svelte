@@ -998,7 +998,7 @@
             padding: 0 8px;
             border: 1px solid var(--primary-color);
             height: 28px;
-            border-radius: 14px;
+            border-radius: var(--radius-round, 14px);
             font-size: 12px;
             color: var(--primary-color);
             flex-shrink: 0;

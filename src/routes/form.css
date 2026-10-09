@@ -270,7 +270,7 @@
 
         .icons-radio__ui {
             border: 2px solid var(--border-color-2);
-            border-radius: 4px;
+            border-radius: var(--radius-control, 4px);
             overflow: hidden;
         }
     }

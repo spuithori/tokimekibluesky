@@ -350,7 +350,7 @@ body .pcl {
         width: 4px;
         height: 56px;
         max-height: 40%;
-        border-radius: 4px;
+        border-radius: var(--radius-round, 4px);
         background: var(--primary-color);
         box-shadow: 0 0 0 1px var(--bg-color-1);
     }
