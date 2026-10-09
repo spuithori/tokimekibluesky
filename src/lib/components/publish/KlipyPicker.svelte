@@ -50,7 +50,7 @@
             border: 1px solid var(--border-color-1);
             background-color: var(--bg-color-2);
             height: 40px;
-            border-radius: 20px;
+            border-radius: var(--radius-round, 20px);
             padding: 0 40px 0 20px;
             color: var(--text-color-1);
 

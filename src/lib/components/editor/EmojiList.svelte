@@ -106,7 +106,7 @@
             padding: 8px;
             width: 100%;
             text-align: left;
-            border-radius: var(--border-radius-2);
+            border-radius: var(--radius-control, var(--border-radius-2));
             display: flex;
             gap: 4px;
             align-items: center;

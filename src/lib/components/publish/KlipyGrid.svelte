@@ -96,7 +96,7 @@
           width: 100%;
           aspect-ratio: 1 / 1;
           background-color: var(--bg-color-1);
-          border-radius: var(--border-radius-2);
+          border-radius: var(--radius-media, var(--border-radius-2));
           overflow: hidden;
 
           img {

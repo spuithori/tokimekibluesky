@@ -1351,7 +1351,7 @@
     .publish-draft-button {
         position: relative;
         height: 30px;
-        border-radius: 4px;
+        border-radius: var(--radius-control, 4px);
         z-index: 12;
         color: var(--primary-color);
         font-weight: bold;

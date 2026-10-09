@@ -201,7 +201,7 @@
           padding: 0 5px 0 4px;
           background: var(--deck-heading-bg-color, var(--bg-color-2));
           border-bottom: 1px solid var(--deck-border-color, var(--border-color-1));
-          border-radius: 16px 16px 0 0;
+          border-radius: var(--radius-overlay, 16px) var(--radius-overlay, 16px) 0 0;
           user-select: none;
       }
 
@@ -227,7 +227,7 @@
           flex-shrink: 0;
           width: 26px;
           height: 26px;
-          border-radius: var(--border-radius-2, 6px);
+          border-radius: var(--radius-control, var(--border-radius-2, 6px));
 
           &:hover {
               background-color: var(--state-hover, var(--bg-color-3));

@@ -743,7 +743,7 @@
       border: 1px solid var(--border-color-1);
       padding: 6px 26px 6px 10px;
       font-size: 14px;
-      border-radius: 6px;
+      border-radius: var(--radius-control, 6px);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -848,7 +848,7 @@
       background: linear-gradient(135deg, #e74c3c, #c0392b);
       color: #fff;
       padding: 4px 12px;
-      border-radius: var(--border-radius-2);
+      border-radius: var(--radius-control, var(--border-radius-2));
       font-size: 13px;
       font-weight: bold;
       display: flex;

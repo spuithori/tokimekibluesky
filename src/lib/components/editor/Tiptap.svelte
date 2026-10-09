@@ -549,7 +549,7 @@
             align-items: center;
             justify-content: center;
             background-color: var(--primary-color);
-            border-radius: var(--border-radius-2);
+            border-radius: var(--radius-control, var(--border-radius-2));
         }
     }
 
@@ -594,7 +594,7 @@
         align-items: center;
         gap: 4px;
         padding: 4px 8px;
-        border-radius: var(--border-radius-2);
+        border-radius: var(--radius-control, var(--border-radius-2));
         border: 2px solid var(--primary-color);
         background-color: var(--bg-color-3);
         color: var(--primary-color);

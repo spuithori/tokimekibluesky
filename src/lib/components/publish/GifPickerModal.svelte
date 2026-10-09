@@ -39,7 +39,7 @@
     .gif-modal {
         margin: auto;
         border: none;
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-overlay, var(--border-radius-3));
         overflow: hidden !important;
 
         &::backdrop {

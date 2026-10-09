@@ -105,7 +105,7 @@
             padding: 8px;
             width: 100%;
             text-align: left;
-            border-radius: var(--border-radius-2);
+            border-radius: var(--radius-control, var(--border-radius-2));
 
             &--selected {
                 background-color: var(--state-selected, var(--bg-color-2));

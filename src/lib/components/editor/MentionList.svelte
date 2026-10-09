@@ -107,7 +107,7 @@
           display: grid;
           grid-template-columns: 24px 1fr;
           gap: 8px;
-          border-radius: var(--border-radius-2);
+          border-radius: var(--radius-control, var(--border-radius-2));
 
           &--selected {
               background-color: var(--state-selected, var(--bg-color-2));

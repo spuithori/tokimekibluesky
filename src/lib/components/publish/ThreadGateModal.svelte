@@ -159,7 +159,7 @@
         margin-top: 16px;
         background-color: var(--bg-color-3);
         padding: 16px 12px;
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-card, var(--border-radius-3));
     }
 
     .thread-gate-custom-title {
@@ -181,7 +181,7 @@
         margin-bottom: 24px;
         padding: 12px;
         border: 2px solid var(--primary-color);
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-card, var(--border-radius-3));
 
         .settings-group__name {
             font-weight: bold;

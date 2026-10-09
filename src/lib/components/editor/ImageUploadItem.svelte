@@ -73,7 +73,7 @@
 
 <style lang="postcss">
     .image-upload-item {
-        border-radius: var(--border-radius-3);
+        border-radius: var(--radius-media, var(--border-radius-3));
         width: 100%;
         height: 100%;
         aspect-ratio: 1 / 1;
@@ -124,7 +124,7 @@
         &__alt {
             width: 48px;
             height: 32px;
-            border-radius: 24px;
+            border-radius: var(--radius-round, 24px);
             background-color: rgba(0, 0, 0, .7);
             display: grid;
             place-content: center;
