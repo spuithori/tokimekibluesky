@@ -55,7 +55,7 @@
     &__selector {
         width: 36px;
         height: 36px;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         border: 2px solid var(--primary-color);
     }
 

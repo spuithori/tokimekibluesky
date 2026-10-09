@@ -476,7 +476,7 @@
         &__sender-avatar {
             width: 20px;
             height: 20px;
-            border-radius: 50%;
+            border-radius: var(--avatar-border-radius, 50%);
             background-color: var(--primary-color);
             display: block;
             object-fit: cover;

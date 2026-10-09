@@ -137,7 +137,7 @@
         width: 30px;
         height: 30px;
         background-color: var(--border-color-2);
-        border-radius: 50%;
+        border-radius: var(--avatar-border-radius, 50%);
         display: grid;
         place-content: center;
     }
@@ -145,7 +145,7 @@
     .notification-icon {
         width: 30px;
         height: 30px;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         display: grid;
         place-content: center;
         transition: opacity .25s ease-in-out;
@@ -156,7 +156,7 @@
             display: block;
             position: absolute;
             inset: 0;
-            border-radius: 50%;
+            border-radius: var(--radius-round, 50%);
             background-color: var(--primary-color);
             opacity: .05;
             z-index: 1;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { fly } from 'svelte/transition';
+    import { overlayFly } from '$lib/theme/motion';
     import {agents} from "$lib/stores";
     import AvatarAgentsSelectorModalItem from "$lib/components/acp/AvatarAgentsSelectorModalItem.svelte";
     import { offset, flip, shift } from 'svelte-floating-ui/dom';
@@ -45,7 +45,7 @@
             bind:this={el}
             onclick={handleClick}
             use:floatingContent
-            transition:fly={{ y: 30, duration: 250 }}
+            transition:overlayFly={{ y: 30, duration: 250 }}
     >
         {#each $agents as [key, agent]}
             <AvatarAgentsSelectorModalItem

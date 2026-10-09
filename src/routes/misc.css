@@ -183,7 +183,7 @@ body .pcl {
 .pcl__button {
     width: 44px;
     height: 44px;
-    border-radius: 50%;
+    border-radius: var(--radius-round, 50%);
 }
 
 .pcl__arrow--prev {

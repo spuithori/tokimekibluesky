@@ -227,7 +227,7 @@
         height: 28px;
         display: grid;
         place-items: center;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         color: var(--text-color-3);
         margin-right: -6px;
 

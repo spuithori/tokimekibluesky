@@ -100,7 +100,7 @@
       &__avatar {
           width: 32px;
           aspect-ratio: 1 / 1;
-          border-radius: var(--border-radius-2);
+          border-radius: var(--feed-avatar-border-radius, var(--border-radius-2));
           overflow: hidden;
           flex-shrink: 0;
 

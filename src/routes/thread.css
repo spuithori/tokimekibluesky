@@ -4,12 +4,12 @@
     --thread-avatar-nested: 32px;
     --thread-gap-nested: 10px;
     --thread-pad-top: 16px;
-    --thread-line-width: 2px;
-    --thread-line-color: var(--border-color-2);
+    --thread-line-width: var(--thread-guide-width, 2px);
+    --thread-line-color: var(--thread-guide-color, var(--border-color-2));
     --thread-line-x0: calc(var(--thread-avatar) / 2);
     --thread-line-x-nested: calc(var(--thread-avatar-nested) / 2);
     --thread-elbow: 12px;
-    --thread-radius: 10px;
+    --thread-radius: var(--thread-guide-radius, 10px);
     --thread-label-gap: 6px;
     --thread-indent-first: calc(var(--thread-line-x0) + var(--thread-elbow));
     --thread-indent: calc(var(--thread-line-x-nested) + var(--thread-elbow));
@@ -179,7 +179,7 @@
 
     &:hover .thread-guide,
     &:focus-visible .thread-guide {
-        background-color: var(--primary-color);
+        background-color: var(--thread-guide-hover-color, var(--primary-color));
     }
 }
 
@@ -188,7 +188,7 @@
 .thread-row:has(.thread-guide-hit[data-level='2']:hover) .thread-guide--elbow[data-level='2'],
 .thread-row:has(.thread-guide-hit[data-level='3']:hover) .thread-guide--elbow[data-level='3'],
 .thread-row:has(.thread-guide-hit[data-level='4']:hover) .thread-guide--elbow[data-level='4'] {
-    border-color: var(--primary-color);
+    border-color: var(--thread-guide-hover-color, var(--primary-color));
 }
 
 .thread-gutter {
@@ -203,7 +203,7 @@
 }
 
 .thread-row:has(.thread-gutter:hover) .thread-guide--bottom {
-    background-color: var(--primary-color);
+    background-color: var(--thread-guide-hover-color, var(--primary-color));
 }
 
 .thread-control {
@@ -231,7 +231,7 @@
         place-content: center;
         width: 26px;
         height: 26px;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         background-color: var(--bg-color-2);
     }
 }
@@ -246,7 +246,7 @@
     display: inline-block;
     margin-left: 6px;
     padding: 0 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-round, 999px);
     background-color: var(--bg-color-2);
     color: var(--text-color-3);
     font-size: 12px;

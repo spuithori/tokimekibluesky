@@ -276,7 +276,7 @@
   .edit-avatar-input-wrap {
       width: 150px;
       aspect-ratio: 1 / 1;
-      border-radius: 50%;
+      border-radius: var(--avatar-border-radius, 50%);
       position: relative;
       overflow: hidden;
   }

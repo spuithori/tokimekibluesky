@@ -334,9 +334,9 @@
         height: 36px;
         display: grid;
         place-content: center;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         background-color: var(--bg-color-2);
-        transition: background-color .2s ease-in-out;
+        transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
 
         &:hover {
             background-color: var(--state-hover, var(--border-color-1));

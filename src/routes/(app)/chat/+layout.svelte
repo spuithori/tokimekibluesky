@@ -3,7 +3,7 @@
     import type {LayoutData} from "./$types";
     import ArrowLeft from '@lucide/svelte/icons/arrow-left';
     import X from '@lucide/svelte/icons/x';
-    import { scale } from 'svelte/transition';
+    import { overlayScale } from '$lib/theme/motion';
     import SideChat from "$lib/components/side/SideChat.svelte";
 
     interface Props {
@@ -15,7 +15,7 @@
 </script>
 
 <div class="settings-modal">
-    <div class="settings-modal-content" in:scale={{duration: 250, opacity: 0, start: 0.98}}>
+    <div class="settings-modal-content" in:overlayScale={{duration: 250, opacity: 0, start: 0.98}}>
         <div class="settings-column" data-path="{data.pathname}">
             <div class="settings-toc">
                 <div class="column-heading only-mobile">

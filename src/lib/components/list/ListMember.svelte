@@ -88,7 +88,7 @@
       &__avatar {
           width: 100%;
           aspect-ratio: 1 / 1;
-          border-radius: 50%;
+          border-radius: var(--avatar-border-radius, 50%);
           overflow: hidden;
           background-color: var(--primary-color);
 
@@ -117,7 +117,7 @@
       width: 100%;
       height: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 50%;
+      border-radius: var(--radius-round, 50%);
       background-color: var(--primary-color);
       display: flex;
       align-items: center;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fly } from 'svelte/transition';
+  import { overlayFly } from '$lib/theme/motion';
   import {agents} from "$lib/stores";
   import { clickOutside } from '$lib/clickOutSide';
   import {accountsDb} from '$lib/db';
@@ -54,7 +54,7 @@
            tabindex="-1"
            use:clickOutside={{ignoreElement: '.avatar-agents-selector-avatar'}}
            onoutclick={() => (isOpen = false)}
-           transition:fly={{ y: 30, duration: 250 }}
+           transition:overlayFly={{ y: 30, duration: 250 }}
       >
         {#each $agents as [key, agent]}
           {#if (agent.did())}
@@ -79,7 +79,7 @@
   .avatar-agents-selector-avatar {
       aspect-ratio: 1 / 1;
       overflow: hidden;
-      border-radius: 50%;
+      border-radius: var(--avatar-border-radius, 50%);
       background-color: var(--primary-color);
       width: 100%;
 

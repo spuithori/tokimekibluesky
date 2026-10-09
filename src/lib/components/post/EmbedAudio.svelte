@@ -29,7 +29,7 @@
   .timeline-audio-wrap {
       height: 76px;
       margin-top: 16px;
-      border-radius: 10px;
+      border-radius: var(--radius-media, 10px);
       overflow: hidden;
       border: 1px solid var(--border-color-1);
       background-color: var(--bg-color-2);

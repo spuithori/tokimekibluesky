@@ -23,7 +23,7 @@
     import X from '@lucide/svelte/icons/x';
     import {removeMergeSource} from "$lib/merge/mergeColumnOps";
     import {MERGE_PALETTE} from "$lib/merge/mergePalette";
-    import { fly } from 'svelte/transition';
+    import { overlayFly } from '$lib/theme/motion';
     import Notice from "$lib/components/ui/Notice.svelte";
     import {animateLayout} from "$lib/animations/flip";
     import {
@@ -334,7 +334,7 @@
     }
 </script>
 
-<div class="deck-settings-wrap deck-settings-wrap--{layout}" class:deck-settings-wrap--split={isSplit} in:fly={{duration: 250, opacity: 0, y: -8}}>
+<div class="deck-settings-wrap deck-settings-wrap--{layout}" class:deck-settings-wrap--split={isSplit} in:overlayFly={{duration: 250, opacity: 0, y: -8}}>
     <div class="deck-settings">
         <div class="deck-settings-content">
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
@@ -806,7 +806,7 @@
 
 {#if isUnsplitConfirmOpen}
     <div class="split-modal-overlay" onclick={() => {isUnsplitConfirmOpen = false}}>
-        <div class="split-modal split-modal--confirm" onclick={(e) => e.stopPropagation()} transition:fly={{duration: 200, y: 20}}>
+        <div class="split-modal split-modal--confirm" onclick={(e) => e.stopPropagation()} transition:overlayFly={{duration: 200, y: 20}}>
             <div class="split-modal__header">
                 <h3 class="split-modal__title">{$_('unsplit_column')}</h3>
                 <button class="split-modal__close" onclick={() => {isUnsplitConfirmOpen = false}}>×</button>
@@ -836,7 +836,7 @@
         overflow: hidden;
 
         @media (max-width: 767px) {
-            height: calc(100dvh - 64px - 90px - var(--safe-area-bottom));
+            height: calc(100dvh - var(--bar-height, 48px) - 50px - var(--bar-bottom-height, 56px) - var(--safe-area-bottom));
         }
 
         &--split {
@@ -992,7 +992,7 @@
             flex-shrink: 0;
             width: 8px;
             height: 8px;
-            border-radius: 50%;
+            border-radius: var(--radius-round, 50%);
             background-color: var(--merge-source-color);
         }
 
@@ -1009,7 +1009,7 @@
             place-content: center;
             width: 26px;
             height: 26px;
-            border-radius: 50%;
+            border-radius: var(--radius-round, 50%);
 
             &:hover {
                 background-color: var(--state-hover, var(--border-color-2));
@@ -1144,7 +1144,7 @@
 
         &__range {
             width: 100%;
-            accent-color: var(--primary-color);
+            accent-color: var(--control-accent, var(--primary-color));
             cursor: ew-resize;
         }
 

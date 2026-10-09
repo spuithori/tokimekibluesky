@@ -112,7 +112,7 @@
 
         @media (max-width: 767px) {
             left: 16px;
-            bottom: calc(56px + var(--safe-area-bottom, 0px) + 12px);
+            bottom: calc(var(--bar-bottom-height, 56px) + var(--safe-area-bottom, 0px) + 12px);
             z-index: 998;
             max-width: calc(100vw - 32px - 72px);
         }

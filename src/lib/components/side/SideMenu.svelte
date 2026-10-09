@@ -3,7 +3,7 @@
     import { settings } from '$lib/stores';
     import { offset, shift, size } from 'svelte-floating-ui/dom';
     import { createFloatingActions } from 'svelte-floating-ui';
-    import { fly } from 'svelte/transition';
+    import { overlayFly } from '$lib/theme/motion';
     import AppWindowMac from '@lucide/svelte/icons/app-window-mac';
     import Bell from '@lucide/svelte/icons/bell';
     import CircleArrowUp from '@lucide/svelte/icons/circle-arrow-up';
@@ -118,7 +118,7 @@
 
 <div use:floatingRef></div>
 
-<dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:fly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
+<dialog class="side-menu" class:side-menu--bottom={publishState.isBottom} transition:overlayFly="{{ y: 16, duration: 250 }}" bind:this={el} onclose={onclose} onclick={handleClick} use:floatingContent>
   <div class="side-menu-row">
     <div class="side-menu-sp-header only-mobile">
       <a class="side-bar-button" href="/settings" onclick={onclose}>

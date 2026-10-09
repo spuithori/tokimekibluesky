@@ -77,6 +77,8 @@
     --bar-primary-icon-color: var(--primary-color);
     --bar-secondary-icon-color: var(--text-color-3);
     --bar-bottom-icon-color: var(--text-color-1);
+    --bar-height: 48px;
+    --bar-bottom-height: 56px;
     --bar-current-bar-color: var(--primary-color);
     --bar-current-bar-width: var(--default-bar-height);
     --bar-current-bar-height: var(--default-bar-width);

@@ -1,7 +1,7 @@
 <script lang="ts">
     import Unplug from '@lucide/svelte/icons/unplug';
   import {_} from "tokimeki-i18n";
-  import { fly } from 'svelte/transition';
+  import { overlayFly } from '$lib/theme/motion';
   import AcpAccountSelector from "$lib/components/acp/AcpAccountSelector.svelte";
   import {accountsDb} from "$lib/db";
   import {appState} from "$lib/classes/appState.svelte";
@@ -35,7 +35,7 @@
 </script>
 
 {#if profile}
-  <div class="modal" transition:fly="{{ y: 30, duration: 250 }}">
+  <div class="modal" transition:overlayFly="{{ y: 30, duration: 250 }}">
     <div class="modal-contents">
       <div class="modal-heading-icon">
         <Unplug size={48} color="var(--danger-color)" />

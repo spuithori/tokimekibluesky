@@ -165,7 +165,7 @@
         place-items: center;
         width: 26px;
         height: 26px;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         background-color: color-mix(in srgb, var(--primary-color) 14%, var(--bg-color-1));
         color: var(--primary-color);
         flex-shrink: 0;
@@ -191,7 +191,7 @@
         font-weight: 700;
         color: var(--primary-color);
         padding: 8px 14px;
-        border-radius: 999px;
+        border-radius: var(--radius-round, 999px);
         transition: background-color .15s ease;
 
         &:hover {

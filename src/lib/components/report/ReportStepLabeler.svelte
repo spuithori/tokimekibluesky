@@ -68,7 +68,7 @@
         &__avatar {
             width: 36px;
             height: 36px;
-            border-radius: 50%;
+            border-radius: var(--avatar-border-radius, 50%);
             overflow: hidden;
             flex-shrink: 0;
 

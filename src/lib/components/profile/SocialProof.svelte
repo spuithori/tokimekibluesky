@@ -44,7 +44,7 @@
           height: 32px;
           aspect-ratio: 1 / 1;
           overflow: hidden;
-          border-radius: 50%;
+          border-radius: var(--avatar-border-radius, 50%);
           background-color: var(--primary-color);
           border: 2px solid var(--bg-color-1);
 

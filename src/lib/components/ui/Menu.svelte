@@ -1,7 +1,7 @@
 <script lang="ts">
   import { offset, flip, shift } from 'svelte-floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
-  import { fly } from 'svelte/transition';
+  import { overlayFly } from '$lib/theme/motion';
   import type { Placement } from '@floating-ui/core';
 
   interface Props {
@@ -89,7 +89,7 @@
     class="timeline-menu"
     onclose={handleClose}
     onclick={handleClick}
-    transition:fly={{ y: 30, duration: 250 }}
+    transition:overlayFly={{ y: 30, duration: 250 }}
     use:floatingContent
     bind:this={el}
   >

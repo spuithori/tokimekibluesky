@@ -1,7 +1,7 @@
 <script>
     import Unplug from '@lucide/svelte/icons/unplug';
     import AcpProfileCard from "$lib/components/acp/AcpProfileCard.svelte";
-    import { fly } from 'svelte/transition';
+    import { overlayFly } from '$lib/theme/motion';
     import {liveQuery} from "dexie";
     import {accountsDb} from "$lib/db";
     import {_} from "tokimeki-i18n";
@@ -13,7 +13,7 @@
     }))
 </script>
 
-<div class="modal" transition:fly="{{ y: 30, duration: 250 }}">
+<div class="modal" transition:overlayFly="{{ y: 30, duration: 250 }}">
     <div class="modal-contents">
         <div class="modal-heading-icon">
             <Unplug size={48} color="var(--danger-color)" />

@@ -253,7 +253,7 @@
         height: 100%;
         aspect-ratio: 1 / 1;
         overflow: hidden;
-        border-radius: 6px;
+        border-radius: var(--radius-media, 6px);
         display: flex;
 
         &:only-child {
@@ -305,7 +305,7 @@
         height: 100%;
         width: auto;
         overflow: hidden;
-        border-radius: 6px;
+        border-radius: var(--radius-media, 6px);
         display: flex;
 
         &:last-child {

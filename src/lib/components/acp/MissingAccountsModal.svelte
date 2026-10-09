@@ -1,7 +1,7 @@
 <script lang="ts">
     import Unplug from '@lucide/svelte/icons/unplug';
   import {_} from "tokimeki-i18n";
-  import { fly } from 'svelte/transition';
+  import { overlayFly } from '$lib/theme/motion';
   import MissingAccountItem from "$lib/components/acp/MissingAccountItem.svelte";
   import {appState} from "$lib/classes/appState.svelte";
 
@@ -10,7 +10,7 @@
   }
 </script>
 
-<div class="modal" transition:fly="{{ y: 30, duration: 250 }}">
+<div class="modal" transition:overlayFly="{{ y: 30, duration: 250 }}">
   <div class="modal-contents">
     <div class="modal-heading-icon">
       <Unplug size={48} color="var(--danger-color)" />

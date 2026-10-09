@@ -237,7 +237,7 @@
         padding: 8px 16px;
         background: none;
         border: 1px solid var(--danger-color);
-        border-radius: 9999px;
+        border-radius: var(--radius-round, 9999px);
         color: var(--danger-color);
         font-size: 14px;
         cursor: pointer;
@@ -252,7 +252,7 @@
         padding: 8px 20px;
         background-color: var(--primary-color);
         border: none;
-        border-radius: 9999px;
+        border-radius: var(--radius-round, 9999px);
         color: var(--on-accent, white);
         font-size: 14px;
         font-weight: 600;

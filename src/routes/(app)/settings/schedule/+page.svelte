@@ -363,7 +363,7 @@
     .schedule-account-avatar {
         width: 40px;
         height: 40px;
-        border-radius: 50%;
+        border-radius: var(--avatar-border-radius, 50%);
         overflow: hidden;
         background-color: var(--primary-color);
         flex-shrink: 0;

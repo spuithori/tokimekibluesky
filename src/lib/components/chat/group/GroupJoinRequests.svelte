@@ -123,7 +123,7 @@
       &__avatar {
           width: 40px;
           height: 40px;
-          border-radius: 50%;
+          border-radius: var(--avatar-border-radius, 50%);
           overflow: hidden;
           background-color: var(--primary-color);
           display: block;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { scale } from 'svelte/transition';
+  import { overlayScale } from '$lib/theme/motion';
   import { onDestroy } from 'svelte';
 
   let { avatar, onclose }: { avatar: string, onclose: () => void } = $props();
@@ -120,7 +120,7 @@
 <dialog
   class="avatar-zoom-modal"
   bind:this={el}
-  in:scale={{duration: 250, opacity: 0, start: 0.98}}
+  in:overlayScale={{duration: 250, opacity: 0, start: 0.98}}
   onclick={handleClick}
   onclose={onclose}
 >
@@ -157,7 +157,7 @@
   .avatar-zoom-img {
     width: min(80vw, 400px);
     aspect-ratio: 1 / 1;
-    border-radius: 50%;
+    border-radius: var(--avatar-border-radius, 50%);
     overflow: hidden;
     cursor: grab;
     padding: 0;

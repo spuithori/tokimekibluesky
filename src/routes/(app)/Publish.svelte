@@ -1247,7 +1247,7 @@
 
         @media (max-width: 767px) {
             display: flex;
-            bottom: calc(64px + var(--safe-area-bottom));
+            bottom: calc(var(--bar-bottom-height, 56px) + 8px + var(--safe-area-bottom));
         }
 
         &--vk {
@@ -1267,7 +1267,7 @@
             @media (max-width: 767px) {
                 width: 48px;
                 height: 48px;
-                bottom: calc(112px + var(--visual-viewport-height, 0px) + var(--safe-area-bottom));
+                bottom: calc(var(--bar-bottom-height, 56px) + 56px + var(--visual-viewport-height, 0px) + var(--safe-area-bottom));
             }
         }
     }

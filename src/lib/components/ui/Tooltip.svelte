@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition';
+  import { overlayFade } from '$lib/theme/motion';
   interface Props {
     ref?: import('svelte').Snippet;
     content?: import('svelte').Snippet;
@@ -15,7 +15,7 @@
   </span>
 
   {#if isShown}
-    <span class="tooltip-content" transition:fade="{{ duration: 150, delay: 100 }}">
+    <span class="tooltip-content" transition:overlayFade="{{ duration: 150, delay: 100 }}">
       {@render content?.()}
     </span>
   {/if}

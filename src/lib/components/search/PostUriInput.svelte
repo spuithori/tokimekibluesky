@@ -190,7 +190,7 @@
             width: 18px;
             height: 18px;
             flex-shrink: 0;
-            border-radius: 50%;
+            border-radius: var(--radius-round, 50%);
             border: 1px solid var(--border-color-2);
 
             &:hover {

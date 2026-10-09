@@ -199,7 +199,7 @@
         height: 32px;
         display: grid;
         place-items: center;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         transition: background-color .15s ease;
 
         &:hover {
@@ -236,7 +236,7 @@
         margin-left: 4px;
         display: grid;
         place-items: center;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         border: 1.5px solid var(--primary-color);
         color: var(--primary-color);
         transition: background-color .15s ease, color .15s ease, transform .1s ease;

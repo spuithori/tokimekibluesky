@@ -2,12 +2,12 @@
   import { settings } from '$lib/stores';
   import { iconMap } from '$lib/columnIcons';
   import { AVATAR_ICON, columnAvatarSrc } from '$lib/columnAvatar';
-  import { fly, fade } from 'svelte/transition';
+  import { overlayFade, overlayFly } from '$lib/theme/motion';
 
   let { current, avatar = undefined, onchange, onclose } = $props();
 </script>
 
-<div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:fly={{ duration:250, y: -30 }}>
+<div class="column-icon-picker" class:column-icon-picker--mobileV2={$settings?.design?.mobileNewUi} transition:overlayFly={{ duration:250, y: -30 }}>
   <ul class="icon-picker-list">
     {#if avatar}
       <button
@@ -32,7 +32,7 @@
   </ul>
 </div>
 
-<button class="column-icon-picker-bg" transition:fade={{ duration: 150 }} onclick={onclose} aria-label="Close"></button>
+<button class="column-icon-picker-bg" transition:overlayFade={{ duration: 150 }} onclick={onclose} aria-label="Close"></button>
 
 <style lang="postcss">
   .column-icon-picker {
@@ -48,7 +48,7 @@
 
       &--mobileV2 {
           top: auto;
-          bottom: calc(118px + var(--safe-area-bottom));
+          bottom: calc(var(--bar-bottom-height, 56px) + 62px + var(--safe-area-bottom));
       }
   }
 
@@ -78,7 +78,7 @@
           display: block;
           width: 24px;
           height: 24px;
-          border-radius: 6px;
+          border-radius: var(--feed-avatar-border-radius, 6px);
           object-fit: cover;
       }
   }

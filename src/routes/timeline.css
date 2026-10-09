@@ -37,7 +37,7 @@
     position: relative;
     margin-top: 20px;
     box-shadow: var(--timeline-embed-box-shadow);
-    border-radius: 6px;
+    border-radius: var(--timeline-embed-border-radius, 6px);
     font-size: var(--timeline-content-font-size);
 
     @media (max-width: 767px) {
@@ -50,13 +50,13 @@
 
     &__image {
         background-color: var(--border-color-1);
-        border-radius: 4px;
+        border-radius: var(--radius-media, 4px);
         overflow: hidden;
         aspect-ratio: 1 / 1;
 
         &--round {
             display: flex;
-            border-radius: 50%;
+            border-radius: var(--avatar-border-radius, 50%);
             overflow: hidden;
         }
     }
@@ -179,7 +179,8 @@
             margin-left: -10px;
             margin-right: -10px;
             margin-top: -10px;
-            border-radius: 4px 4px 0 0;
+            --timeline-embed-inner-radius: max(0px, calc(var(--timeline-embed-border-radius, 6px) - 2px));
+            border-radius: var(--timeline-embed-inner-radius) var(--timeline-embed-inner-radius) 0 0;
         }
     }
 
@@ -250,20 +251,20 @@
 
     &:focus-visible {
         --kb-focus-outset: 10px;
-        --kb-focus-bg: color-mix(in srgb, var(--primary-color) 8%, transparent);
+        --kb-focus-bg: var(--focus-item-bg, color-mix(in srgb, var(--primary-color) 8%, transparent));
         border-bottom-color: transparent;
 
         &::after {
             content: '';
             position: absolute;
             inset: 0 calc(-1 * var(--kb-focus-outset)) calc(-1 * var(--timeline-border-width, 1px));
-            border: 2px solid var(--primary-color);
-            border-radius: var(--border-radius-3);
+            border: var(--focus-item-border, 2px solid var(--primary-color));
+            border-radius: var(--focus-item-border-radius, var(--border-radius-3));
             pointer-events: none;
         }
 
         :where(.app:not(.bubble)) & {
-            border-radius: var(--border-radius-3);
+            border-radius: var(--focus-item-border-radius, var(--border-radius-3));
             background-color: var(--kb-focus-bg);
             box-shadow:
                 var(--kb-focus-outset) 0 0 0 var(--kb-focus-bg),
@@ -442,7 +443,7 @@
     display: inline-block;
     flex-shrink: 0;
     padding: 0 6px;
-    border-radius: 999px;
+    border-radius: var(--radius-round, 999px);
     background-color: var(--primary-color);
     color: var(--on-accent, var(--bg-color-1));
     font-size: 11px;
@@ -543,8 +544,8 @@
             top: 50%;
             transform: translateY(-50%) translateX(-50%);
             background-color: transparent;
-            transition: background-color .2s ease-in-out;
-            border-radius: 50%;
+            transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
+            border-radius: var(--radius-round, 50%);
             z-index: -1;
         }
     }
@@ -560,7 +561,7 @@
     position: relative;
     border-radius: 14px;
     font-size: 12px;
-    transition: background-color .2s ease-in-out;
+    transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
     font-family: var(--ui-font);
     color: inherit;
 
@@ -650,12 +651,12 @@
     top: 20px;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: var(--radius-round, 50%);
     background-color: var(--bg-color-1);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color .2s ease-in-out;
+    transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
 
     @media (max-width: 767px) {
         top: 10px;
@@ -818,11 +819,11 @@
 .profile-menu-toggle {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: var(--radius-round, 50%);
     background-color: var(--bg-color-2);
     display: grid;
     place-content: center;
-    transition: background-color .2s ease-in-out;
+    transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
     flex-shrink: 0;
 
     &:hover {
@@ -1123,7 +1124,7 @@
     background-color: var(--bg-color-2);
     display: grid;
     place-content: center;
-    border-radius: 50%;
+    border-radius: var(--radius-round, 50%);
     position: absolute;
     right: 0;
     bottom: -12px;

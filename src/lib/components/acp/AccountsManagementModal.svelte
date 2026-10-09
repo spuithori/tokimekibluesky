@@ -1,6 +1,6 @@
 <script lang="ts">
     import {_} from "tokimeki-i18n";
-    import { fly } from 'svelte/transition';
+    import { overlayFly } from '$lib/theme/motion';
     import {accountsDb} from "$lib/db";
     import {liveQuery} from "dexie";
     import AcpAccountCard from "$lib/components/acp/AcpAccountCard.svelte";
@@ -65,7 +65,7 @@
     }
 </script>
 
-<div class="modal" transition:fly="{{ y: 30, duration: 250 }}">
+<div class="modal" transition:overlayFly="{{ y: 30, duration: 250 }}">
   <div class="modal-contents">
     <h2 class="modal-title">{$_('accounts_management_title')}</h2>
 

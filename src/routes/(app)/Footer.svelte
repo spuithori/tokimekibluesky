@@ -33,18 +33,18 @@
           display: flex;
           align-items: center;
           padding: 0 0 var(--safe-area-bottom);
-          height: calc(56px + var(--safe-area-bottom));
+          height: calc(var(--bar-bottom-height, 56px) + var(--safe-area-bottom));
       }
 
       &--hidden {
           @media (max-width: 767px) {
-              transform: translateY(calc(70px + var(--safe-area-bottom)));
+              transform: translateY(calc(var(--bar-bottom-height, 56px) + 14px + var(--safe-area-bottom)));
           }
       }
 
       &--scroll-down {
           @media (max-width: 767px) {
-              transform: translateY(calc(70px + var(--safe-area-bottom)));
+              transform: translateY(calc(var(--bar-bottom-height, 56px) + 14px + var(--safe-area-bottom)));
 
               &.footer--fixed {
                   transform: none;

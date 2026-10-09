@@ -151,7 +151,7 @@
       &__avatar {
           background-color: var(--border-color-2);
           aspect-ratio: 1 / 1;
-          border-radius: var(--border-radius-3);
+          border-radius: var(--feed-avatar-border-radius, var(--border-radius-3));
           display: grid;
           place-content: center;
       }

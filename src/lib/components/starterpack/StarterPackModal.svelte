@@ -568,7 +568,7 @@
     .sp-modal-feed-avatar {
         width: 32px;
         height: 32px;
-        border-radius: 6px;
+        border-radius: var(--feed-avatar-border-radius, 6px);
         object-fit: cover;
         flex-shrink: 0;
 

@@ -394,7 +394,7 @@
       display: grid;
       place-content: center;
       background-color: var(--bg-color-1);
-      border-radius: 50%;
+      border-radius: var(--radius-round, 50%);
       box-shadow: 0 0 3px var(--box-shadow-color-1);
       left: 0;
       right: 0;

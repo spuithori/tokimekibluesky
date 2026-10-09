@@ -49,7 +49,7 @@
 
 @media (max-width: 767px) {
     .deck-row--single:not(.deck-row--junk) .chat-view {
-        height: calc(100dvh - var(--deck-heading-height) - 46px - var(--safe-area-bottom));
+        height: calc(100dvh - var(--deck-heading-height) - var(--bar-height, 48px) + 2px - var(--safe-area-bottom));
     }
 }
 

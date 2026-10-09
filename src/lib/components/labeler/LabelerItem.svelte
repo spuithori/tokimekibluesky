@@ -35,7 +35,7 @@
             height: 100%;
             aspect-ratio: 1 / 1;
             background-color: var(--primary-color);
-            border-radius: var(--border-radius-4);
+            border-radius: var(--feed-avatar-border-radius, var(--border-radius-4));
             overflow: hidden;
 
             img {

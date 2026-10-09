@@ -176,7 +176,7 @@
       &__avatar {
           width: 64px;
           height: 64px;
-          border-radius: 50%;
+          border-radius: var(--avatar-border-radius, 50%);
           overflow: hidden;
           background-color: var(--primary-color);
           margin: 0 auto 12px;

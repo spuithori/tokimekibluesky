@@ -1,7 +1,8 @@
 a,
 button {
     &:focus-visible {
-        outline: dashed var(--text-color-1);
+        outline: var(--focus-ring, dashed var(--text-color-1));
+        outline-offset: var(--focus-ring-offset, 0px);
     }
 }
 

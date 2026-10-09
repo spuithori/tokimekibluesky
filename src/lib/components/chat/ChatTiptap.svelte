@@ -314,7 +314,7 @@
         width: 40px;
         height: 40px;
         background-color: var(--primary-color);
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
         display: grid;
         place-content: center;
 

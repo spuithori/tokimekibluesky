@@ -17,6 +17,10 @@ export const ROLE_KINDS: Readonly<Record<string, TokenKind>> = {
     '--on-accent': 'color', '--on-danger': 'color', '--state-hover': 'color', '--state-selected': 'color',
     '--accent-glow': 'shadow', '--elevation-1': 'shadow', '--elevation-2': 'shadow', '--elevation-3': 'shadow',
     '--radius-control': 'length', '--radius-card': 'length', '--radius-overlay': 'length',
+    '--radius-media': 'length', '--radius-round': 'length',
+    '--state-pressed': 'color', '--focus-ring': 'border', '--focus-ring-offset': 'length',
+    '--selection-bg': 'color', '--selection-color': 'color', '--caret-color': 'color', '--control-accent': 'color',
+    '--motion-duration-hover': 'other', '--motion-easing-hover': 'other', '--motion-duration-overlay': 'other', '--motion-easing-overlay': 'other',
 };
 
 export const UNDECLARED: readonly string[] = [
@@ -25,6 +29,9 @@ export const UNDECLARED: readonly string[] = [
     '--bubble-heading-bg-color', '--bubble-single-bg-color', '--bubble-inset', '--bubble-page-inset', '--bubble-decks-gap',
     '--bubble-decks-padding-left', '--bubble-scroll-bar-border-radius', '--bubble-column-bg-color', '--bubble-column-border-color',
     '--bubble-heading-icon-bg-color',
+    '--feed-avatar-border-radius', '--timeline-embed-border-radius',
+    '--thread-guide-width', '--thread-guide-color', '--thread-guide-radius', '--thread-guide-hover-color',
+    '--focus-item-border', '--focus-item-bg', '--focus-item-border-radius',
 ];
 
 const BASE = /^--(bg-color|text-color|border-color|color-theme|primary-color|secondary-color|success-color|danger-color|warning-color|follow-color|current-theme-color|base-|link-|box-shadow-color|blurred-|border-radius-|app-|default-|avatar-|icon-stroke)/;
@@ -69,6 +76,9 @@ export function referencedTokens(root: string): Set<string> {
     const names = new Set<string>();
     for (const path of globSync('src/**/*.{svelte,css}', { cwd: root })) {
         for (const [, name] of readFileSync(join(root, path), 'utf8').matchAll(/var\((--[a-z0-9-]+)/g)) names.add(name);
+    }
+    for (const path of globSync('src/**/*.ts', { cwd: root })) {
+        for (const [, name] of readFileSync(join(root, path), 'utf8').matchAll(/getPropertyValue\('(--[a-z0-9-]+)'\)/g)) names.add(name);
     }
     return names;
 }

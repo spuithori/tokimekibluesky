@@ -76,7 +76,7 @@
             right: 0;
             height: 68px;
             background-image: linear-gradient(to bottom, transparent 0% , rgba(0, 0, 0, .52) 100%);
-            border-radius: 0 0 var(--border-radius-4) var(--border-radius-4);
+            border-radius: 0 0 var(--radius-media, var(--border-radius-4)) var(--radius-media, var(--border-radius-4));
             z-index: -1;
         }
     }

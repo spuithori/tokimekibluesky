@@ -17,7 +17,7 @@
   import Layers from '@lucide/svelte/icons/layers';
   import Database from '@lucide/svelte/icons/database';
   import SideMyFeeds from "$lib/components/side/SideMyFeeds.svelte";
-  import { fly } from 'svelte/transition';
+  import { overlayFly } from '$lib/theme/motion';
   import SideMenu from "$lib/components/side/SideMenu.svelte";
   import { clickOutside } from '$lib/clickOutSide';
   import { publishState } from "$lib/classes/publishState.svelte";
@@ -175,7 +175,7 @@
 </ul>
 
 {#if isWorkspaceModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--workspace'}} onoutclick={() => {isWorkspaceModalOpen = false}}>
+  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--workspace'}} onoutclick={() => {isWorkspaceModalOpen = false}}>
     <div class="side-modal__content">
       <SideWorkspace onclose={() => {isWorkspaceModalOpen = false}}></SideWorkspace>
     </div>
@@ -187,7 +187,7 @@
 {/if}
 
 {#if isFeedsModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>
+  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>
     <div class="side-modal__content">
       <SideMyFeeds onclose={() => {isFeedsModalOpen = false}}></SideMyFeeds>
     </div>
@@ -199,7 +199,7 @@
 {/if}
 
 {#if isNotificationModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notifications'}} onoutclick={() => {isNotificationModalOpen = false}}>
+  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notifications'}} onoutclick={() => {isNotificationModalOpen = false}}>
     <div class="side-modal__content">
       <SideNotification></SideNotification>
     </div>
@@ -211,7 +211,7 @@
 {/if}
 
 {#if isBluecastModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--bluecast'}} onoutclick={() => {isBluecastModalOpen = false}}>
+  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--bluecast'}} onoutclick={() => {isBluecastModalOpen = false}}>
     <div class="side-modal__content">
       <SideBluecast></SideBluecast>
     </div>
@@ -223,7 +223,7 @@
 {/if}
 
 {#if isColumnsModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--columns'}} onoutclick={() => {isColumnsModalOpen = false}}>
+  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--columns'}} onoutclick={() => {isColumnsModalOpen = false}}>
     <div class="side-modal__content">
       <SideColumns onviewcolumn={handleViewColumn}></SideColumns>
     </div>
@@ -235,7 +235,7 @@
 {/if}
 
 {#if isTopicModalOpen}
-  <div class="side-modal" transition:fly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--topic'}} onoutclick={() => {isTopicModalOpen = false}}>
+  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--topic'}} onoutclick={() => {isTopicModalOpen = false}}>
     <div class="side-modal__content">
       <SideTopic></SideTopic>
     </div>
@@ -302,7 +302,7 @@
               height: var(--side-nav-height, 48px);
           }
           position: relative;
-          transition: background-color .2s linear;
+          transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, linear);
 
           &:hover {
               &::after {
@@ -355,7 +355,7 @@
           height: 16px;
           font-size: 11px;
           font-weight: bold;
-          border-radius: 50%;
+          border-radius: var(--radius-round, 50%);
           background-color: var(--danger-color);
           color: var(--on-danger, var(--bg-color-1));
           display: grid;
@@ -421,7 +421,7 @@
 
       @media (max-width: 767px) {
           top: auto;
-          bottom: 64px;
+          bottom: calc(var(--bar-bottom-height, 56px) + 8px);
           left: 0;
           right: 0;
           width: auto;

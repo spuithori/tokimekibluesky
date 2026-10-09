@@ -56,6 +56,17 @@ body {
     background-image: var(--app-bg-image);
     background-size: cover;
     background-position: center;
+    caret-color: var(--caret-color, auto);
+    accent-color: var(--control-accent, auto);
+}
+
+.app.theme-selection ::selection {
+    background-color: var(--selection-bg);
+    color: var(--selection-color, currentColor);
+}
+
+.app.theme-pressed :is(button, [role='button'], [role='menuitem'], [role='tab'], [role='option']):active {
+    box-shadow: inset 0 0 0 100vmax var(--state-pressed);
 }
 
 .app.monochrome {

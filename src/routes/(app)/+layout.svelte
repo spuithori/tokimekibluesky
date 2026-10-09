@@ -221,6 +221,10 @@
         });
     }
 
+    const themeStyle = $derived(outputInlineStyle($theme));
+    const themeSelection = $derived(!!themeStyle && themeStyle.includes("--selection-bg:"));
+    const themePressed = $derived(!!themeStyle && themeStyle.includes("--state-pressed:"));
+
     appState.init();
     viewPortSetting();
     setPostState();
@@ -387,7 +391,9 @@
     class:superstar={$settings.design?.reactionMode === "superstar"}
     class:bubble={$settings?.design?.bubbleTimeline}
     class:monochrome={$settings?.design?.monochrome}
-    style={outputInlineStyle($theme)}
+    class:theme-selection={themeSelection}
+    class:theme-pressed={themePressed}
+    style={themeStyle}
     dir={$_("dir")}
     bind:this={app}
 >

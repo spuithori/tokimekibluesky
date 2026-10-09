@@ -42,7 +42,7 @@
       flex-wrap: wrap;
       gap: 2px 8px;
       text-align: left;
-      transition: background-color .15s ease-in-out;
+      transition: background-color var(--motion-duration-hover, .15s) var(--motion-easing-hover, ease-in-out);
       color: var(--text-color-1);
       font-size: 14px;
 

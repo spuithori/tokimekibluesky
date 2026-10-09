@@ -278,7 +278,7 @@
             height: 22px;
             display: grid;
             place-content: center;
-            border-radius: 50%;
+            border-radius: var(--radius-round, 50%);
             border: 2px dashed var(--border-color-1);
             color: #fff;
             font-size: 12px;

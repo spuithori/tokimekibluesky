@@ -109,7 +109,7 @@
         font-weight: 700;
         color: var(--text-color-3);
         background-color: var(--bg-color-2);
-        border-radius: 999px;
+        border-radius: var(--radius-round, 999px);
         min-width: 20px;
         height: 18px;
         padding: 0 6px;
@@ -128,7 +128,7 @@
         place-items: center;
         width: 28px;
         height: 28px;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
 
         &:hover {
             background-color: var(--state-hover, var(--bg-color-2));

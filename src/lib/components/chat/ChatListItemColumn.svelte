@@ -281,7 +281,7 @@
       bottom: -2px;
       width: 16px;
       height: 16px;
-      border-radius: 50%;
+      border-radius: var(--radius-round, 50%);
       background-color: var(--danger-color);
       color: var(--on-danger, #fff);
       font-weight: bold;

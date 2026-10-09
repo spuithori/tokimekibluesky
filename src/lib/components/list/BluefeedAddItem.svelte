@@ -117,7 +117,7 @@
           background-color: var(--bg-color-2);
           width: 30px;
           height: 30px;
-          border-radius: 50%;
+          border-radius: var(--radius-round, 50%);
           display: grid;
           place-content: center;
           color: inherit;

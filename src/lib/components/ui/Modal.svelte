@@ -2,7 +2,7 @@
   import X from '@lucide/svelte/icons/x';
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import { _ } from 'tokimeki-i18n';
-  import { scale } from 'svelte/transition';
+  import { overlayScale } from '$lib/theme/motion';
 
   let { title, size = 'normal', onclose, onback = undefined, children, footer = undefined } = $props();
   const duration = 150;
@@ -28,7 +28,7 @@
 <dialog
   class="v2-modal v2-modal--{size}"
   bind:this={el}
-  in:scale={{duration: 250, opacity: 0, start: 0.98}}
+  in:overlayScale={{duration: 250, opacity: 0, start: 0.98}}
   onclick={handleClick}
   {onclose}
 >

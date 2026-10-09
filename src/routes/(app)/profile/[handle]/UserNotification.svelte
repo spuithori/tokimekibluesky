@@ -54,7 +54,7 @@
   .user-notification-button {
       width: 40px;
       height: 40px;
-      border-radius: 50%;
+      border-radius: var(--radius-round, 50%);
       background-color: var(--bg-color-1);
       display: grid;
       place-content: center;

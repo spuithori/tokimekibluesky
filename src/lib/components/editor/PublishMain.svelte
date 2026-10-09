@@ -787,7 +787,7 @@
       &__delete {
           width: 28px;
           height: 28px;
-          border-radius: 50%;
+          border-radius: var(--radius-round, 50%);
           background-color: rgba(0, 0, 0, .5);
           display: grid;
           place-content: center;

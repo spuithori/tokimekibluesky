@@ -178,7 +178,7 @@
             position: absolute;
             width: 8px;
             height: 8px;
-            border-radius: 50%;
+            border-radius: var(--radius-round, 50%);
             background-color: var(--primary-color);
             right: var(--notifications-new-right, -12px);
             top: var(--notifications-new-top, 4px);;

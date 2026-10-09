@@ -153,7 +153,7 @@
       }
 
       &__avatar {
-          border-radius: 10px;
+          border-radius: var(--feed-avatar-border-radius, 10px);
           aspect-ratio: 1 / 1;
           background-color: var(--primary-color);
           overflow: hidden;

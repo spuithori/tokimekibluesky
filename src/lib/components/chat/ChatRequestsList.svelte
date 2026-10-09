@@ -178,7 +178,7 @@
           height: 46px;
 
           &--owner {
-              border-radius: 50%;
+              border-radius: var(--avatar-border-radius, 50%);
               overflow: hidden;
               background-color: var(--primary-color);
 

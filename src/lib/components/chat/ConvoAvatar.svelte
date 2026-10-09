@@ -60,7 +60,7 @@
           left: 0;
           width: calc(var(--convo-avatar-size) * .68);
           aspect-ratio: 1 / 1;
-          border-radius: 50%;
+          border-radius: var(--avatar-border-radius, 50%);
           background-color: var(--primary-color);
           display: grid;
           place-content: center;

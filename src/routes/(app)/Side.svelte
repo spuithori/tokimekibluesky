@@ -89,7 +89,7 @@
                   bottom: 0;
                   border-radius: 0;
                   box-shadow: none;
-                  height: 56px;
+                  height: var(--bar-bottom-height, 56px);
                   background-color: transparent;
                   pointer-events: none;
                   z-index: 1013;
@@ -119,7 +119,7 @@
           bottom: 0;
           border-radius: 0;
           box-shadow: none;
-          height: 56px;
+          height: var(--bar-bottom-height, 56px);
           background-color: transparent;
           pointer-events: none;
           z-index: 1013;

@@ -2,7 +2,7 @@
   import {onMount} from "svelte";
   import {agent, settings} from "$lib/stores";
   import UserFollowButton from "./profile/[handle]/UserFollowButton.svelte";
-  import { fade } from 'svelte/transition';
+  import { overlayFade } from '$lib/theme/motion';
   import {_} from "tokimeki-i18n";
   import { offset, flip, shift } from '@floating-ui/dom';
   import { createFloatingActions } from 'svelte-floating-ui';
@@ -45,7 +45,7 @@
 
 <span class="profile-card-target" use:floatingRef></span>
 {#if profile}
-  <aside class="profile-card" {onmouseover} {onmouseleave} transition:fade="{{ duration: 100 }}" use:floatingContent bind:this={el} popover="manual">
+  <aside class="profile-card" {onmouseover} {onmouseleave} transition:overlayFade="{{ duration: 100 }}" use:floatingContent bind:this={el} popover="manual">
     <div class="profile-card-heading">
       <div class="profile-card-avatar">
         <img src="{profile.avatar}" alt="">
@@ -159,7 +159,7 @@
 
   .profile-card-avatar {
       display: flex;
-      border-radius: 50%;
+      border-radius: var(--avatar-border-radius, 50%);
       overflow: hidden;
       background-color: var(--primary-color);
       aspect-ratio: 1 / 1;

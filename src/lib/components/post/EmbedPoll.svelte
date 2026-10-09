@@ -484,7 +484,7 @@
         padding: 6px 16px;
         background-color: var(--primary-color);
         border: none;
-        border-radius: 9999px;
+        border-radius: var(--radius-round, 9999px);
         color: var(--on-accent, white);
         font-size: 13px;
         font-weight: 600;
@@ -505,7 +505,7 @@
         padding: 6px 12px;
         background-color: transparent;
         border: 1px solid var(--border-color-1);
-        border-radius: 9999px;
+        border-radius: var(--radius-round, 9999px);
         color: var(--text-color-3);
         font-size: 12px;
         cursor: pointer;

@@ -89,8 +89,8 @@
           top: 50%;
           transform: translateY(-50%) translateX(-50%);
           background-color: transparent;
-          transition: background-color .2s ease-in-out;
-          border-radius: 50%;
+          transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
+          border-radius: var(--radius-round, 50%);
           z-index: -1;
       }
 

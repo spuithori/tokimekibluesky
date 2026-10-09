@@ -360,7 +360,7 @@
         height: 100%;
         overflow: hidden;
         z-index: 1;
-        border-radius: 8px;
+        border-radius: var(--radius-media, 8px);
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;

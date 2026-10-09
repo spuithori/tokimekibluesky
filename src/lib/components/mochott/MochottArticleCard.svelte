@@ -141,7 +141,7 @@
     .mochott-article-card__avatar {
         width: 20px;
         height: 20px;
-        border-radius: 50%;
+        border-radius: var(--avatar-border-radius, 50%);
         object-fit: cover;
     }
 

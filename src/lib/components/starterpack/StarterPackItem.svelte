@@ -150,7 +150,7 @@
     &__avatar-item {
       width: 28px;
       height: 28px;
-      border-radius: 50%;
+      border-radius: var(--avatar-border-radius, 50%);
       overflow: hidden;
       border: 2px solid var(--bg-color-1);
       margin-left: -6px;

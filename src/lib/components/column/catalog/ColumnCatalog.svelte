@@ -381,7 +381,7 @@
         height: 30px;
         display: grid;
         place-items: center;
-        border-radius: 50%;
+        border-radius: var(--radius-round, 50%);
 
         &:hover {
             background-color: var(--state-hover, var(--bg-color-3));

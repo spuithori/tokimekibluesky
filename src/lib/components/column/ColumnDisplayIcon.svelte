@@ -38,7 +38,7 @@
         display: block;
         width: 24px;
         height: 24px;
-        border-radius: 6px;
+        border-radius: var(--feed-avatar-border-radius, 6px);
         object-fit: cover;
     }
 </style>

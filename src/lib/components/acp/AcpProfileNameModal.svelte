@@ -1,6 +1,7 @@
 <script lang="ts">
     import Pen from '@lucide/svelte/icons/pen';
-    import { fade, fly } from 'svelte/transition';
+    import { fade } from 'svelte/transition';
+    import { overlayFly } from '$lib/theme/motion';
     import {onDestroy, onMount} from "svelte";
     import {pauseColumn} from "$lib/stores";
 
@@ -19,7 +20,7 @@
     })
 </script>
 
-<div class="modal" transition:fly="{{ y: 30, duration: 250 }}">
+<div class="modal" transition:overlayFly="{{ y: 30, duration: 250 }}">
   <div class="modal-contents">
     <div class="input-with-pen">
       <Pen size={20} color="var(--text-color-1)" />

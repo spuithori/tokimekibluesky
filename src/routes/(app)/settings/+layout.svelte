@@ -5,7 +5,7 @@
   import ArrowLeft from '@lucide/svelte/icons/arrow-left';
   import X from '@lucide/svelte/icons/x';
   import NotebookPen from '@lucide/svelte/icons/notebook-pen';
-  import { scale } from 'svelte/transition';
+  import { overlayScale } from '$lib/theme/motion';
   import { agent } from "$lib/stores";
   import { settingsNav, isNavCurrent } from "$lib/settings/nav";
   import SettingsSearch from "$lib/components/settings/SettingsSearch.svelte";
@@ -78,7 +78,7 @@
 </script>
 
 <div class="settings-modal" class:settings-modal--transparent-bg={$page.url.pathname === '/settings/design'}>
-  <div class="settings-modal-content" in:scale={{duration: 250, opacity: 0, start: 0.98}}>
+  <div class="settings-modal-content" in:overlayScale={{duration: 250, opacity: 0, start: 0.98}}>
     <div class="settings-column" data-path="{data.pathname}">
       <div class="settings-toc">
         <div class="column-heading only-mobile">
@@ -371,7 +371,7 @@
     &__avatar {
       width: 24px;
       height: 24px;
-      border-radius: 50%;
+      border-radius: var(--avatar-border-radius, 50%);
       object-fit: cover;
     }
 
