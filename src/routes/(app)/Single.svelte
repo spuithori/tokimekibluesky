@@ -111,6 +111,7 @@
   class="single-wrap"
   class:single-wrap--page={$page.url.pathname !== '/'}
   class:single-wrap--bottom={publishState.isBottom}
+  data-glass-surface={$page.url.pathname === '/' ? '' : undefined}
   style:--single-column-width={resizeWidth != null ? `${resizeWidth}px` : null}
   bind:this={wrapEl}
 >

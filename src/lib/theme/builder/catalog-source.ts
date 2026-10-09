@@ -33,6 +33,16 @@ export const UNDECLARED: readonly string[] = [
     '--thread-guide-width', '--thread-guide-color', '--thread-guide-radius', '--thread-guide-hover-color',
     '--focus-item-border', '--focus-item-bg', '--focus-item-border-radius',
     '--side-column-add-button-box-shadow',
+    '--app-wallpaper', '--app-wallpaper-display', '--side-bg-image',
+    '--side-rail-fade', '--deck-under-side', '--button-border-bg-color',
+    '--bar-bottom-bg', '--bar-bottom-backdrop-filter', '--bar-bottom-box-shadow', '--bar-bottom-item-bg',
+    '--publish-mobile-bg', '--publish-backdrop-display', '--publish-backdrop-filter', '--publish-toggle-bg', '--publish-toggle-box-shadow',
+    '--glass-wallpaper', '--surface-overlay-backdrop-filter', '--surface-overlay-inner',
+    '--side-popup-bg', '--side-popup-backdrop-filter', '--side-popup-deck-bg', '--side-popup-heading-bg',
+    '--side-popup-item-bg', '--side-popup-item-border', '--side-menu-divider-icon-bg',
+    '--radio-boxed-bg', '--radio-boxed-box-shadow', '--radio-boxed-hover-bg', '--radio-boxed-checked-bg', '--radio-boxed-checked-box-shadow',
+    '--layout-radio-bg', '--layout-radio-current-bg', '--layout-radio-current-box-shadow',
+    '--toggle-track-bg', '--toggle-track-box-shadow', '--toggle-track-checked-bg', '--toggle-track-checked-box-shadow', '--toggle-knob-bg', '--toggle-knob-box-shadow',
 ];
 
 const BASE = /^--(bg-color|text-color|border-color|color-theme|primary-color|secondary-color|success-color|danger-color|warning-color|follow-color|current-theme-color|base-|link-|box-shadow-color|blurred-|border-radius-|app-|default-|avatar-|icon-stroke)/;
@@ -53,7 +63,7 @@ export function groupOf(name: string): TokenGroup {
 export function kindOf(name: string): TokenKind {
     if (ROLE_KINDS[name]) return ROLE_KINDS[name];
     if (/backdrop-filter$/.test(name)) return 'filter';
-    if (/^--deck-rim$|-bar-color$/.test(name)) return 'background';
+    if (/^--deck-rim$|-bar-color$|^--(app|glass)-wallpaper$|^--side-rail-fade$|^--surface-overlay-inner$|^--side-popup-(bg|deck-bg|heading-bg)$/.test(name) || (/-bg$/.test(name) && !/^--color-theme-/.test(name))) return 'background';
     if (/(shadow|glow)$/.test(name)) return 'shadow';
     if (/(-image|-bg-image)$/.test(name)) return 'image';
     if (/-bg-color$|^--(app|base|base-dark|blurred|blurred-dark)-bg-color$/.test(name)) return 'background';

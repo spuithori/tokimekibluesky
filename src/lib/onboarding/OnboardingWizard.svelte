@@ -281,6 +281,8 @@
         width: 100%;
         max-height: 94dvh;
         overflow: visible;
+        border-radius: var(--radius-overlay, 28px);
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         font-family: var(--ui-font), var(--font-body), sans-serif;
         animation: wizard-in .45s var(--wizard-ease);
 
@@ -293,6 +295,7 @@
             margin: auto 0 0;
             max-width: 100vw;
             max-height: 96dvh;
+            border-radius: var(--radius-overlay, 28px 28px 0 0);
         }
     }
 

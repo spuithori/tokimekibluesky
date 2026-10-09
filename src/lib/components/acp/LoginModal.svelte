@@ -47,6 +47,7 @@
         padding: 30px;
         border-radius: var(--radius-overlay, 10px);
         background: var(--surface-overlay, var(--bg-color-1));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         max-width: 400px;
         width: 100%;
 

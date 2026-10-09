@@ -23,7 +23,8 @@ input[type=checkbox] {
     text-indent: -9999px;
     width: 50px;
     height: 30px;
-    background: var(--border-color-1);
+    background: var(--toggle-track-bg, var(--border-color-1));
+    box-shadow: var(--toggle-track-box-shadow, none);
     display: block;
     border-radius: 15px;
     cursor: pointer;
@@ -36,13 +37,15 @@ input[type=checkbox] {
     left: 5px;
     width: 20px;
     height: 20px;
-    background: var(--bg-color-1);
+    background: var(--toggle-knob-bg, var(--bg-color-1));
+    box-shadow: var(--toggle-knob-box-shadow, none);
     border-radius: 50%;
     transition: all 0.25s ease-in-out;
 }
 
 .input-toggle__input:checked + .input-toggle__label {
-    background: var(--primary-color);
+    background: var(--toggle-track-checked-bg, var(--primary-color));
+    box-shadow: var(--toggle-track-checked-box-shadow, var(--toggle-track-box-shadow, none));
 }
 
 .input-toggle__input:checked + .input-toggle__label:after {

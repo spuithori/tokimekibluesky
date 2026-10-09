@@ -1239,7 +1239,8 @@
         width: 52px;
         height: 52px;
         border-radius: var(--radius-overlay, 16px);
-        background-color: var(--primary-color);
+        background: var(--publish-toggle-bg, var(--primary-color));
+        box-shadow: var(--publish-toggle-box-shadow, none);
         align-items: center;
         justify-content: center;
         z-index: 2001;
@@ -1290,7 +1291,7 @@
         z-index: 12;
         min-width: 72px;
         border-radius: var(--radius-control, var(--border-radius-3));
-        background-color: var(--publish-post-button-bg-color);
+        background: var(--publish-post-button-bg-color);
         color: var(--publish-post-button-color);
         border: var(--publish-post-button-border);
         box-shadow: var(--publish-post-button-box-shadow);

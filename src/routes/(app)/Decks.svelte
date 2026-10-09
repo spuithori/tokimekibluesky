@@ -24,8 +24,7 @@
 <TilingDragOverlay></TilingDragOverlay>
 <TilingDragGhost></TilingDragGhost>
 
-<div class="deck-wrap" {@attach appState.ready && trackDeckMounted}>
-  <div class="deck-divider" class:deck-divider--compact={publishState.isBottom}></div>
+<div class="deck-wrap" class:deck-wrap--compact={publishState.isBottom} {@attach appState.ready && trackDeckMounted}>
 
   {#if columnState.loadFailed}
     <div class="deck-empty">
@@ -75,18 +74,13 @@
 <style lang="postcss">
   .deck-wrap {
       display: flex;
-  }
-
-  .deck-divider {
-      width: var(--deck-divider-width);
-      flex-shrink: 0;
-
-      @media (max-width: 767px) {
-          display: none;
-      }
+      --deck-side-box: calc(var(--side-rail-width, 64px) + var(--side-width, 340px) + var(--side-padding-right));
+      --deck-lead: calc(var(--deck-divider-width) - var(--deck-side-box));
+      --deck-under: calc(var(--deck-under-side, 0) * var(--deck-side-box));
 
       &--compact {
-          width: var(--deck-divider-compact-width, 64px);
+          --deck-side-box: var(--side-rail-width, 64px);
+          --deck-lead: calc(var(--deck-divider-compact-width, 64px) - var(--side-rail-width, 64px));
       }
   }
 
@@ -106,6 +100,11 @@
       border-bottom: var(--decks-border-bottom, 0);
       box-shadow: var(--decks-box-shadow, none);
 
+      @media (min-width: 768px) {
+          margin-left: calc(-1 * var(--deck-under));
+          padding-left: calc(var(--decks-padding-left) + var(--deck-lead) + var(--deck-under));
+      }
+
       &::-webkit-scrollbar {
           height: var(--decks-scroll-bar-size, 8px);
 
@@ -123,7 +122,7 @@
 
       &::-webkit-scrollbar-track {
           background: var(--scroll-bar-bg-color);
-          margin-inline: var(--decks-scroll-bar-inset, 0px);
+          margin-inline: calc(var(--decks-scroll-bar-inset, 0px) + var(--deck-under)) var(--decks-scroll-bar-inset, 0px);
       }
 
       @media (max-width: 767px) {

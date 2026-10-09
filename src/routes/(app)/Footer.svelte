@@ -4,7 +4,7 @@
   import SideNav from "$lib/components/side/SideNav.svelte";
 </script>
 
-<footer class="footer" class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}
+<footer class="footer" data-glass-cover class:footer--scroll-down={scrollDirectionState.direction === 'down'} class:footer--fixed={$settings.design?.fixedFooter}
  class:footer--mobileV2={$settings.design?.mobileNewUi}>
   <div class="footer__wrap">
     <SideNav footer={true}></SideNav>
@@ -17,8 +17,9 @@
       left: 0;
       right: 0;
       bottom: 0;
-      box-shadow: 0 -1px 6px rgba(61, 120, 209, .09);
-      background-color: var(--bg-color-1);
+      box-shadow: var(--bar-bottom-box-shadow, 0 -1px 6px rgba(61, 120, 209, .09));
+      background: var(--bar-bottom-bg, var(--bg-color-1));
+      backdrop-filter: var(--bar-bottom-backdrop-filter, none);
       z-index: 999;
 
       @media (min-width: 767px) {

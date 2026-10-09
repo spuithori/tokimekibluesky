@@ -462,7 +462,7 @@
         <DeckSettingsModal {index} {_agent} layout={$settings.design?.layout} onclose={handleSettingsClick} {isSplit}></DeckSettingsModal>
     {/snippet}
 
-    <div class="deck-heading" class:deck-heading--sticky={isJunk && column?.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk} data-tour={!isJunk && index === 0 ? 'column-header' : undefined}>
+    <div class="deck-heading" data-glass-cover class:deck-heading--sticky={isJunk && column?.algorithm?.type === 'thread'} class:deck-heading--scroll-down={scrollDirectionState.direction === 'down' && !isJunk} data-tour={!isJunk && index === 0 ? 'column-header' : undefined}>
         {#if (!isJunk)}
             {#if showDragHandle}
                 <div class="deck-drag-area">
@@ -839,7 +839,7 @@
             width: 36px;
             height: 36px;
             border-radius: var(--deck-heading-icon-border-radius, 5px);
-            background-color: var(--deck-heading-icon-bg-color);
+            background: var(--deck-heading-icon-bg-color);
             display: grid;
             place-content: center;
             flex-shrink: 0;

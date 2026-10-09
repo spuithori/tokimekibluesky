@@ -141,7 +141,8 @@
         input {
             &:checked {
                 & + label {
-                    background-color: var(--primary-color);
+                    background: var(--radio-boxed-checked-bg, var(--primary-color));
+                    box-shadow: var(--radio-boxed-checked-box-shadow, var(--radio-boxed-box-shadow, none));
                     color: var(--on-accent, var(--bg-color-1));
                     font-weight: bold;
                 }
@@ -149,13 +150,14 @@
         }
 
         label {
-            background-color: var(--bg-color-2);
+            background: var(--radio-boxed-bg, var(--bg-color-2));
+            box-shadow: var(--radio-boxed-box-shadow, none);
             width: 100%;
             padding: 8px;
             border-radius: var(--radius-control, var(--border-radius-2));
 
             &:hover {
-                background-color: var(--state-hover, var(--bg-color-3));
+                background: var(--radio-boxed-hover-bg, var(--state-hover, var(--bg-color-3)));
             }
         }
 
@@ -743,11 +745,14 @@
     --radio-current-color: var(--border-color-1);
     position: relative;
     border: 2px solid var(--radio-current-color);
+    background: var(--layout-radio-bg, none);
     font-size: 13px;
     border-radius: var(--radius-control, var(--border-radius-2));
 
     &--current {
         --radio-current-color: var(--primary-color);
+        background: var(--layout-radio-current-bg, var(--layout-radio-bg, none));
+        box-shadow: var(--layout-radio-current-box-shadow, none);
         font-weight: bold;
     }
 

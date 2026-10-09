@@ -175,7 +175,7 @@
 </ul>
 
 {#if isWorkspaceModalOpen}
-  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--workspace'}} onoutclick={() => {isWorkspaceModalOpen = false}}>
+  <div class="side-modal" data-glass-overlay transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--workspace'}} onoutclick={() => {isWorkspaceModalOpen = false}}>
     <div class="side-modal__content">
       <SideWorkspace onclose={() => {isWorkspaceModalOpen = false}}></SideWorkspace>
     </div>
@@ -187,7 +187,7 @@
 {/if}
 
 {#if isFeedsModalOpen}
-  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>
+  <div class="side-modal" data-glass-overlay transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--feeds'}} onoutclick={() => {isFeedsModalOpen = false}}>
     <div class="side-modal__content">
       <SideMyFeeds onclose={() => {isFeedsModalOpen = false}}></SideMyFeeds>
     </div>
@@ -199,7 +199,7 @@
 {/if}
 
 {#if isNotificationModalOpen}
-  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notifications'}} onoutclick={() => {isNotificationModalOpen = false}}>
+  <div class="side-modal" data-glass-overlay transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--notifications'}} onoutclick={() => {isNotificationModalOpen = false}}>
     <div class="side-modal__content">
       <SideNotification></SideNotification>
     </div>
@@ -211,7 +211,7 @@
 {/if}
 
 {#if isBluecastModalOpen}
-  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--bluecast'}} onoutclick={() => {isBluecastModalOpen = false}}>
+  <div class="side-modal" data-glass-overlay transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--bluecast'}} onoutclick={() => {isBluecastModalOpen = false}}>
     <div class="side-modal__content">
       <SideBluecast></SideBluecast>
     </div>
@@ -223,7 +223,7 @@
 {/if}
 
 {#if isColumnsModalOpen}
-  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--columns'}} onoutclick={() => {isColumnsModalOpen = false}}>
+  <div class="side-modal" data-glass-overlay transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--columns'}} onoutclick={() => {isColumnsModalOpen = false}}>
     <div class="side-modal__content">
       <SideColumns onviewcolumn={handleViewColumn}></SideColumns>
     </div>
@@ -235,7 +235,7 @@
 {/if}
 
 {#if isTopicModalOpen}
-  <div class="side-modal" transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--topic'}} onoutclick={() => {isTopicModalOpen = false}}>
+  <div class="side-modal" data-glass-overlay transition:overlayFly="{{ y: 16, duration: 250 }}" use:clickOutside={{ignoreElement: '.side-nav__button--topic'}} onoutclick={() => {isTopicModalOpen = false}}>
     <div class="side-modal__content">
       <SideTopic></SideTopic>
     </div>
@@ -264,7 +264,7 @@
                   margin-left: 0;
                   position: sticky;
                   right: 0;
-                  background-color: var(--bg-color-1);
+                  background-color: var(--bar-bottom-item-bg, var(--bg-color-1));
 
                   &::before {
                       content: '';
@@ -274,7 +274,7 @@
                       top: 0;
                       bottom: 0;
                       width: 8px;
-                      background-image: linear-gradient(to right, transparent, var(--bg-color-1));
+                      background-image: linear-gradient(to right, transparent, var(--bar-bottom-item-bg, var(--bg-color-1)));
                   }
 
                   &::after {
@@ -283,7 +283,7 @@
                       position: absolute;
                       left: 100%;
                       width: 6px;
-                      background-color: var(--bg-color-1);
+                      background-color: var(--bar-bottom-item-bg, var(--bg-color-1));
                       top: 0;
                       bottom: 0;
                   }
@@ -411,35 +411,33 @@
 
   .side-modal {
       position: absolute;
-      top: calc(var(--side-padding-top, 8px) + var(--side-nav-height, 48px));
-      bottom: 16px;
-      left: var(--side-rail-width, 64px);
-      right: 8px;
-      height: calc(100dvh - var(--side-padding-top, 8px) - var(--side-nav-height, 48px) - 8px);
+      top: calc(var(--side-padding-top, 8px) + var(--side-nav-height, 48px) + 12px);
+      left: calc(var(--side-rail-width, 64px) + 16px);
+      height: calc(100dvh - var(--side-padding-top, 8px) - var(--side-nav-height, 48px) - 32px);
       z-index: 9999;
-      width: var(--side-width, 340px);
+      width: min(var(--side-width, 340px) - 32px, 308px);
+      border-radius: var(--radius-overlay, var(--border-radius-3));
+      backdrop-filter: var(--side-popup-backdrop-filter, none);
+      --side-popup-deck-fallback: var(--deck-content-bg-color);
+      --side-popup-heading-fallback: var(--deck-heading-bg-color);
 
       @media (max-width: 767px) {
           top: auto;
-          bottom: calc(var(--bar-bottom-height, 56px) + 8px);
-          left: 0;
-          right: 0;
-          width: auto;
+          bottom: calc(var(--bar-bottom-height, 56px) + 20px);
+          left: 16px;
+          width: calc(100% - 32px);
       }
 
       &__content {
+          --deck-content-bg-color: var(--side-popup-deck-bg, var(--side-popup-deck-fallback));
+          --deck-heading-bg-color: var(--side-popup-heading-bg, var(--side-popup-heading-fallback));
           position: absolute;
-          inset: 12px 16px;
+          inset: 0;
           box-shadow: var(--elevation-2, 0 0 12px var(--box-shadow-color-1));
           border-radius: var(--radius-overlay, var(--border-radius-3));
           overscroll-behavior-y: contain;
-          background: var(--surface-raised, var(--bg-color-1));
+          background: var(--side-popup-bg, var(--surface-raised, var(--bg-color-1)));
           overflow-x: hidden;
-          max-width: 308px;
-
-          @media (max-width: 767px) {
-              max-width: initial;
-          }
 
           @media (min-width: 768px) {
               scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
@@ -463,7 +461,7 @@
 
       &__close {
           position: absolute;
-          bottom: 24px;
+          bottom: 12px;
           width: 36px;
           height: 36px;
           left: 0;

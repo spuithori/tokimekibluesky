@@ -13,7 +13,7 @@ function rawHash(value: unknown): string {
 
 describe('テーマのリンク', () => {
     it('リンクにしたテーマは、トークン・ダーク・色の選択肢がそのまま戻る', async () => {
-        const record = await decodeThemeHash(await encodeThemeHash(DEFAULT_THEME));
+        const record = (await decodeThemeHash(await encodeThemeHash(DEFAULT_THEME)))?.record;
         expect(record?.name).toBe(DEFAULT_THEME.name);
         expect(record?.tokens).toEqual(DEFAULT_THEME.tokens);
         expect(record?.dark).toEqual(DEFAULT_THEME.dark);
@@ -22,11 +22,29 @@ describe('テーマのリンク', () => {
 
     it('画像はリンクに含めない', async () => {
         const withImages: ThemeRecord = { ...DEFAULT_THEME, thumbnail: blob as never, cover: blob as never, images: [{ key: 'bg', image: blob as never }] };
-        const record = await decodeThemeHash(await encodeThemeHash(withImages));
-        expect(record).not.toBeNull();
-        expect(record?.thumbnail).toBeUndefined();
-        expect(record?.cover).toBeUndefined();
-        expect(record?.images).toBeUndefined();
+        const link = await decodeThemeHash(await encodeThemeHash(withImages));
+        expect(link).not.toBeNull();
+        expect(link?.record.thumbnail).toBeUndefined();
+        expect(link?.record.cover).toBeUndefined();
+        expect(link?.record.images).toBeUndefined();
+        expect(link?.images).toEqual({});
+    });
+
+    it('画像を渡したリンクは、画像ごと戻り theme-image() の参照が通る', async () => {
+        const bytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4]);
+        const record: ThemeRecord = { ...DEFAULT_THEME, tokens: [...DEFAULT_THEME.tokens, { name: '--base-bg-image', value: 'theme-image(background)' }] };
+        const link = await decodeThemeHash(await encodeThemeHash(record, [{ key: 'background', mimeType: 'image/webp', bytes }]));
+        expect(link?.record.images?.map((i) => i.key)).toEqual(['background']);
+        expect(link?.images.background.type).toBe('image/webp');
+        expect(link?.images.background.size).toBe(bytes.length);
+    });
+
+    it('画像の無い参照・不正な画像は読み込まない', async () => {
+        const record = { ...DEFAULT_THEME, tokens: [{ name: '--base-bg-image', value: 'theme-image(background)' }] };
+        expect(await decodeThemeHash(rawHash(record))).toBeNull();
+        expect(await decodeThemeHash(rawHash({ ...record, linkImages: [{ key: 'background', mimeType: 'image/svg+xml', data: 'AAAA' }] }))).toBeNull();
+        expect(await decodeThemeHash(rawHash({ ...record, linkImages: [{ key: 'background', mimeType: 'image/png', data: '' }] }))).toBeNull();
+        expect(await decodeThemeHash(rawHash({ ...record, linkImages: [{ key: 'a b', mimeType: 'image/png', data: 'AAAA' }] }))).toBeNull();
     });
 
     it('公開時と同じ検証を通らない中身は読み込まない', async () => {

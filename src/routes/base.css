@@ -58,6 +58,63 @@ body {
     background-position: center;
     caret-color: var(--caret-color, auto);
     accent-color: var(--control-accent, auto);
+    text-shadow: var(--text-halo, none);
+
+    &::before {
+        content: '';
+        display: var(--app-wallpaper-display, none);
+        position: fixed;
+        inset: 0 0 auto;
+        height: 100lvh;
+        z-index: -1;
+        pointer-events: none;
+        background: var(--app-wallpaper, none);
+    }
+}
+
+.glass-canvas {
+    position: fixed;
+    inset: 0 0 auto;
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+
+    &[hidden] {
+        display: none;
+    }
+}
+
+.glass-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.app.glass-webgl {
+    &::before {
+        display: none;
+    }
+
+    [data-glass-covered] {
+        background: transparent;
+        backdrop-filter: none;
+    }
+
+    [data-glass-drawn] {
+        --deck-content-bg-color: transparent;
+        --single-bg-color: transparent;
+        --deck-heading-bg-color: transparent;
+        --deck-heading-backdrop-filter: none;
+        --deck-border-color: transparent;
+        --deck-rim-display: none;
+        --side-bg-image: none;
+        --side-bg-color: transparent;
+    }
 }
 
 .app.theme-selection ::selection {

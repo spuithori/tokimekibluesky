@@ -80,7 +80,7 @@
 </script>
 
 <div class="side-bar side-bar--{publishState.layout}" class:side-bar--scroll-down={scrollDirectionState.direction === 'down'} class:side-bar--mobileV2={$settings?.design?.mobileNewUi}
- class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi}>
+ class:side-bar--mobileV2-visible={mobileV2Visible && $settings?.design?.mobileNewUi} data-glass-cover>
   <div class="side-bar__list side-bar__top">
     <button
           class="side-publish-button"
@@ -210,7 +210,7 @@
                     bottom: -16px;
                     width: 100%;
                     height: 16px;
-                    background-image: linear-gradient(to top, var(--side-bg-color, var(--base-bg-color)), transparent);
+                    background-image: var(--side-rail-fade, linear-gradient(to top, var(--side-bg-color, var(--base-bg-color)), transparent));
                     pointer-events: none;
                     flex-shrink: 0;
                 }

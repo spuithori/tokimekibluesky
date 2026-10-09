@@ -38,9 +38,9 @@
             return row ? { draft: draftFromInstalled(row), persisted: false } : null;
         }
         if (source.kind === 'link') {
-            const record = await decodeThemeHash(source.hash);
-            if (!record) toast.error(t('builder_link_invalid'));
-            return record ? { draft: draftFromRecord(record, undefined), persisted: false } : null;
+            const link = await decodeThemeHash(source.hash);
+            if (!link) toast.error(t('builder_link_invalid'));
+            return link ? { draft: draftFromRecord(link.record, link.images), persisted: false } : null;
         }
         return { draft: draftFromDefault(t('builder_untitled')), persisted: false };
     }

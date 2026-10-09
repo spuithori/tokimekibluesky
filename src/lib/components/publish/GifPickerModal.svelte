@@ -55,6 +55,7 @@
     .gif-modal-contents {
         border-radius: var(--radius-overlay, var(--border-radius-3));
         background: var(--surface-overlay, var(--bg-color-1));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         width: 516px;
         max-width: 100%;
         position: relative;
@@ -117,6 +118,7 @@
         justify-content: center;
         margin-bottom: 16px;
         background: var(--surface-overlay, var(--bg-color-1));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         z-index: 1;
         border-bottom: 1px solid var(--border-color-2);
     }

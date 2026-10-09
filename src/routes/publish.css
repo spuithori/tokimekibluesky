@@ -5,6 +5,26 @@
     right: 0;
     z-index: 2000;
 
+    &::before {
+        content: '';
+        display: var(--publish-backdrop-display, none);
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: var(--publish-border-radius, 0);
+        backdrop-filter: var(--publish-backdrop-filter, none);
+        pointer-events: none;
+
+        @media (max-width: 767px) {
+            position: fixed;
+            border-radius: 0;
+        }
+    }
+
+    &:not(.publish-group--expanded)::before {
+        display: none;
+    }
+
     @media (max-width: 767px) {
         overflow-x: hidden;
         overscroll-behavior: none;
@@ -21,7 +41,7 @@
         }
 
         @media (max-width: 767px) {
-            background-color: var(--bg-color-1);
+            background: var(--publish-mobile-bg, var(--bg-color-1));
             top: 0;
 
             &::-webkit-scrollbar {
@@ -38,6 +58,10 @@
             position: static;
             height: 100%;
             overflow-x: hidden;
+
+            &::before {
+                display: none;
+            }
 
             .publish-wrap {
                 display: flex;
@@ -69,6 +93,10 @@
             background-color: var(--scrim, rgba(0, 0, 0, .5));
             place-content: center;
             display: none;
+
+            &::before {
+                border-radius: 0;
+            }
 
             &.publish-group--expanded {
                 display: grid;
@@ -117,7 +145,7 @@
     @media (max-width: 767px) {
         display: none;
         padding: 0;
-        background-color: var(--bg-color-1);
+        background: var(--publish-mobile-bg, var(--bg-color-1));
         border: none;
         border-radius: 0;
     }
@@ -128,7 +156,7 @@
     width: 100%;
     margin: 0 auto;
     position: relative;
-    background-color: var(--publish-textarea-bg-color);
+    background: var(--publish-textarea-bg-color);
     border: var(--publish-textarea-border, none);
     border-radius: var(--radius-control, var(--border-radius-3));
 

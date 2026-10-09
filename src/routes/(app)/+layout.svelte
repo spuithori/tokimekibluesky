@@ -223,6 +223,19 @@
 
     const themeStyle = $derived(outputInlineStyle($theme));
     const themeSelection = $derived(!!themeStyle && themeStyle.includes("--selection-bg:"));
+    const glassRenderer = $derived(!!themeStyle && themeStyle.includes("--glass-renderer:webgl"));
+
+    function attachGlass(element: HTMLElement) {
+        let stop: (() => void) | undefined;
+        let cancelled = false;
+        import("$lib/theme/glass/renderer").then(({ startGlass }) => {
+            if (!cancelled) stop = startGlass(element);
+        });
+        return () => {
+            cancelled = true;
+            stop?.();
+        };
+    }
 
     appState.init();
     viewPortSetting();
@@ -394,6 +407,7 @@
     style={themeStyle}
     dir={$_("dir")}
     bind:this={app}
+    {@attach glassRenderer && attachGlass}
 >
     {#if appState.shellReady}
         <div

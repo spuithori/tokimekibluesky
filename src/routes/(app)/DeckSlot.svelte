@@ -90,6 +90,7 @@
     class:deck-row-slot--single={$settings.design?.layout === 'default'}
     class:deck-row-slot--junk={isJunk}
     class:deck-row-slot--compact={publishState.layout === 'bottom'}
+    data-glass-surface={column?.settings?.isPopup === true ? undefined : ''}
     style:--deck-col-width={typeof widthValue === 'number' ? `${widthValue}px` : null}
     onmouseenter={handleMouseEnter}
     onmouseleave={handleMouseLeave}

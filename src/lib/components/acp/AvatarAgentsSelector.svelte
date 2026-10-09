@@ -95,6 +95,7 @@
       top: calc(100% + 10px);
       z-index: 101;
       background: var(--surface-overlay, var(--bg-color-1));
+      backdrop-filter: var(--surface-overlay-backdrop-filter, none);
       border-radius: var(--radius-overlay, var(--border-radius-3));
       box-shadow: var(--elevation-3, 0 0 8px var(--box-shadow-color-1));
       padding: 8px;

@@ -68,8 +68,8 @@
               display: flex;
               align-items: center;
               padding: 0 12px;
-              border: 2px solid var(--bg-color-2);
-              background-color: var(--bg-color-2);
+              border: var(--side-popup-item-border, 2px solid var(--bg-color-2));
+              background: var(--side-popup-item-bg, var(--bg-color-2));
               border-radius: var(--border-radius-3);
               color: var(--text-color-1);
               font-weight: bold;

@@ -31,7 +31,7 @@
     grid-template-columns: 78px 1fr;
     gap: 8px;
     align-items: flex-start;
-    background-color: var(--timeline-embed-bg-color);
+    background: var(--timeline-embed-bg-color);
     border: var(--timeline-embed-border);
     padding: 10px 10px 15px;
     position: relative;

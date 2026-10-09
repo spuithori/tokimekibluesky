@@ -10,6 +10,7 @@
     class="side"
     class:side--single={$settings.design?.layout !== 'decks'}
     class:side--hidden={publishState.isBottom}
+    data-glass-surface
 >
   <SideBar></SideBar>
 
@@ -31,23 +32,35 @@
       padding-top:var(--side-padding-top, 8px);
       padding-bottom: var(--side-padding-bottom, 4px);
       padding-right: var(--side-padding-right, 8px);
-      position: fixed;
+      position: sticky;
       top: 0;
-      bottom: 0;
       left: 0;
+      flex: none;
+      height: 100dvh;
       z-index: 1002;
-      background-color: var(--side-bg-color);
-      backdrop-filter: var(--side-backdrop-filter);
       border-radius: var(--side-border-radius, 0);
+
+      &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          border-radius: inherit;
+          background: var(--side-bg-image, none), var(--side-bg-color);
+          backdrop-filter: var(--side-backdrop-filter);
+          pointer-events: none;
+      }
 
       @media (max-width: 767px) {
           position: static;
           grid-template-columns: 0;
-          background-color: transparent;
           height: auto;
-          backdrop-filter: none;
           padding: 0;
           border-radius: 0;
+
+          &::before {
+              display: none;
+          }
       }
 
       &--single {
@@ -58,9 +71,7 @@
           @media (max-width: 767px) {
               position: static;
               grid-template-columns: 0;
-              background-color: transparent;
               height: auto;
-              backdrop-filter: none;
               padding: 0;
               border-radius: 0;
           }
@@ -72,7 +83,6 @@
 
           @media (max-width: 767px) {
               grid-template-columns: 0;
-              background-color: transparent;
           }
 
           .side-main {

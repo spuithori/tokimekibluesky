@@ -13,7 +13,7 @@ button {
     align-items: center;
     justify-content: center;
     border-radius: var(--button-border-radius);
-    background-color: var(--button-bg-color);
+    background: var(--button-bg-color);
     color: var(--button-color);
     border: var(--button-border);
     box-shadow: var(--button-box-shadow);
@@ -52,7 +52,7 @@ button {
 }
 
 .button--border {
-    background-color: var(--bg-color-1);
+    background: var(--button-border-bg-color, var(--bg-color-1));
     border: var(--default-border-width) solid currentColor;
     color: var(--text-color-primary-colored);
 }

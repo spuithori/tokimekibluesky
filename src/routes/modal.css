@@ -9,6 +9,7 @@
     align-items: flex-start;
     z-index: 9999;
     background-color: var(--scrim, rgba(0, 0, 0, .5));
+    backdrop-filter: var(--surface-overlay-backdrop-filter, none);
     overflow: auto;
     padding: 50px 0;
 
@@ -113,6 +114,7 @@
     max-width: 300px;
     margin: auto;
     background: var(--surface-overlay, var(--bg-color-1));
+    backdrop-filter: var(--surface-overlay-backdrop-filter, none);
     padding: 24px 16px;
     border-radius: var(--radius-overlay, var(--border-radius-3));
     text-align: center;
@@ -275,6 +277,7 @@
     overflow: hidden;
     position: relative;
     z-index: 2;
+    backdrop-filter: var(--surface-overlay-backdrop-filter, none);
 
     @media (min-width: 768px) {
         scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);

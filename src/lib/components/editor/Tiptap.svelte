@@ -510,6 +510,7 @@
 
     .editor-link-dialog {
         background: var(--surface-overlay, var(--bg-color-1));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         padding: 8px 16px;
         border-radius: var(--radius-overlay, var(--border-radius-3));
         border: none;

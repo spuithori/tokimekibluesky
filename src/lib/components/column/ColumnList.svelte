@@ -59,9 +59,9 @@
             padding: 6px 12px 6px 24px;
             border-radius: 6px;
             font-weight: bold;
-            background-color: var(--bg-color-1);
+            background: var(--side-popup-item-bg, var(--bg-color-1));
             cursor: default;
-            border: 2px solid var(--border-color-1);
+            border: var(--side-popup-item-border, 2px solid var(--border-color-1));
         }
 
         &__content {

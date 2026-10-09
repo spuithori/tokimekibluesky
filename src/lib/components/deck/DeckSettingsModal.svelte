@@ -1059,6 +1059,7 @@
 
     .split-modal {
         background: var(--surface-overlay, var(--bg-color-1));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         border-radius: var(--radius-overlay, var(--border-radius-5));
         box-shadow: var(--elevation-3, 0 4px 24px rgba(0, 0, 0, 0.2));
         max-width: 500px;

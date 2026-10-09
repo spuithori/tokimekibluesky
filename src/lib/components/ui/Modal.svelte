@@ -70,6 +70,7 @@
       border: none;
       border-radius: var(--radius-overlay, var(--border-radius-6));
       background: var(--surface-overlay, var(--bg-color-1));
+      backdrop-filter: var(--surface-overlay-backdrop-filter, none);
       color: var(--text-color-1);
       transform: var(--modal-transition-scale);
       cursor: pointer;
@@ -146,7 +147,7 @@
 
   .v2-modal-footer {
       flex-shrink: 0;
-      background: var(--surface-overlay, var(--bg-color-1));
+      background: var(--surface-overlay-inner, var(--surface-overlay, var(--bg-color-1)));
       border-top: 1px solid var(--border-color-1);
       padding: 16px 36px;
 
@@ -156,7 +157,7 @@
   }
 
   .modal-heading {
-      background: var(--surface-overlay, var(--bg-color-1));
+      background: var(--surface-overlay-inner, var(--surface-overlay, var(--bg-color-1)));
       position: relative;
       flex-shrink: 0;
       height: var(--modal-heading-height, 64px);

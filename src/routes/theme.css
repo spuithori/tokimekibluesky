@@ -1,3 +1,15 @@
+@property --side-padding-right {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+}
+
+@property --decks-padding-left {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+}
+
 @property --deck-border-width {
     syntax: '<length>';
     inherits: true;
