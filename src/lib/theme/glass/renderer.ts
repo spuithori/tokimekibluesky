@@ -180,6 +180,12 @@ export function startGlass(app: HTMLElement): () => void {
                 if (el.hasAttribute('data-glass-drawn')) el.removeAttribute('data-glass-drawn');
                 continue;
             }
+            const outer = el.parentElement?.closest(SURFACE_SELECTOR);
+            if (outer) {
+                const drawn = outer.hasAttribute('data-glass-drawn');
+                if (drawn !== el.hasAttribute('data-glass-drawn')) el.toggleAttribute('data-glass-drawn', drawn);
+                continue;
+            }
             const style = getComputedStyle(el);
             const before = getComputedStyle(el, '::before');
             const drawn = [style.backdropFilter, before.display === 'none' ? '' : before.backdropFilter].every((v) => v === 'none' || v === '');

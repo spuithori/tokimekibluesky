@@ -168,7 +168,7 @@
                                     </span>
                                     <span class="layout-card__desc">{$_('onboarding_layout_decks_desc')}</span>
                                 </span>
-                                <span class="layout-card__check"><Check size={14} color="var(--bg-color-1)" strokeWidth={3} /></span>
+                                <span class="layout-card__check"><Check size={14} color="var(--on-accent, var(--bg-color-1))" strokeWidth={3} /></span>
                             </button>
 
                             <button
@@ -186,7 +186,7 @@
                                     <span class="layout-card__name">{$_('layout_single')}</span>
                                     <span class="layout-card__desc">{$_('onboarding_layout_single_desc')}</span>
                                 </span>
-                                <span class="layout-card__check"><Check size={14} color="var(--bg-color-1)" strokeWidth={3} /></span>
+                                <span class="layout-card__check"><Check size={14} color="var(--on-accent, var(--bg-color-1))" strokeWidth={3} /></span>
                             </button>
                         </div>
 
@@ -234,7 +234,7 @@
                                             </span>
                                         {/if}
                                     </span>
-                                    <span class="choice__box"><Check size={14} color="var(--bg-color-1)" strokeWidth={3} /></span>
+                                    <span class="choice__box"><Check size={14} color="var(--on-accent, var(--bg-color-1))" strokeWidth={3} /></span>
                                 </button>
                             {/each}
                         </div>

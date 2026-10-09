@@ -73,9 +73,9 @@
       {:else if status === 'duplicate'}
         {$_('bluefeed_already_add')}
       {:else if status === 'processing'}
-        <LoadingSpinner size="16" padding="0" color="var(--bg-color-1)"></LoadingSpinner>
+        <LoadingSpinner size="16" padding="0" color="var(--on-accent, var(--bg-color-1))"></LoadingSpinner>
       {:else if status === 'success'}
-        <Check size={18} color="var(--bg-color-1)" />
+        <Check size={18} color="var(--on-accent, var(--bg-color-1))" />
       {:else}
         {$_('bluefeed_add')}
       {/if}

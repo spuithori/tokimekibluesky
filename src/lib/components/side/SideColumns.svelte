@@ -16,7 +16,7 @@
   {/if}
 
   <button class="column-add-button" onclick={() => {$isColumnModalOpen = true}}>
-    <SquarePlus color="var(--bg-color-1)" size="20"></SquarePlus>
+    <SquarePlus color="var(--on-accent, var(--bg-color-1))" size="20"></SquarePlus>
     {$_('feed_quick_add')}
   </button>
 </div>

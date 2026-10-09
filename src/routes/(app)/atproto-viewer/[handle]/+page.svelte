@@ -65,7 +65,7 @@
                 font-weight: bold;
                 padding: 2px 8px;
                 background-color: var(--text-color-1);
-                color: var(--bg-color-1);
+                color: var(--overlay-base-bg-1, var(--bg-color-1));
                 border-radius: var(--border-radius-2);
                 letter-spacing: .025em;
             }

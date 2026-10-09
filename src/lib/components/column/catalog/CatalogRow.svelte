@@ -70,7 +70,7 @@
 
         {#if added > 0}
             <span class="catalog-row__added" aria-label="{$_('catalog_added')}">
-                <Check size={13} color="var(--bg-color-1)" strokeWidth={3} />
+                <Check size={13} color="var(--on-accent, var(--bg-color-1))" strokeWidth={3} />
                 {#if added > 1}
                     <span class="catalog-row__added-count">{added}</span>
                 {/if}

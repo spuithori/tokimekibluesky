@@ -649,7 +649,7 @@
 
     {#if showNewPill}
       <button class="chat-new-pill" onclick={scrollToBottomSmooth}>
-        <ChevronDown size="16" color="var(--bg-color-1)"></ChevronDown>
+        <ChevronDown size="16" color="var(--on-accent, var(--bg-color-1))"></ChevronDown>
         {$_('chat_new_messages')}
       </button>
     {/if}

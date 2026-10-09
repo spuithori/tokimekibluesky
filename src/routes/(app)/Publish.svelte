@@ -1124,11 +1124,11 @@
 
 {#if (isMobile ? publishState.show && isMobilePopState : publishState.show)}
   <button class="publish-toggle publish-toggle--close" aria-label="Close post composer." class:publish-toggle--vk={!$settings.design?.mobilePostLayoutTop} class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={onClose}>
-    <X size="24" color="var(--bg-color-1)"></X>
+    <X size="24" color="var(--on-accent, var(--bg-color-1))"></X>
   </button>
 {:else}
   <button class="publish-toggle" aria-label="Open post composer." class:publish-toggle--mobileV2={$settings.design?.mobileNewUi} onclick={handleOpen}>
-    <Pencil size="22" color="var(--bg-color-1)"></Pencil>
+    <Pencil size="22" color="var(--on-accent, var(--bg-color-1))"></Pencil>
   </button>
 {/if}
 

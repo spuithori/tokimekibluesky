@@ -267,7 +267,7 @@
       {#if isSending}
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--bg-color-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chat-editor-submit__spinner"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
       {:else}
-        <SendHorizontal size={20} color="var(--bg-color-1)" />
+        <SendHorizontal size={20} color="var(--on-accent, var(--bg-color-1))" />
       {/if}
     </button>
   </div>
@@ -287,7 +287,7 @@
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
     <button class="editor-link-dialog__button" onclick={(e) => { e.preventDefault(); linkDialog.close(linkValue); }}>
-      <CornerDownLeft size={20} color="var(--bg-color-1)" />
+      <CornerDownLeft size={20} color="var(--on-accent, var(--bg-color-1))" />
     </button>
   </form>
 

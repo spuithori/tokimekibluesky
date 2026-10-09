@@ -38,7 +38,8 @@ export const UNDECLARED: readonly string[] = [
     '--bar-bottom-bg', '--bar-bottom-backdrop-filter', '--bar-bottom-box-shadow', '--bar-bottom-item-bg',
     '--publish-mobile-bg', '--publish-backdrop-display', '--publish-backdrop-filter', '--publish-toggle-bg', '--publish-toggle-box-shadow',
     '--glass-wallpaper', '--surface-overlay-backdrop-filter', '--surface-overlay-inner',
-    '--side-popup-bg', '--side-popup-backdrop-filter', '--side-popup-deck-bg', '--side-popup-heading-bg',
+    '--side-popup-bg', '--side-popup-backdrop-filter',
+    '--overlay-bg-color-1', '--overlay-bg-color-2', '--overlay-bg-color-3', '--overlay-deck-bg', '--overlay-heading-bg', '--overlay-heading-backdrop-filter',
     '--side-popup-item-bg', '--side-popup-item-border', '--side-menu-divider-icon-bg',
     '--radio-boxed-bg', '--radio-boxed-box-shadow', '--radio-boxed-hover-bg', '--radio-boxed-checked-bg', '--radio-boxed-checked-box-shadow',
     '--layout-radio-bg', '--layout-radio-current-bg', '--layout-radio-current-box-shadow',
@@ -63,7 +64,7 @@ export function groupOf(name: string): TokenGroup {
 export function kindOf(name: string): TokenKind {
     if (ROLE_KINDS[name]) return ROLE_KINDS[name];
     if (/backdrop-filter$/.test(name)) return 'filter';
-    if (/^--deck-rim$|-bar-color$|^--(app|glass)-wallpaper$|^--side-rail-fade$|^--surface-overlay-inner$|^--side-popup-(bg|deck-bg|heading-bg)$/.test(name) || (/-bg$/.test(name) && !/^--color-theme-/.test(name))) return 'background';
+    if (/^--deck-rim$|-bar-color$|^--(app|glass)-wallpaper$|^--side-rail-fade$|^--surface-overlay-inner$|^--side-popup-bg$|^--overlay-(bg-color-[123]|deck-bg|heading-bg)$/.test(name) || (/-bg$/.test(name) && !/^--color-theme-/.test(name))) return 'background';
     if (/(shadow|glow)$/.test(name)) return 'shadow';
     if (/(-image|-bg-image)$/.test(name)) return 'image';
     if (/-bg-color$|^--(app|base|base-dark|blurred|blurred-dark)-bg-color$/.test(name)) return 'background';

@@ -158,3 +158,25 @@ img {
         overflow: hidden;
     }
 }
+
+:is(.side-modal__content, .side-menu, .settings-modal-content, .modal-page-content, .v2-modal, .modal-contents, .dialog-modal-contents, .login-modal-contents, .gif-modal-contents, .wizard__card, .bottom-sheet, .split-modal, .deck-settings-wrap, .avatar-agents-selector-modal, .editor-link-dialog) {
+    --overlay-base-bg-1: var(--bg-color-1);
+    --overlay-base-bg-2: var(--bg-color-2);
+    --overlay-base-bg-3: var(--bg-color-3);
+    --overlay-base-deck-bg: var(--deck-content-bg-color);
+    --overlay-base-heading-bg: var(--deck-heading-bg-color);
+    --overlay-base-heading-filter: var(--deck-heading-backdrop-filter);
+
+    > * {
+        --bg-color-1: var(--overlay-bg-color-1, var(--overlay-base-bg-1));
+        --bg-color-2: var(--overlay-bg-color-2, var(--overlay-base-bg-2));
+        --bg-color-3: var(--overlay-bg-color-3, var(--overlay-base-bg-3));
+        --deck-content-bg-color: var(--overlay-deck-bg, var(--overlay-base-deck-bg));
+        --deck-heading-bg-color: var(--overlay-heading-bg, var(--overlay-base-heading-bg));
+        --deck-heading-backdrop-filter: var(--overlay-heading-backdrop-filter, var(--overlay-base-heading-filter));
+    }
+
+    .column-heading {
+        backdrop-filter: var(--overlay-heading-backdrop-filter, none);
+    }
+}

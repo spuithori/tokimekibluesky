@@ -27,7 +27,7 @@
   }));
 </script>
 
-<div class="modal-page modal-page--{$settings.design?.layout}" class:modal-page--side={publishState.isSideShown}>
+<div class="modal-page modal-page--{$settings.design?.layout}" class:modal-page--side={publishState.isSideShown} data-glass-overlay>
   <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
     {@render children?.()}
   </div>

@@ -832,7 +832,8 @@
         height: calc(100dvh - var(--deck-heading-height, 52px) - var(--decks-margin));
         padding: 0;
         z-index: 100;
-        background-color: var(--bg-color-1);
+        background-color: var(--overlay-bg-color-1, var(--bg-color-1));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         overflow: hidden;
 
         @media (max-width: 767px) {

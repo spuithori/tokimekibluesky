@@ -418,8 +418,6 @@
       width: min(var(--side-width, 340px) - 32px, 308px);
       border-radius: var(--radius-overlay, var(--border-radius-3));
       backdrop-filter: var(--side-popup-backdrop-filter, none);
-      --side-popup-deck-fallback: var(--deck-content-bg-color);
-      --side-popup-heading-fallback: var(--deck-heading-bg-color);
 
       @media (max-width: 767px) {
           top: auto;
@@ -429,8 +427,6 @@
       }
 
       &__content {
-          --deck-content-bg-color: var(--side-popup-deck-bg, var(--side-popup-deck-fallback));
-          --deck-heading-bg-color: var(--side-popup-heading-bg, var(--side-popup-heading-fallback));
           position: absolute;
           inset: 0;
           box-shadow: var(--elevation-2, 0 0 12px var(--box-shadow-color-1));

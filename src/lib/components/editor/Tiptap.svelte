@@ -487,7 +487,7 @@
   <form>
     <input type="text" class="editor-link-dialog__input" bind:value={linkValue} placeholder="https://tokimeki.blue">
     <button class="editor-link-dialog__button" onclick={() => {linkDialog.close(linkValue)}}>
-      <CornerDownLeft size={20} color="var(--bg-color-1)" />
+      <CornerDownLeft size={20} color="var(--on-accent, var(--bg-color-1))" />
     </button>
   </form>
   

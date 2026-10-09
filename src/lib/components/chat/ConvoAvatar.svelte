@@ -21,7 +21,7 @@
             {#if member.avatar && !$isDataSaving}
               <img loading="lazy" src={member.avatar} alt="" width="100" height="100">
             {:else}
-              <Users size={size * 0.32} color="var(--bg-color-1)"></Users>
+              <Users size={size * 0.32} color="var(--on-accent, var(--bg-color-1))"></Users>
             {/if}
           </div>
         {/each}
@@ -31,12 +31,12 @@
         {#if groupMembers[0].avatar && !$isDataSaving}
           <img loading="lazy" src={groupMembers[0].avatar} alt="" width="100" height="100">
         {:else}
-          <Users size={size * 0.5} color="var(--bg-color-1)"></Users>
+          <Users size={size * 0.5} color="var(--on-accent, var(--bg-color-1))"></Users>
         {/if}
       </div>
     {:else}
       <div class="convo-avatar__single">
-        <Users size={size * 0.5} color="var(--bg-color-1)"></Users>
+        <Users size={size * 0.5} color="var(--on-accent, var(--bg-color-1))"></Users>
       </div>
     {/if}
   {:else}

@@ -142,6 +142,7 @@
     .modal-page-content {
         min-height: 100dvh;
         background: var(--modal-page-bg-color, var(--surface-overlay, var(--bg-color-1)));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         border-left: var(--single-border, 1px solid var(--border-color-2));
         border-right: var(--single-border, 1px solid var(--border-color-2));
         position: relative;
@@ -210,6 +211,7 @@
         margin: auto;
         height: 94vh;
         background: var(--modal-page-bg-color, var(--surface-overlay, var(--bg-color-1)));
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         overflow-y: scroll;
         z-index: 1;
         box-shadow: var(--elevation-3, 0 10px 30px rgba(0, 0, 0, .3));
