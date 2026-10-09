@@ -78,7 +78,7 @@
       }
   }
 
-  .acp-selector-wrap-arrow {
+  .acp-selector-wrap :global(.acp-selector-wrap-arrow) {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -127,5 +127,14 @@
   .acp-selector-choices {
       position: relative;
       z-index: 2;
+  }
+
+  .acp-selector .acp-selector__item:not(.acp-selector__item--front) {
+      background: var(--side-popup-bg, var(--overlay-base-bg-1, var(--bg-color-1)));
+      backdrop-filter: var(--side-popup-backdrop-filter, none);
+
+      &:hover {
+          background: linear-gradient(var(--state-hover, var(--bg-color-2)) 0 0), var(--side-popup-bg, var(--overlay-base-bg-1, var(--bg-color-1)));
+      }
   }
 </style>

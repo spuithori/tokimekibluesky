@@ -176,7 +176,7 @@ img {
         --deck-heading-backdrop-filter: var(--overlay-heading-backdrop-filter, var(--overlay-base-heading-filter));
     }
 
-    .column-heading {
+    :is(.column-heading, .profile-tab, .merge-choices__footer) {
         backdrop-filter: var(--overlay-heading-backdrop-filter, none);
     }
 }

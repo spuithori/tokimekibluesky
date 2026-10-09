@@ -90,7 +90,7 @@
         }
     }
 
-    .agents-selector-wrap-arrow {
+    .agents-selector-wrap :global(.agents-selector-wrap-arrow) {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -142,6 +142,15 @@
             margin-left: -1px;
             margin-right: -1px;
             margin-top: -1px;
+        }
+    }
+
+    .agents-selector__choices .agents-selector__item {
+        background: var(--side-popup-bg, var(--overlay-base-bg-1, var(--bg-color-1)));
+        backdrop-filter: var(--side-popup-backdrop-filter, none);
+
+        &:hover {
+            background: linear-gradient(var(--state-hover, var(--bg-color-2)) 0 0), var(--side-popup-bg, var(--overlay-base-bg-1, var(--bg-color-1)));
         }
     }
 </style>

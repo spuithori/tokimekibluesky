@@ -70,7 +70,6 @@
       border: none;
       border-radius: var(--radius-overlay, var(--border-radius-6));
       background: var(--surface-overlay, var(--bg-color-1));
-      backdrop-filter: var(--surface-overlay-backdrop-filter, none);
       color: var(--text-color-1);
       transform: var(--modal-transition-scale);
       cursor: pointer;
@@ -78,6 +77,16 @@
       &::backdrop {
           background-color: var(--scrim, rgba(0, 0, 0, .6));
           opacity: var(--modal-transition-opacity);
+      }
+
+      &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          border-radius: inherit;
+          backdrop-filter: var(--surface-overlay-backdrop-filter, none);
+          pointer-events: none;
       }
 
       @media (max-width: 767px) {
