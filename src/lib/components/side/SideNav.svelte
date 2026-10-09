@@ -417,7 +417,16 @@
       z-index: 9999;
       width: min(var(--side-width, 340px) - 32px, 308px);
       border-radius: var(--radius-overlay, var(--border-radius-3));
-      backdrop-filter: var(--side-popup-backdrop-filter, none);
+
+      &::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          border-radius: inherit;
+          backdrop-filter: var(--side-popup-backdrop-filter, none);
+          pointer-events: none;
+      }
 
       @media (max-width: 767px) {
           top: auto;

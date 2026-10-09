@@ -312,6 +312,7 @@ export const CATALOG: ReadonlyArray<readonly [string, TokenGroup, TokenKind]> = 
     ['--overlay-deck-bg', 'other', 'background'],
     ['--overlay-heading-bg', 'other', 'background'],
     ['--overlay-heading-backdrop-filter', 'other', 'filter'],
+    ['--motion-overlay-fade', 'other', 'other'],
     ['--radio-boxed-bg', 'other', 'background'],
     ['--radio-boxed-box-shadow', 'other', 'shadow'],
     ['--radio-boxed-hover-bg', 'other', 'background'],

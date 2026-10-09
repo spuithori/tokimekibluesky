@@ -62,8 +62,9 @@ function overlayMotion<P extends { duration?: number; easing?: Easing }>(node: E
     const style = getComputedStyle(node);
     const duration = parseDuration(style.getPropertyValue('--motion-duration-overlay'));
     const easing = parseEasing(style.getPropertyValue('--motion-easing-overlay'));
-    if (duration === undefined && !easing) return params;
-    return { ...params, ...(duration === undefined ? {} : { duration }), ...(easing ? { easing } : {}) };
+    const still = style.getPropertyValue('--motion-overlay-fade').trim() === 'none';
+    if (duration === undefined && !easing && !still) return params;
+    return { ...params, ...(duration === undefined ? {} : { duration }), ...(easing ? { easing } : {}), ...(still ? { opacity: 1 } : {}) };
 }
 
 export function overlayFly(node: Element, params: FlyParams = {}): TransitionConfig {
@@ -75,5 +76,6 @@ export function overlayScale(node: Element, params: ScaleParams = {}): Transitio
 }
 
 export function overlayFade(node: Element, params: FadeParams = {}): TransitionConfig {
-    return fade(node, overlayMotion(node, params));
+    const motion = overlayMotion(node, params);
+    return fade(node, getComputedStyle(node).getPropertyValue('--motion-overlay-fade').trim() === 'none' ? { ...motion, duration: 0 } : motion);
 }

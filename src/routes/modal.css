@@ -142,11 +142,19 @@
     .modal-page-content {
         min-height: 100dvh;
         background: var(--modal-page-bg-color, var(--surface-overlay, var(--bg-color-1)));
-        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         border-left: var(--single-border, 1px solid var(--border-color-2));
         border-right: var(--single-border, 1px solid var(--border-color-2));
         position: relative;
         z-index: 1001;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            backdrop-filter: var(--surface-overlay-backdrop-filter, none);
+            pointer-events: none;
+        }
     }
 }
 
@@ -161,6 +169,22 @@
         margin: auto auto auto var(--side-rail-width, 64px);
         background-color: var(--scrim, rgba(0, 0, 0, .35));
         border-radius: var(--decks-border-radius);
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 100%;
+            max-width: 740px;
+            height: 94vh;
+            backdrop-filter: var(--surface-overlay-backdrop-filter, none);
+            pointer-events: none;
+
+            @media (max-width: 767px) {
+                height: 100dvh;
+            }
+        }
 
         @media (max-width: 767px) {
             margin-left: 0;
@@ -211,7 +235,6 @@
         margin: auto;
         height: 94vh;
         background: var(--modal-page-bg-color, var(--surface-overlay, var(--bg-color-1)));
-        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
         overflow-y: scroll;
         z-index: 1;
         box-shadow: var(--elevation-3, 0 10px 30px rgba(0, 0, 0, .3));
@@ -279,7 +302,16 @@
     overflow: hidden;
     position: relative;
     z-index: 2;
-    backdrop-filter: var(--surface-overlay-backdrop-filter, none);
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        backdrop-filter: var(--surface-overlay-backdrop-filter, none);
+        pointer-events: none;
+    }
 
     @media (min-width: 768px) {
         scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);
