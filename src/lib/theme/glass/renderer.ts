@@ -171,7 +171,7 @@ export function startGlass(app: HTMLElement): () => void {
         updateActive();
     }
 
-    function surfaces(dpr: number) {
+    function surfaces(dpr: number, vw: number, vh: number) {
         const rects: number[] = [];
         const clips: number[] = [];
         const radii: number[] = [];
@@ -193,12 +193,12 @@ export function startGlass(app: HTMLElement): () => void {
             if (!drawn) continue;
             const r = el.getBoundingClientRect();
             const scroller = el.closest('.deck')?.getBoundingClientRect();
-            const clip = scroller ? [scroller.left, scroller.top, scroller.right, scroller.bottom] : [0, 0, innerWidth, innerHeight];
+            const clip = scroller ? [scroller.left, scroller.top, scroller.right, scroller.bottom] : [0, 0, vw, vh];
             if (r.width < 1 || r.height < 1 || r.right <= clip[0] || r.left >= clip[2] || r.bottom <= clip[1] || r.top >= clip[3]) continue;
             const left = r.left <= 2 ? -200 : r.left;
             const top = r.top <= 2 ? -200 : r.top;
-            const right = r.right >= innerWidth - 2 ? innerWidth + 200 : r.right;
-            const bottom = r.bottom >= innerHeight - 2 ? innerHeight + 200 : r.bottom;
+            const right = r.right >= vw - 2 ? vw + 200 : r.right;
+            const bottom = r.bottom >= vh - 2 ? vh + 200 : r.bottom;
             rects.push(left * dpr, top * dpr, (right - left) * dpr, (bottom - top) * dpr);
             clips.push(...clip.map((v) => v * dpr));
             radii.push((Number.parseFloat(style.borderTopLeftRadius) || 0) * dpr);
@@ -211,14 +211,16 @@ export function startGlass(app: HTMLElement): () => void {
         frame = 0;
         if (!active || !wallpaper) return;
         const dpr = Math.min(devicePixelRatio || 1, 2);
-        const width = Math.round(innerWidth * dpr);
-        const height = Math.round(innerHeight * dpr);
+        const vw = canvas.clientWidth || innerWidth;
+        const vh = canvas.clientHeight || innerHeight;
+        const width = Math.round(vw * dpr);
+        const height = Math.round(vh * dpr);
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
             canvas.height = height;
         }
         buildPyramid(width, height);
-        const { rects, clips, radii } = surfaces(dpr);
+        const { rects, clips, radii } = surfaces(dpr, vw, vh);
         const signature = `${width}x${height}|${rects.join(',')}|${radii.join(',')}`;
         const p = pointer && params.pointerLight > 0 ? [pointer[0] * dpr, pointer[1] * dpr] : [-1, -1];
         pass(glassProgram, null, (u) => {
@@ -252,7 +254,7 @@ export function startGlass(app: HTMLElement): () => void {
             gl!.uniform1f(u('uPointerLight'), params.pointerLight);
             gl!.uniform1f(u('uShadow'), params.shadow);
         });
-        paintCovers(dpr);
+        paintCovers(dpr, vw);
         if (signature !== lastSignature) settle = SETTLE_FRAMES;
         lastSignature = signature;
         if (settle > 0) {
@@ -262,14 +264,14 @@ export function startGlass(app: HTMLElement): () => void {
     }
 
     const covers = new Map<HTMLElement, HTMLCanvasElement>();
-    function paintCovers(dpr: number) {
+    function paintCovers(dpr: number, vw: number) {
         const seen = new Set<HTMLElement>();
         for (const el of app.querySelectorAll<HTMLElement>(COVER_SELECTOR)) {
             const host = el.parentElement?.closest(SURFACE_SELECTOR);
             if (host && !host.hasAttribute('data-glass-drawn')) continue;
             if (getComputedStyle(el).position === 'static') continue;
             const r = el.getBoundingClientRect();
-            if (r.width < 1 || r.height < 1 || r.right <= 0 || r.left >= innerWidth) continue;
+            if (r.width < 1 || r.height < 1 || r.right <= 0 || r.left >= vw) continue;
             seen.add(el);
             if (!el.hasAttribute('data-glass-covered')) el.setAttribute('data-glass-covered', '');
             let cover = covers.get(el);
@@ -351,7 +353,7 @@ export function startGlass(app: HTMLElement): () => void {
         structure.disconnect();
         resize.disconnect();
         for (const el of [app, ...app.querySelectorAll('.wrap, .main, .deck, .deck-columns')]) structure.observe(el, { childList: true });
-        for (const el of app.querySelectorAll(SURFACE_SELECTOR)) resize.observe(el);
+        for (const el of [document.documentElement, ...app.querySelectorAll(SURFACE_SELECTOR)]) resize.observe(el);
         request();
     }
     watch();
