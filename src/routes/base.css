@@ -72,6 +72,11 @@ body {
     }
 }
 
+[data-overlay-layered] > *,
+[data-overlay-layered]::before {
+    opacity: var(--overlay-opacity);
+}
+
 .glass-canvas {
     position: fixed;
     inset: 0 0 auto;

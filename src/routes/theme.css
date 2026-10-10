@@ -1,3 +1,9 @@
+@property --overlay-opacity {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+}
+
 @property --side-padding-right {
     syntax: '<length>';
     inherits: true;

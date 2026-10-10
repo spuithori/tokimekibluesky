@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDuration, parseEasing } from './motion';
+import { opacityAsLayers, parseDuration, parseEasing, withoutOpacity } from './motion';
 
 describe('parseDuration', () => {
     it.each([
@@ -31,5 +31,30 @@ describe('parseEasing', () => {
 
     it.each(['', 'steps(4)', 'cubic-bezier(2, 0, 0, 1)', 'cubic-bezier(0, 0, 1)', 'spring'])('%s は解釈しない', (value) => {
         expect(parseEasing(value)).toBeUndefined();
+    });
+});
+
+describe('withoutOpacity', () => {
+    it('fly と scale の CSS から不透明度だけを外す', () => {
+        const fly = withoutOpacity({ css: (t, u) => `\n\t\t\ttransform:  translate(0px, ${u * 16}px);\n\t\t\topacity: ${1 - u}` });
+        expect(fly.css!(0.5, 0.5)).not.toMatch(/opacity/);
+        expect(fly.css!(0.5, 0.5)).toMatch(/transform:\s+translate\(0px, 8px\)/);
+        const scaled = withoutOpacity({ css: (_t, u) => `transform: matrix(1, 0, 0, 1, 0, 0) scale(${1 - 0.02 * u}); opacity: 1` });
+        expect(scaled.css!(0, 1)).toBe('transform: matrix(1, 0, 0, 1, 0, 0) scale(0.98);');
+    });
+
+    it('css の無い設定はそのまま返す', () => {
+        const config = { duration: 0 };
+        expect(withoutOpacity(config)).toBe(config);
+    });
+});
+
+describe('opacityAsLayers', () => {
+    it('不透明度を層に渡すカスタムプロパティへ置き換え、移動はそのまま残す', () => {
+        const fly = opacityAsLayers({ css: (t, u) => `\n\t\t\ttransform:  translate(0px, ${u * 16}px);\n\t\t\topacity: ${t}` });
+        const css = fly.css!(0.25, 0.75);
+        expect(css).toMatch(/--overlay-opacity: 0.25/);
+        expect(css).not.toMatch(/(^|[;\s])opacity:/);
+        expect(css).toMatch(/translate\(0px, 12px\)/);
     });
 });

@@ -58,24 +58,56 @@ export function parseEasing(value: string): Easing | undefined {
     return cubicBezier(x1, y1, x2, y2);
 }
 
-function overlayMotion<P extends { duration?: number; easing?: Easing }>(node: Element, params: P): P {
-    const style = getComputedStyle(node);
+function overlayMotion<P extends { duration?: number; easing?: Easing }>(style: CSSStyleDeclaration, params: P): P {
     const duration = parseDuration(style.getPropertyValue('--motion-duration-overlay'));
     const easing = parseEasing(style.getPropertyValue('--motion-easing-overlay'));
-    const still = style.getPropertyValue('--motion-overlay-fade').trim() === 'none';
-    if (duration === undefined && !easing && !still) return params;
-    return { ...params, ...(duration === undefined ? {} : { duration }), ...(easing ? { easing } : {}), ...(still ? { opacity: 1 } : {}) };
+    if (duration === undefined && !easing) return params;
+    return { ...params, ...(duration === undefined ? {} : { duration }), ...(easing ? { easing } : {}) };
 }
 
-export function overlayFly(node: Element, params: FlyParams = {}): TransitionConfig {
-    return fly(node, overlayMotion(node, params));
+function still(style: CSSStyleDeclaration): boolean {
+    return style.getPropertyValue('--motion-overlay-fade').trim() === 'none';
 }
 
-export function overlayScale(node: Element, params: ScaleParams = {}): TransitionConfig {
-    return scale(node, overlayMotion(node, params));
+export function withoutOpacity(config: TransitionConfig): TransitionConfig {
+    const css = config.css;
+    return css ? { ...config, css: (t, u) => css(t, u).replace(/(^|;)\s*opacity:[^;]*/g, '$1') } : config;
+}
+
+export function opacityAsLayers(config: TransitionConfig): TransitionConfig {
+    const css = config.css;
+    return css ? { ...config, css: (t, u) => css(t, u).replace(/(^|;)(\s*)opacity:/g, '$1$2--overlay-opacity:') } : config;
+}
+
+type Directed = (options?: { direction?: 'in' | 'out' }) => TransitionConfig;
+
+function glassMotion(node: Element, config: TransitionConfig): Directed {
+    return (options) => {
+        if (options?.direction !== 'out') {
+            node.removeAttribute('data-overlay-layered');
+            return withoutOpacity(config);
+        }
+        const layered = !['', 'none'].includes(getComputedStyle(node, '::before').backdropFilter);
+        if (!layered) return config;
+        node.setAttribute('data-overlay-layered', '');
+        return opacityAsLayers(config);
+    };
+}
+
+export function overlayFly(node: Element, params: FlyParams = {}): TransitionConfig | Directed {
+    const style = getComputedStyle(node);
+    const config = fly(node, overlayMotion(style, params));
+    return still(style) ? glassMotion(node, config) : config;
+}
+
+export function overlayScale(node: Element, params: ScaleParams = {}): TransitionConfig | Directed {
+    const style = getComputedStyle(node);
+    const config = scale(node, overlayMotion(style, params));
+    return still(style) ? glassMotion(node, config) : config;
 }
 
 export function overlayFade(node: Element, params: FadeParams = {}): TransitionConfig {
-    const motion = overlayMotion(node, params);
-    return fade(node, getComputedStyle(node).getPropertyValue('--motion-overlay-fade').trim() === 'none' ? { ...motion, duration: 0 } : motion);
+    const style = getComputedStyle(node);
+    const motion = overlayMotion(style, params);
+    return fade(node, still(style) ? { ...motion, duration: 0 } : motion);
 }

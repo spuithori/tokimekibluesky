@@ -91,7 +91,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background-color: var(--bg-color-2);
+      background-color: var(--overlay-base-bg-2, var(--bg-color-2));
       border: 1px solid var(--border-color-1);
       border-radius: 6px;
       z-index: 10;
