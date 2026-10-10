@@ -20,9 +20,9 @@ export type ProgramUse = 'pointer' | 'scroll';
 export interface ProgramParam {
     key: string;
     token: string;
-    default: number;
-    min?: number;
-    max?: number;
+    default: string;
+    min?: string;
+    max?: string;
 }
 
 export interface ProgramPass {
@@ -31,7 +31,7 @@ export interface ProgramPass {
     glsl: string;
     vertex?: string;
     update: PassUpdate;
-    scale?: number;
+    scale?: string;
     size?: [number, number];
     format?: PassFormat;
     inputs?: string[];
@@ -42,7 +42,7 @@ export interface ProgramPass {
     primitive?: PassPrimitive;
     blend?: PassBlend;
     depth?: boolean;
-    clear?: [number, number, number, number];
+    clear?: [string, string, string, string];
 }
 
 export interface ProgramStage {
@@ -73,6 +73,15 @@ const USES: ProgramUse[] = ['pointer', 'scroll'];
 const FRAME_RATES = [15, 30, 60];
 
 const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const decimal = (v: unknown): string | undefined => {
+    const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
+    return isNumber(n) ? String(n) : undefined;
+};
+
+export function programNumber(value: string | undefined, fallback: number): number {
+    const n = value === undefined ? NaN : Number(value);
+    return Number.isFinite(n) ? n : fallback;
+}
 const isInt = (v: unknown, min: number, max: number): v is number => Number.isInteger(v) && (v as number) >= min && (v as number) <= max;
 const pair = (v: unknown, min: number, max: number): [number, number] | undefined =>
     Array.isArray(v) && v.length === 2 && isInt(v[0], min, max) && isInt(v[1], min, max) ? [v[0], v[1]] : undefined;
@@ -168,17 +177,17 @@ export function validateProgram(value: unknown, imageKeys: ReadonlySet<string>, 
                 const key = item?.key;
                 const ok = typeof key === 'string' && KEY.test(key) && !paramKeys.has(key)
                     && typeof item.token === 'string' && TOKEN.test(item.token)
-                    && isNumber(item.default)
-                    && (item.min === undefined || isNumber(item.min))
-                    && (item.max === undefined || isNumber(item.max));
+                    && decimal(item.default) !== undefined
+                    && (item.min === undefined || decimal(item.min) !== undefined)
+                    && (item.max === undefined || decimal(item.max) !== undefined);
                 if (!ok) {
                     errors.push(`program.params が不正: ${String(key).slice(0, 40)}`);
                     continue;
                 }
                 paramKeys.add(key as string);
-                const param: ProgramParam = { key: key as string, token: item.token as string, default: item.default as number };
-                if (item.min !== undefined) param.min = item.min as number;
-                if (item.max !== undefined) param.max = item.max as number;
+                const param: ProgramParam = { key: key as string, token: item.token as string, default: decimal(item.default) as string };
+                if (item.min !== undefined) param.min = decimal(item.min);
+                if (item.max !== undefined) param.max = decimal(item.max);
                 program.params.push(param);
             }
             if (!program.params.length) delete program.params;
@@ -212,8 +221,9 @@ export function validateProgram(value: unknown, imageKeys: ReadonlySet<string>, 
                 if (!size) errors.push(`${label}.size が不正`);
                 else pass.size = size;
             } else if (item.scale !== undefined) {
-                if (!isNumber(item.scale) || item.scale < 1 / 16 || item.scale > 1) errors.push(`${label}.scale は 1/16〜1`);
-                else pass.scale = item.scale;
+                const scale = decimal(item.scale);
+                if (scale === undefined || Number(scale) < 1 / 16 || Number(scale) > 1) errors.push(`${label}.scale は 1/16〜1`);
+                else pass.scale = scale;
             }
             if (item.format !== undefined) {
                 if (!FORMATS.includes(item.format as PassFormat)) errors.push(`${label}.format が不正`);
@@ -245,9 +255,9 @@ export function validateProgram(value: unknown, imageKeys: ReadonlySet<string>, 
             }
             if (item.depth !== undefined) pass.depth = item.depth === true;
             if (item.clear !== undefined) {
-                const c = item.clear;
-                if (!Array.isArray(c) || c.length !== 4 || !c.every(isNumber)) errors.push(`${label}.clear が不正`);
-                else pass.clear = c as [number, number, number, number];
+                const c = Array.isArray(item.clear) ? item.clear.map(decimal) : [];
+                if (c.length !== 4 || c.some((x) => x === undefined)) errors.push(`${label}.clear が不正`);
+                else pass.clear = c as [string, string, string, string];
             }
             program.passes.push(pass);
         }

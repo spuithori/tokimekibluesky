@@ -52,3 +52,25 @@ describe('validateProgram', () => {
         expect(check({ contract: 1, material: { glsl: big } }).errors.some((e) => e.includes('大きすぎる'))).toBe(true);
     });
 });
+
+describe('AT Protocol のデータ', () => {
+    it('小数は文字列にそろえる(レコードに小数を書けない)。数値で書かれていても受け取る', () => {
+        const { program, errors } = check({
+            contract: 1,
+            params: [{ key: 'a', token: '--a', default: 1.33, min: '0', max: 2 }],
+            passes: [{ ...pass('p'), scale: 0.5, clear: [0, 0.25, 1, 1] }],
+        });
+        expect(errors).toEqual([]);
+        expect(program?.params?.[0]).toEqual({ key: 'a', token: '--a', default: '1.33', min: '0', max: '2' });
+        expect(program?.passes?.[0].scale).toBe('0.5');
+        expect(program?.passes?.[0].clear).toEqual(['0', '0.25', '1', '1']);
+        const floats: number[] = [];
+        JSON.stringify(program, (_k, v) => (typeof v === 'number' && !Number.isInteger(v) && floats.push(v), v));
+        expect(floats).toEqual([]);
+    });
+
+    it('数として読めない値は拒む', () => {
+        expect(check({ contract: 1, params: [{ key: 'a', token: '--a', default: 'abc' }] }).program).toBeUndefined();
+        expect(check({ contract: 1, passes: [{ ...pass('p'), scale: '2' }] }).program).toBeUndefined();
+    });
+});

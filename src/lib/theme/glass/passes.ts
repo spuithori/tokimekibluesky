@@ -1,4 +1,4 @@
-import { inputName, programOrder, type ProgramPass, type ThemeProgram } from '../program';
+import { inputName, programNumber, programOrder, type ProgramPass, type ThemeProgram } from '../program';
 import { uniformName } from './shader';
 
 export interface FrameState {
@@ -122,7 +122,7 @@ export function createPassRunner(gl: WebGL2RenderingContext, program: ThemeProgr
     };
 
     const sizeOf = (pass: ProgramPass, width: number, height: number): [number, number] =>
-        pass.size ?? [Math.max(1, Math.round(width * (pass.scale ?? 1))), Math.max(1, Math.round(height * (pass.scale ?? 1)))];
+        pass.size ?? [Math.max(1, Math.round(width * programNumber(pass.scale, 1))), Math.max(1, Math.round(height * programNumber(pass.scale, 1)))];
 
     const current = (key: string): WebGLTexture | undefined => {
         const list = targets.get(key);
@@ -156,7 +156,7 @@ export function createPassRunner(gl: WebGL2RenderingContext, program: ThemeProgr
                     if (!c.uniforms.has(name)) c.uniforms.set(name, gl.getUniformLocation(c.program, name));
                     return c.uniforms.get(name)!;
                 };
-                const scale = pass.size ? w / state.width : (pass.scale ?? 1);
+                const scale = pass.size ? w / state.width : programNumber(pass.scale, 1);
                 gl.uniform2f(u('uRes'), w, h);
                 gl.uniform2f(u('uScreen'), state.width, state.height);
                 gl.uniform2f(u('uPointer'), state.pointer[0] * scale, state.pointer[1] * scale);
@@ -178,7 +178,7 @@ export function createPassRunner(gl: WebGL2RenderingContext, program: ThemeProgr
                 gl.viewport(0, 0, w, h);
                 const geometry = pass.type === 'mesh' || pass.type === 'instances';
                 if (geometry) {
-                    const [r, g, b, a] = pass.clear ?? [0, 0, 0, 0];
+                    const [r, g, b, a] = (pass.clear ?? ['0', '0', '0', '0']).map((v) => programNumber(v, 0));
                     gl.clearColor(r, g, b, a);
                     gl.clear(gl.COLOR_BUFFER_BIT | (pass.depth ? gl.DEPTH_BUFFER_BIT : 0));
                 }

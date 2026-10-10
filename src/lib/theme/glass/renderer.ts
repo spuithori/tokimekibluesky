@@ -1,4 +1,4 @@
-import type { ThemeProgram } from '../program';
+import { programNumber, type ThemeProgram } from '../program';
 import { loadMaterial, readMaterialName } from './materials';
 import { createPassRunner, programHeader, type PassRunner } from './passes';
 import { BLUR, DOWN, GLASS_PARAMS, IMAGE_SOURCE, LIQUID, MAP, MAX_SURFACES, PYRAMID_LEVELS, VERTEX, glassShader, uniformName, type GlassMaterial, type GlassParam, type GlassSource, type MaterialParams } from './shader';
@@ -97,7 +97,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
     let requestedMaterial = '';
     let source: GlassSource = program?.wallpaper ? { glsl: program.wallpaper.glsl, params: {}, animated: !!program.animated, image: false } : IMAGE_SOURCE;
     const programInputs = [...new Set([...(program?.wallpaper?.inputs ?? []), ...(program?.material?.inputs ?? [])])];
-    const programParams: MaterialParams = Object.fromEntries((program?.params ?? []).map((p) => [p.key, { token: p.token, value: p.default }]));
+    const programParams: MaterialParams = Object.fromEntries((program?.params ?? []).map((p) => [p.key, { token: p.token, value: programNumber(p.default, 0) }]));
     let programValues: Record<string, number> = {};
     let runner: PassRunner | null = null;
     const inputImages: Record<string, WebGLTexture> = {};
@@ -219,7 +219,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
 
     function readProgramValues(style: CSSStyleDeclaration) {
         const values = readParams(style, programParams);
-        for (const p of program?.params ?? []) values[p.key] = Math.min(p.max ?? Infinity, Math.max(p.min ?? -Infinity, values[p.key]));
+        for (const p of program?.params ?? []) values[p.key] = Math.min(programNumber(p.max, Infinity), Math.max(programNumber(p.min, -Infinity), values[p.key]));
         return values;
     }
 
