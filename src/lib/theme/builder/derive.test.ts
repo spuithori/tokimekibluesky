@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { contrastRatio, hexToOklch, oklchToHex } from './color';
 import { DEFAULT_SEEDS, deriveTheme, type Seeds } from './derive';
-import { validateThemeRecord } from '../format';
+import { validateThemeRecord } from '../validate';
 
 const SEED_COLORS = ['#f182ac', '#5b8def', '#2fa37d', '#e0882b', '#bfae20', '#000000', '#ffffff', '#7a1fff', '#808080'];
 const BACKGROUNDS = ['#f6e9ef', '#ffffff', '#e0f1f1', '#fdf6e3', '#1b2a3d', '#000000', '#ff0000'];

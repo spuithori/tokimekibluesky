@@ -96,6 +96,10 @@
                     "updatedAt": {
                         "type": "string",
                         "format": "datetime"
+                    },
+                    "program": {
+                        "type": "unknown",
+                        "description": "Optional WebGL program: render passes (fullscreen / feedback / mesh / instances) and GLSL for the glass wallpaper and material. Validated by the client (src/lib/theme/program.ts); see docs/theme-shader-programs.md."
                     }
                 }
             }

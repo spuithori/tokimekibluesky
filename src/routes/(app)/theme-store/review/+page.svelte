@@ -6,7 +6,8 @@
     import { toast } from 'svelte-sonner';
     import { agent, theme } from '$lib/stores';
     import ThemeItem from '../ThemeItem.svelte';
-    import { OFFICIAL_THEME_DID, validateThemeRecord } from '$lib/theme/format';
+    import { OFFICIAL_THEME_DID } from '$lib/theme/format';
+    import { validateThemeRecord } from '$lib/theme/validate';
     import { previewRemoteTheme, type RemoteTheme } from '$lib/theme/atproto';
     import { approveTheme, getSubmissions, rejectTheme, unlistTheme, type ThemeSubmission } from '$lib/theme/store';
 

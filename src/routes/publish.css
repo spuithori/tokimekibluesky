@@ -164,6 +164,17 @@
         border: none;
     }
 
+    &::after {
+        content: '';
+        display: var(--publish-textarea-backdrop-display, none);
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        backdrop-filter: var(--publish-textarea-backdrop-filter, none);
+        pointer-events: none;
+    }
+
     &--dragover {
         &::before {
             content: '';

@@ -34,6 +34,7 @@ export function draftFromRecord(
         draft.id = editDraftId(sourceUri);
         draft.sourceUri = sourceUri;
     }
+    if (record.program) draft.program = structuredClone(record.program);
     if (rkey) draft.rkey = rkey;
     if (icon) draft.icon = icon;
     if (cover) draft.cover = cover;

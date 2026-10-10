@@ -1,4 +1,5 @@
-import { LIMITS, validateThemeRecord, type ThemeRecord } from '../format';
+import { LIMITS, type ThemeRecord } from '../format';
+import { validateThemeRecord } from '../validate';
 
 export const THEME_LINK_PREFIX = '#theme=';
 

@@ -5,10 +5,10 @@ import { themesDb } from '$lib/db';
 import {
     THEME_COLLECTION,
     themeUri,
-    validateThemeRecord,
     type BlobRef,
     type ThemeRecord,
 } from './format';
+import { validateThemeRecord } from './validate';
 import type { InstalledTheme } from './installed';
 
 export type ThemeFetchErrorCode = 'invalid-uri' | 'not-found' | 'invalid-record' | 'network' | 'blob-mismatch';

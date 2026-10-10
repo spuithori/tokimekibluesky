@@ -2,7 +2,8 @@ import { CID } from 'multiformats/cid';
 import { create as createDigest } from 'multiformats/hashes/digest';
 import type { Agent } from '$lib/agent';
 import { themesDb } from '$lib/db';
-import { THEME_COLLECTION, validateThemeRecord, type BlobRef, type ThemeRecord } from '../format';
+import { THEME_COLLECTION, type BlobRef, type ThemeRecord } from '../format';
+import { validateThemeRecord } from '../validate';
 import type { InstalledTheme } from '../installed';
 import { composeRecord, type Draft } from './draft';
 

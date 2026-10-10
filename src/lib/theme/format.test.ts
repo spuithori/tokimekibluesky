@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { checkTokenValue, compileThemeStyle, validateThemeRecord, type ThemeRecord } from './format';
+import { checkTokenValue, compileThemeStyle, type ThemeRecord } from './format';
+import { validateThemeRecord } from './validate';
 
 const blob = (mimeType = 'image/png', size = 1000) => ({ $type: 'blob', ref: { $link: 'bafkreihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku' }, mimeType, size });
 

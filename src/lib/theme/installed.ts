@@ -1,4 +1,4 @@
-import { validateThemeRecord, type ThemeRecord } from './format';
+import { validateLegacyRecord, type ThemeRecord } from './format';
 import { convertLegacyTheme, type LegacyTheme } from './legacy';
 import { legacyThemeUri } from './legacyMap';
 import { DEFAULT_THEME, DEFAULT_THEME_ID, DEFAULT_THEME_PREVIEW } from './builtin';
@@ -45,7 +45,7 @@ export function findBuiltinTheme(id: string | undefined | null): InstalledTheme 
 }
 
 export function installedFromLegacy(row: LegacyTheme, now = new Date().toISOString()): InstalledTheme | null {
-    const result = validateThemeRecord(convertLegacyTheme(row), { strict: false });
+    const result = validateLegacyRecord(convertLegacyTheme(row));
     if (!result.ok) return null;
     const uri = legacyThemeUri(row.id);
     const theme: InstalledTheme = {

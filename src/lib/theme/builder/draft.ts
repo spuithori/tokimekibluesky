@@ -1,4 +1,5 @@
 import type { ThemeRecord, ThemeToken, ThemeVariant } from '../format';
+import type { ThemeProgram } from '../program';
 import { DEFAULT_SEEDS, deriveTheme, type SeedBase, type Seeds } from './derive';
 import { isHexColor } from './color';
 
@@ -19,6 +20,7 @@ export interface Draft {
     overrides: Record<string, string | null>;
     darkOverrides: Record<string, string | null>;
     images: DraftImage[];
+    program?: ThemeProgram;
     icon?: Blob;
     cover?: Blob;
     sourceUri?: string;
@@ -27,7 +29,7 @@ export interface Draft {
     updatedAt: string;
 }
 
-export type ComposedRecord = Pick<ThemeRecord, 'name' | 'description' | 'version' | 'createdAt' | 'tokens' | 'dark' | 'variants'>;
+export type ComposedRecord = Pick<ThemeRecord, 'name' | 'description' | 'version' | 'createdAt' | 'tokens' | 'dark' | 'variants' | 'program'>;
 
 function layer(base: ThemeToken[], upper: ThemeToken[]): ThemeToken[] {
     const names = new Set(upper.map((t) => t.name));
@@ -76,16 +78,19 @@ export function composeRecord(draft: Draft): ComposedRecord {
     if (draft.description) record.description = draft.description;
     if (dark.length) record.dark = dark;
     if (draft.variants.length) record.variants = draft.variants;
+    if (draft.program) record.program = draft.program;
     return record;
 }
 
 export function previewRecord(record: ComposedRecord, { dark, variant }: { dark: boolean; variant?: string }): ComposedRecord {
     const chosen = record.variants?.find((v) => v.key === variant) ?? record.variants?.[0];
     const withVariant = chosen ? layer(record.tokens, chosen.tokens) : record.tokens;
-    return {
+    const preview: ComposedRecord = {
         name: record.name,
         version: record.version,
         createdAt: record.createdAt,
         tokens: dark && record.dark ? layer(withVariant, record.dark) : withVariant,
     };
+    if (record.program) preview.program = record.program;
+    return preview;
 }

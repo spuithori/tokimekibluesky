@@ -64,5 +64,6 @@ export function draftSignature(draft: Draft): string {
         draft.images.map((image) => [image.key, blobId(image.blob)]),
         draft.icon ? blobId(draft.icon) : null,
         draft.cover ? blobId(draft.cover) : null,
+        draft.program ?? null,
     ]);
 }

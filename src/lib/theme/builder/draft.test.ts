@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { composeRecord, previewRecord, type Draft } from './draft';
 import { DEFAULT_SEEDS, deriveTheme } from './derive';
-import { compileThemeStyle, validateThemeRecord, type ThemeRecord } from '../format';
+import { compileThemeStyle, type ThemeRecord } from '../format';
+import { validateThemeRecord } from '../validate';
 
 const draft = (patch: Partial<Draft> = {}): Draft => ({
     id: 'd1',

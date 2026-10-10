@@ -1,5 +1,6 @@
 import type { Agent } from '$lib/agent';
-import { APPROVAL_COLLECTION, LIKE_COLLECTION, OFFICIAL_THEME_DID, SCREENSHOT_KINDS, validateThemeRecord, type ScreenshotKind } from './format';
+import { APPROVAL_COLLECTION, LIKE_COLLECTION, OFFICIAL_THEME_DID, SCREENSHOT_KINDS, type ScreenshotKind } from './format';
+import { validateThemeRecord } from './validate';
 import type { RemoteTheme } from './atproto';
 
 export const THEME_SERVICE_URL = 'https://themes.tokimeki.tech';

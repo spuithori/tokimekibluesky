@@ -6,7 +6,8 @@
     import Link from '@lucide/svelte/icons/link';
     import { toast } from 'svelte-sonner';
     import { agent, settings, theme } from '$lib/stores';
-    import { validateThemeRecord, type ThemeRecord } from '../format';
+    import type { ThemeRecord } from '../format';
+    import { validateThemeRecord } from '../validate';
     import { composeRecord, previewRecord, type Draft } from './draft';
     import { deleteDraft, saveDraft } from './storage';
     import { builderHref, draftSignature, editDraftId } from './session';

@@ -1,6 +1,7 @@
 import type { Agent } from '$lib/agent';
 import { themesDb } from '$lib/db';
-import { SCREENSHOT_KINDS, THEME_COLLECTION, validateThemeRecord, type ScreenshotKind, type ThemeScreenshot } from '../format';
+import { SCREENSHOT_KINDS, THEME_COLLECTION, type ScreenshotKind, type ThemeScreenshot } from '../format';
+import { validateThemeRecord } from '../validate';
 import { renderScreenshots, type RenderedScreenshot } from '../store';
 import { localBlobRef, PublishError, uploadVerified, type Published } from './publish';
 

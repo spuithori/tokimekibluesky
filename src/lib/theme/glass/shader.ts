@@ -12,6 +12,7 @@ export const GLASS_PARAMS = {
     specular: { token: '--glass-specular', value: 1.17 },
     pointerLight: { token: '--glass-pointer-light', value: 0 },
     shadow: { token: '--glass-shadow', value: 0.15 },
+    bound: { token: '--glass-bound', value: 0 },
 } as const;
 
 export type GlassParam = keyof typeof GLASS_PARAMS;
@@ -54,16 +55,15 @@ void main() {
   o = vec4(c, 1.);
 }`;
 
-const FRAMEWORK = `
-uniform sampler2D uSharp, uL0, uL1, uL2, uL3, uL4, uL5;
+const FRAMEWORK_A = `
 uniform vec2 uRes, uImg, uPointer;
 uniform int uCount;
 uniform vec4 uRect[${MAX_SURFACES}];
 uniform vec4 uClip[${MAX_SURFACES}];
 uniform float uRadius[${MAX_SURFACES}];
 uniform vec2 uAnchor[${MAX_SURFACES}];
-uniform float uDpr, uSigma0, uDark;
-uniform float uRefraction, uBevel, uIor, uRadial, uLens, uRipple, uFrost, uSaturation, uDispersion, uAdapt, uSpecular, uPointerLight, uShadow;
+uniform float uDpr, uSigma0, uDark, uTime, uDelta, uFrame, uScroll;
+uniform float uRefraction, uBevel, uIor, uRadial, uLens, uRipple, uFrost, uSaturation, uDispersion, uAdapt, uSpecular, uPointerLight, uShadow, uBound;
 
 vec2 cover(vec2 p) { float s = max(uRes.x / uImg.x, uRes.y / uImg.y); vec2 size = uImg * s; return (p - (uRes - size) * .5) / size; }
 float sdRoundRect(vec2 p, vec4 r, float rad) { vec2 c = r.xy + r.zw * .5; vec2 q = abs(p - c) - (r.zw * .5 - rad); return length(max(q, 0.)) + min(max(q.x, q.y), 0.) - rad; }
@@ -80,22 +80,9 @@ vec3 fromLab(vec3 c) {
   l = l * l * l;
   return mat3(4.0767416621, -1.2684380046, -.0041960863, -3.3077115913, 2.6097574011, -.7034186147, .2309699292, -.3413193965, 1.7076147010) * l;
 }
-vec3 pyramidLevel(int i, vec2 uv) {
-  if (i <= 0) return texture(uL0, uv).rgb;
-  if (i == 1) return texture(uL1, uv).rgb;
-  if (i == 2) return texture(uL2, uv).rgb;
-  if (i == 3) return texture(uL3, uv).rgb;
-  if (i == 4) return texture(uL4, uv).rgb;
-  return texture(uL5, uv).rgb;
-}
-vec3 wallpaper(vec2 p, float sigma) {
-  vec2 uv = vec2(p.x / uRes.x, 1. - p.y / uRes.y);
-  if (sigma < uSigma0) return mix(texture(uSharp, cover(p)).rgb, pyramidLevel(0, uv), sigma / uSigma0);
-  float f = clamp(log2(sigma / uSigma0), 0., ${PYRAMID_LEVELS - 1}. - .001);
-  int i = int(floor(f));
-  return mix(pyramidLevel(i, uv), pyramidLevel(i + 1, uv), fract(f));
-}
-bool clipped(vec2 p, int i) { vec4 c = uClip[i]; return p.x < c.x || p.y < c.y || p.x > c.z || p.y > c.w; }
+`;
+
+const FRAMEWORK_B = `bool clipped(vec2 p, int i) { vec4 c = uClip[i]; return p.x < c.x || p.y < c.y || p.x > c.z || p.y > c.w; }
 float field(vec2 p, out int idx) {
   float d = 1e9; idx = -1;
   for (int i = 0; i < ${MAX_SURFACES}; i++) { if (i >= uCount) break; if (clipped(p, i)) continue; float s = sdRoundRect(p, uRect[i], uRadius[i]); if (s < d) { d = s; idx = i; } }
@@ -175,10 +162,33 @@ vec3 highlight(Glass g, Lens l) {
 }
 `;
 
+export const IMAGE_SOURCE: GlassSource = { glsl: `
+uniform sampler2D uSharp, uL0, uL1, uL2, uL3, uL4, uL5;
+vec3 pyramidLevel(int i, vec2 uv) {
+  if (i <= 0) return texture(uL0, uv).rgb;
+  if (i == 1) return texture(uL1, uv).rgb;
+  if (i == 2) return texture(uL2, uv).rgb;
+  if (i == 3) return texture(uL3, uv).rgb;
+  if (i == 4) return texture(uL4, uv).rgb;
+  return texture(uL5, uv).rgb;
+}
+vec3 wallpaper(vec2 p, float sigma) {
+  vec2 uv = vec2(p.x / uRes.x, 1. - p.y / uRes.y);
+  if (sigma < uSigma0) return mix(texture(uSharp, cover(p)).rgb, pyramidLevel(0, uv), sigma / uSigma0);
+  float f = clamp(log2(sigma / uSigma0), 0., ${PYRAMID_LEVELS - 1}. - .001);
+  int i = int(floor(f));
+  return mix(pyramidLevel(i, uv), pyramidLevel(i + 1, uv), fract(f));
+}
+vec3 backdrop(vec2 p) { return texture(uSharp, cover(p)).rgb; }
+`, params: {}, animated: false, image: true };
+
+
 export const DEFAULT_GLASS = `
 vec3 glassColor(Glass g) {
   Lens l = lens(g);
-  return legible(transmit(g, l), g.p) + highlight(g, l);
+  vec3 c = legible(transmit(g, l), g.p);
+  if (uBound > 0.) c = mix(c, bounded(c), uBound);
+  return c + highlight(g, l);
 }
 `;
 
@@ -195,7 +205,7 @@ void main() {
     float s = max(sdRoundRect(p - vec2(0., 10. * uDpr), uRect[i], uRadius[i]), 0.);
     shade = max(shade, exp(-s * s / (2. * pow(14. * uDpr, 2.))));
   }
-  vec3 outside = texture(uSharp, cover(p)).rgb * (1. - uShadow * .35 * shade * step(0., d));
+  vec3 outside = backdrop(p) * (1. - uShadow * .35 * shade * step(0., d));
   vec3 c = outside;
   if (idx >= 0 && d <= 1.) {
     float e = 1.5 * uDpr;
@@ -216,13 +226,20 @@ export interface GlassMaterial {
     pointer?: (values: Record<string, number>) => boolean;
 }
 
+export interface GlassSource {
+    glsl: string;
+    params: MaterialParams;
+    animated: boolean;
+    image: boolean;
+}
+
 export const LIQUID: GlassMaterial = { glsl: DEFAULT_GLASS, params: {} };
 
 export function uniformName(key: string): string {
     return `u${key[0].toUpperCase()}${key.slice(1)}`;
 }
 
-export function glassShader(material: GlassMaterial = LIQUID): string {
-    const uniforms = Object.keys(material.params).map((key) => `uniform float ${uniformName(key)};\n`).join('');
-    return HEAD + FRAMEWORK + uniforms + material.glsl + MAIN;
+export function glassShader(material: GlassMaterial = LIQUID, source: GlassSource = IMAGE_SOURCE, header = ''): string {
+    const uniforms = (params: MaterialParams) => Object.keys(params).map((key) => `uniform float ${uniformName(key)};\n`).join('');
+    return HEAD + FRAMEWORK_A + header + uniforms(source.params) + source.glsl + FRAMEWORK_B + uniforms(material.params) + material.glsl + MAIN;
 }

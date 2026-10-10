@@ -1,3 +1,5 @@
+import type { ThemeProgram } from './program';
+
 export const THEME_COLLECTION = 'tech.tokimeki.theme.theme';
 export const APPROVAL_COLLECTION = 'tech.tokimeki.theme.approval';
 export const LIKE_COLLECTION = 'tech.tokimeki.theme.like';
@@ -50,6 +52,7 @@ export interface ThemeRecord {
     cover?: BlobRef;
     screenshots?: ThemeScreenshot[];
     tags?: string[];
+    program?: ThemeProgram;
     createdAt: string;
     updatedAt?: string;
 }
@@ -176,7 +179,13 @@ function checkString(value: unknown, max: number): string | undefined {
 
 export type ThemeValidation = { ok: true; record: ThemeRecord; warnings: string[] } | { ok: false; errors: string[] };
 
-export function validateThemeRecord(value: unknown, { strict = true } = {}): ThemeValidation {
+export type ProgramCheck = (value: unknown, imageKeys: ReadonlySet<string>, errors: string[]) => ThemeProgram | undefined;
+
+export function validateLegacyRecord(value: unknown): ThemeValidation {
+    return checkThemeRecord(value, false, null);
+}
+
+export function checkThemeRecord(value: unknown, strict: boolean, programCheck: ProgramCheck | null): ThemeValidation {
     const errors: string[] = [];
     const v = value as Record<string, unknown> | null;
     if (!v || typeof v !== 'object' || Array.isArray(v)) return { ok: false, errors: ['レコードがオブジェクトではない'] };
@@ -256,6 +265,12 @@ export function validateThemeRecord(value: unknown, { strict = true } = {}): The
         }
     }
 
+    let program: ThemeProgram | undefined;
+    if (v.program !== undefined) {
+        if (programCheck) program = programCheck(v.program, imageKeys, errors);
+        else errors.push('program はこの経路では扱わない');
+    }
+
     const tags = Array.isArray(v.tags)
         ? (v.tags as unknown[]).filter((t): t is string => typeof t === 'string' && t.length > 0 && t.length <= 320).slice(0, LIMITS.tags)
         : undefined;
@@ -278,6 +293,7 @@ export function validateThemeRecord(value: unknown, { strict = true } = {}): The
     if (cover) record.cover = cover;
     if (screenshots.length) record.screenshots = screenshots;
     if (tags?.length) record.tags = tags;
+    if (program) record.program = program;
     const updatedAt = checkString(v.updatedAt, 64);
     if (updatedAt) record.updatedAt = updatedAt;
     return { ok: true, record, warnings: errors };
