@@ -1,4 +1,5 @@
-import { BLUR, DOWN, GLASS_PARAMS, MAP, MAX_SURFACES, PYRAMID_LEVELS, VERTEX, glassShader, type GlassParam } from './shader';
+import { loadMaterial, readMaterialName } from './materials';
+import { BLUR, DOWN, GLASS_PARAMS, LIQUID, MAP, MAX_SURFACES, PYRAMID_LEVELS, VERTEX, glassShader, uniformName, type GlassMaterial, type GlassParam, type MaterialParams } from './shader';
 
 export const SURFACE_SELECTOR = '[data-glass-surface]';
 export const COVER_SELECTOR = '[data-glass-cover]';
@@ -11,13 +12,17 @@ type Level = Target & { scratch: Target };
 
 const SETTLE_FRAMES = 6;
 
-export function readGlassParams(style: CSSStyleDeclaration): Record<GlassParam, number> {
-    const out = {} as Record<GlassParam, number>;
-    for (const [key, { token, value }] of Object.entries(GLASS_PARAMS) as Array<[GlassParam, { token: string; value: number }]>) {
+function readParams(style: CSSStyleDeclaration, defs: MaterialParams): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const [key, { token, value }] of Object.entries(defs)) {
         const raw = Number.parseFloat(style.getPropertyValue(token));
         out[key] = Number.isFinite(raw) ? raw : value;
     }
     return out;
+}
+
+export function readGlassParams(style: CSSStyleDeclaration): Record<GlassParam, number> {
+    return readParams(style, GLASS_PARAMS) as Record<GlassParam, number>;
 }
 
 export function readWallpaperUrl(style: CSSStyleDeclaration): string | null {
@@ -57,9 +62,8 @@ export function startGlass(app: HTMLElement): () => void {
     if (!gl) return () => {};
     const hdr = !!gl.getExtension('EXT_color_buffer_float');
 
-    let glassProgram: Program, mapProgram: Program, downProgram: Program, blurProgram: Program;
+    let mapProgram: Program, downProgram: Program, blurProgram: Program;
     try {
-        glassProgram = compile(gl, glassShader());
         mapProgram = compile(gl, MAP);
         downProgram = compile(gl, DOWN);
         blurProgram = compile(gl, BLUR);
@@ -79,6 +83,10 @@ export function startGlass(app: HTMLElement): () => void {
     let pyramid: Level[] = [];
     let pyramidKey = '';
     let params = readGlassParams(getComputedStyle(app));
+    let glassProgram: Program | null = null;
+    let material: GlassMaterial = LIQUID;
+    let materialValues: Record<string, number> = {};
+    let requestedMaterial = '';
     let dark = app.classList.contains('darkmode');
     let pointer: [number, number] | null = null;
     let frame = 0;
@@ -169,12 +177,34 @@ export function startGlass(app: HTMLElement): () => void {
         imageSize = [image.naturalWidth, image.naturalHeight];
         pyramidKey = '';
         updateActive();
+        request();
+    }
+
+    function useMaterial(next: GlassMaterial) {
+        let program: Program;
+        try {
+            program = compile(gl!, glassShader(next));
+        } catch (error) {
+            console.error(error);
+            return;
+        }
+        if (glassProgram) gl!.deleteProgram(glassProgram.program);
+        glassProgram = program;
+        material = next;
+        materialValues = readParams(getComputedStyle(app), material.params);
+        updateActive();
+        request();
+    }
+
+    function wantsPointer() {
+        return params.pointerLight > 0 || !!material.pointer?.(materialValues);
     }
 
     function surfaces(dpr: number, vw: number, vh: number) {
         const rects: number[] = [];
         const clips: number[] = [];
         const radii: number[] = [];
+        const anchors: number[] = [];
         for (const el of app.querySelectorAll<HTMLElement>(SURFACE_SELECTOR)) {
             if (el.closest(OVERLAY_SELECTOR)) {
                 if (el.hasAttribute('data-glass-drawn')) el.removeAttribute('data-glass-drawn');
@@ -192,7 +222,8 @@ export function startGlass(app: HTMLElement): () => void {
             if (drawn !== el.hasAttribute('data-glass-drawn')) el.toggleAttribute('data-glass-drawn', drawn);
             if (!drawn) continue;
             const r = el.getBoundingClientRect();
-            const scroller = el.closest('.deck')?.getBoundingClientRect();
+            const deck = el.closest('.deck');
+            const scroller = deck?.getBoundingClientRect();
             const clip = scroller ? [scroller.left, scroller.top, scroller.right, scroller.bottom] : [0, 0, vw, vh];
             if (r.width < 1 || r.height < 1 || r.right <= clip[0] || r.left >= clip[2] || r.bottom <= clip[1] || r.top >= clip[3]) continue;
             const left = r.left <= 2 ? -200 : r.left;
@@ -202,14 +233,15 @@ export function startGlass(app: HTMLElement): () => void {
             rects.push(left * dpr, top * dpr, (right - left) * dpr, (bottom - top) * dpr);
             clips.push(...clip.map((v) => v * dpr));
             radii.push((Number.parseFloat(style.borderTopLeftRadius) || 0) * dpr);
+            anchors.push(deck && scroller ? (deck.scrollLeft - scroller.left) * dpr : 0, deck && scroller ? (deck.scrollTop - scroller.top) * dpr : 0);
             if (radii.length === MAX_SURFACES) break;
         }
-        return { rects, clips, radii };
+        return { rects, clips, radii, anchors };
     }
 
     function draw() {
         frame = 0;
-        if (!active || !wallpaper) return;
+        if (!active || !wallpaper || !glassProgram) return;
         const dpr = Math.min(devicePixelRatio || 1, 2);
         const vw = canvas.clientWidth || innerWidth;
         const vh = canvas.clientHeight || innerHeight;
@@ -220,9 +252,9 @@ export function startGlass(app: HTMLElement): () => void {
             canvas.height = height;
         }
         buildPyramid(width, height);
-        const { rects, clips, radii } = surfaces(dpr, vw, vh);
+        const { rects, clips, radii, anchors } = surfaces(dpr, vw, vh);
         const signature = `${width}x${height}|${rects.join(',')}|${radii.join(',')}`;
-        const p = pointer && params.pointerLight > 0 ? [pointer[0] * dpr, pointer[1] * dpr] : [-1, -1];
+        const p = pointer && wantsPointer() ? [pointer[0] * dpr, pointer[1] * dpr] : [-1, -1];
         pass(glassProgram, null, (u) => {
             bind(0, wallpaper!);
             gl!.uniform1i(u('uSharp'), 0);
@@ -237,6 +269,7 @@ export function startGlass(app: HTMLElement): () => void {
             gl!.uniform4fv(u('uRect'), new Float32Array([...rects, ...new Array(MAX_SURFACES * 4 - rects.length).fill(0)]));
             gl!.uniform4fv(u('uClip'), new Float32Array([...clips, ...new Array(MAX_SURFACES * 4 - clips.length).fill(0)]));
             gl!.uniform1fv(u('uRadius'), new Float32Array([...radii, ...new Array(MAX_SURFACES - radii.length).fill(0)]));
+            gl!.uniform2fv(u('uAnchor'), new Float32Array([...anchors, ...new Array(MAX_SURFACES * 2 - anchors.length).fill(0)]));
             gl!.uniform1f(u('uDpr'), dpr);
             gl!.uniform1f(u('uSigma0'), 3.4);
             gl!.uniform1f(u('uDark'), dark ? 1 : 0);
@@ -253,6 +286,7 @@ export function startGlass(app: HTMLElement): () => void {
             gl!.uniform1f(u('uSpecular'), params.specular);
             gl!.uniform1f(u('uPointerLight'), params.pointerLight);
             gl!.uniform1f(u('uShadow'), params.shadow);
+            for (const [key, value] of Object.entries(materialValues)) gl!.uniform1f(u(uniformName(key)), value);
         });
         paintCovers(dpr, vw);
         if (signature !== lastSignature) settle = SETTLE_FRAMES;
@@ -311,7 +345,7 @@ export function startGlass(app: HTMLElement): () => void {
     }
 
     function updateActive() {
-        const next = !!wallpaper && !gl!.isContextLost() && !blocked.some((m) => m.matches);
+        const next = !!wallpaper && !!glassProgram && !gl!.isContextLost() && !blocked.some((m) => m.matches);
         if (next === active) return;
         active = next;
         app.classList.toggle(ACTIVE_CLASS, active);
@@ -326,7 +360,15 @@ export function startGlass(app: HTMLElement): () => void {
     function refresh() {
         const style = getComputedStyle(app);
         params = readGlassParams(style);
+        materialValues = readParams(style, material.params);
         dark = app.classList.contains('darkmode');
+        const name = readMaterialName(style);
+        if (name !== requestedMaterial) {
+            requestedMaterial = name;
+            void loadMaterial(name).then((next) => {
+                if (!disposed && requestedMaterial === name) useMaterial(next);
+            });
+        }
         const url = readWallpaperUrl(style);
         if (url && url !== wallpaperUrl) void loadWallpaper(url);
         request();
@@ -336,7 +378,7 @@ export function startGlass(app: HTMLElement): () => void {
         if (e.target instanceof Element && e.target.querySelector(`:scope > ${SURFACE_SELECTOR}`)) request();
     };
     const onPointer = (e: PointerEvent) => {
-        if (e.pointerType !== 'mouse' || params.pointerLight <= 0) return;
+        if (e.pointerType !== 'mouse' || !wantsPointer()) return;
         pointer = [e.clientX, e.clientY];
         request();
     };

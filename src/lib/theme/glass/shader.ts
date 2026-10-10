@@ -61,6 +61,7 @@ uniform int uCount;
 uniform vec4 uRect[${MAX_SURFACES}];
 uniform vec4 uClip[${MAX_SURFACES}];
 uniform float uRadius[${MAX_SURFACES}];
+uniform vec2 uAnchor[${MAX_SURFACES}];
 uniform float uDpr, uSigma0, uDark;
 uniform float uRefraction, uBevel, uIor, uRadial, uLens, uRipple, uFrost, uSaturation, uDispersion, uAdapt, uSpecular, uPointerLight, uShadow;
 
@@ -108,44 +109,76 @@ struct Glass {
   vec2 centre;
   vec2 half_;
   float radius;
+  vec2 world;
 };
-`;
 
-export const DEFAULT_GLASS = `
-vec3 glassColor(Glass g) {
+struct Lens {
+  vec2 n;
+  vec3 N;
+  float t;
+  vec2 dome;
+  vec2 ripple;
+};
+
+Lens lens(Glass g) {
   vec2 n = g.normal;
   float t = clamp(g.depth / (uBevel * uDpr), 0., 1.);
   float u = 1. - t;
   float slope = u / sqrt(max(1. - u * u, 1e-3));
   vec2 q = (g.p - g.centre) / g.half_;
-  float r2 = clamp(dot(q, q) * .5, 0., 1.);
   vec2 qc = abs(g.p - g.centre) - (g.half_ - g.radius);
   float corner = smoothstep(0., g.radius * .5 + 1., min(qc.x, qc.y));
   n = normalize(mix(n, normalize(g.p - g.centre + 1e-4), uRadial * (1. - corner)) + 1e-6);
   vec2 dome = -q * uLens * 1.6;
   vec2 ripple = noiseSlope(g.p / (260. * uDpr)) * uRipple * .35;
   vec3 N = normalize(vec3(n * min(slope, 6.) + dome * .25 + ripple, 1.));
-  vec3 rr = refract(vec3(0., 0., -1.), N, 1. / uIor);
+  return Lens(n, N, t, dome, ripple);
+}
+vec3 transmit(Glass g, Lens l) {
+  vec2 q = (g.p - g.centre) / g.half_;
+  float r2 = clamp(dot(q, q) * .5, 0., 1.);
+  vec3 rr = refract(vec3(0., 0., -1.), l.N, 1. / uIor);
   vec2 off = rr.xy / max(-rr.z, .2) * uRefraction * uDpr;
   off += (g.p - g.centre) * uLens * .16 * (1. - r2);
-  off += ripple * 26. * uDpr;
-  float sigma = uFrost * 56. * uDpr * mix(.3, 1., smoothstep(0., 1., t));
+  off += l.ripple * 26. * uDpr;
+  float sigma = uFrost * 56. * uDpr * mix(.3, 1., smoothstep(0., 1., l.t));
   vec3 c = vec3(wallpaper(g.p - off * (1. + uDispersion), sigma).r, wallpaper(g.p - off, sigma).g, wallpaper(g.p - off * (1. - uDispersion), sigma).b);
-  c = max(mix(vec3(dot(c, vec3(.2126, .7152, .0722))), c, uSaturation), 0.);
-  float around = toLab(wallpaper(g.p, 80. * uDpr)).x;
+  return max(mix(vec3(dot(c, vec3(.2126, .7152, .0722))), c, uSaturation), 0.);
+}
+vec3 legible(vec3 c, vec2 p) {
+  float around = toLab(wallpaper(p, 80. * uDpr)).x;
   vec3 lab = toLab(c);
   lab.x = clamp(lab.x + (uDark < .5 ? max(.80 - around, 0.) : -max(around - .42, 0.)) * uAdapt * 1.4, 0., 1.);
   vec3 adapted = fromLab(lab);
   if (max(max(adapted.r, adapted.g), adapted.b) > 1.) { lab.yz *= .85; adapted = fromLab(lab); }
-  c = clamp(adapted, 0., 1.);
+  return clamp(adapted, 0., 1.);
+}
+vec3 bounded(vec3 c) {
+  vec3 lab = toLab(c);
+  float x = (uDark < .5 ? .80 - lab.x : lab.x - .42) + .12;
+  if (x <= 0.) return c;
+  float shift = x - .12 * (1. - exp(-x / .12));
+  lab.x += uDark < .5 ? shift : -shift;
+  vec3 out_ = fromLab(lab);
+  if (max(max(out_.r, out_.g), out_.b) > 1.) { lab.yz *= .85; out_ = fromLab(lab); }
+  return clamp(out_, 0., 1.);
+}
+vec3 highlight(Glass g, Lens l) {
   bool pointer = uPointer.x >= 0.;
   vec2 L = pointer ? normalize(uPointer - g.centre + 1e-4) : normalize(vec2(-.6, -.8));
-  float lit = pointer ? mix(abs(dot(n, L)) * .4, max(dot(n, L), 0.), .75) * (.6 + uPointerLight * .4) : abs(dot(n, L));
-  float fresnel = pow(1. - N.z, 2.5);
+  float lit = pointer ? mix(abs(dot(l.n, L)) * .4, max(dot(l.n, L), 0.), .75) * (.6 + uPointerLight * .4) : abs(dot(l.n, L));
+  float fresnel = pow(1. - l.N.z, 2.5);
   float rim = smoothstep(2. * uDpr, 0., g.depth);
-  float sheen = pow(max(dot(normalize(vec3(dome * .25 + ripple, 1.)), normalize(vec3(-.45, -.6, .66))), 0.), 24.) * abs(uLens) * .5;
+  float sheen = pow(max(dot(normalize(vec3(l.dome * .25 + l.ripple, 1.)), normalize(vec3(-.45, -.6, .66))), 0.), 24.) * abs(uLens) * .5;
   float pool = pointer ? uPointerLight * .16 * smoothstep(260. * uDpr, 0., length(g.p - uPointer)) : 0.;
-  return c + vec3(uSpecular * (fresnel * lit * .9 + rim * (.25 + .75 * lit) + sheen) + pool) * mix(.9, .55, uDark);
+  return vec3(uSpecular * (fresnel * lit * .9 + rim * (.25 + .75 * lit) + sheen) + pool) * mix(.9, .55, uDark);
+}
+`;
+
+export const DEFAULT_GLASS = `
+vec3 glassColor(Glass g) {
+  Lens l = lens(g);
+  return legible(transmit(g, l), g.p) + highlight(g, l);
 }
 `;
 
@@ -169,12 +202,27 @@ void main() {
     vec4 r = uRect[idx];
     float rad = uRadius[idx];
     vec2 grad = vec2(sdRoundRect(p + vec2(e, 0.), r, rad) - sdRoundRect(p - vec2(e, 0.), r, rad), sdRoundRect(p + vec2(0., e), r, rad) - sdRoundRect(p - vec2(0., e), r, rad));
-    Glass g = Glass(p, max(-d, 0.), length(grad) > 0. ? normalize(grad) : vec2(0.), r.xy + r.zw * .5, r.zw * .5, rad);
+    Glass g = Glass(p, max(-d, 0.), length(grad) > 0. ? normalize(grad) : vec2(0.), r.xy + r.zw * .5, r.zw * .5, rad, p + uAnchor[idx]);
     c = mix(outside, glassColor(g), smoothstep(.75, -.75, d));
   }
   o = vec4(toSrgb(c) + (hash(gl_FragCoord.xy) - .5) / 255., 1.);
 }`;
 
-export function glassShader(glass: string = DEFAULT_GLASS): string {
-    return HEAD + FRAMEWORK + glass + MAIN;
+export type MaterialParams = Record<string, { token: string; value: number }>;
+
+export interface GlassMaterial {
+    glsl: string;
+    params: MaterialParams;
+    pointer?: (values: Record<string, number>) => boolean;
+}
+
+export const LIQUID: GlassMaterial = { glsl: DEFAULT_GLASS, params: {} };
+
+export function uniformName(key: string): string {
+    return `u${key[0].toUpperCase()}${key.slice(1)}`;
+}
+
+export function glassShader(material: GlassMaterial = LIQUID): string {
+    const uniforms = Object.keys(material.params).map((key) => `uniform float ${uniformName(key)};\n`).join('');
+    return HEAD + FRAMEWORK + uniforms + material.glsl + MAIN;
 }
