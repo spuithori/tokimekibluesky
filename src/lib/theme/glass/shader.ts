@@ -199,11 +199,13 @@ void main() {
   int idx;
   float d = field(p, idx);
   float shade = 0.;
-  for (int i = 0; i < ${MAX_SURFACES}; i++) {
-    if (i >= uCount) break;
-    if (clipped(p, i)) continue;
-    float s = max(sdRoundRect(p - vec2(0., 10. * uDpr), uRect[i], uRadius[i]), 0.);
-    shade = max(shade, exp(-s * s / (2. * pow(14. * uDpr, 2.))));
+  if (d >= 0.) {
+    for (int i = 0; i < ${MAX_SURFACES}; i++) {
+      if (i >= uCount) break;
+      if (clipped(p, i)) continue;
+      float s = max(sdRoundRect(p - vec2(0., 10. * uDpr), uRect[i], uRadius[i]), 0.);
+      shade = max(shade, exp(-s * s / (2. * pow(14. * uDpr, 2.))));
+    }
   }
   vec3 outside = backdrop(p) * (1. - uShadow * .35 * shade * step(0., d));
   vec3 c = outside;

@@ -13,6 +13,7 @@ export interface FrameState {
     scroll: number;
     values: Record<string, number>;
     images: Record<string, WebGLTexture>;
+    advance: boolean;
 }
 
 export interface PassRunner {
@@ -144,7 +145,7 @@ export function createPassRunner(gl: WebGL2RenderingContext, program: ThemeProgr
                     front.set(pass.key, 0);
                     rendered.delete(pass.key);
                 }
-                const due = pass.update === 'frame' || !rendered.has(pass.key) || (pass.update === 'resize' && rendered.get(pass.key) !== resizeKey);
+                const due = (pass.update === 'frame' && state.advance) || !rendered.has(pass.key) || (pass.update === 'resize' && rendered.get(pass.key) !== resizeKey);
                 if (!due) continue;
                 rendered.set(pass.key, resizeKey);
                 const readIndex = front.get(pass.key) ?? 0;

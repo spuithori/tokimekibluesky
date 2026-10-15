@@ -66,8 +66,24 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
     const canvas = document.createElement('canvas');
     canvas.className = 'glass-canvas';
     canvas.setAttribute('aria-hidden', 'true');
-    const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, premultipliedAlpha: false, powerPreference: 'low-power' });
+    const contextOptions: WebGLContextAttributes = { antialias: false, alpha: false, premultipliedAlpha: false, powerPreference: 'low-power' };
+    let offscreen: OffscreenCanvas | null = null;
+    let presenter: ImageBitmapRenderingContext | null = null;
+    let context: WebGL2RenderingContext | null = null;
+    if (typeof OffscreenCanvas === 'function') {
+        const candidate = new OffscreenCanvas(1, 1);
+        const offscreenGl = candidate.getContext('webgl2', contextOptions) as WebGL2RenderingContext | null;
+        const bitmap = offscreenGl ? canvas.getContext('bitmaprenderer', { alpha: false }) : null;
+        if (offscreenGl && bitmap) {
+            offscreen = candidate;
+            presenter = bitmap;
+            context = offscreenGl;
+        } else offscreenGl?.getExtension('WEBGL_lose_context')?.loseContext();
+    }
+    context ??= canvas.getContext('webgl2', contextOptions);
+    const gl = context;
     if (!gl) return () => {};
+    const surface: HTMLCanvasElement | OffscreenCanvas = offscreen ?? canvas;
     const hdr = !!gl.getExtension('EXT_color_buffer_float');
 
     let mapProgram: Program, downProgram: Program, blurProgram: Program;
@@ -105,7 +121,15 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
     let lastDraw = 0;
     let lastTime = 0;
     let frameCount = 0;
+    let lastAdvance = 0;
+    let passTime = 0;
+    let passFrame = 0;
     const FRAME_MS = 1000 / (program?.frameRate ?? 30);
+    const throttlePasses = !!program?.animated && !program.uses?.includes('scroll');
+    const rectData = new Float32Array(MAX_SURFACES * 4);
+    const clipData = new Float32Array(MAX_SURFACES * 4);
+    const radiusData = new Float32Array(MAX_SURFACES);
+    const anchorData = new Float32Array(MAX_SURFACES * 2);
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     let dark = app.classList.contains('darkmode');
     let pointer: [number, number] | null = null;
@@ -136,7 +160,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
     function pass(program: Program, target: Target | null, setup: (u: Program['uniform']) => void) {
         gl!.useProgram(program.program);
         gl!.bindFramebuffer(gl!.FRAMEBUFFER, target ? target.framebuffer : null);
-        gl!.viewport(0, 0, target ? target.width : canvas.width, target ? target.height : canvas.height);
+        gl!.viewport(0, 0, target ? target.width : surface.width, target ? target.height : surface.height);
         setup(program.uniform);
         gl!.drawArrays(gl!.TRIANGLES, 0, 3);
     }
@@ -262,6 +286,10 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
         const clips: number[] = [];
         const radii: number[] = [];
         const anchors: number[] = [];
+        let deck: Element | null = null;
+        let scroller: DOMRect | undefined;
+        let clip = [0, 0, vw, vh];
+        let anchor = [0, 0];
         for (const el of app.querySelectorAll<HTMLElement>(SURFACE_SELECTOR)) {
             if (el.closest(OVERLAY_SELECTOR)) {
                 if (el.hasAttribute('data-glass-drawn')) el.removeAttribute('data-glass-drawn');
@@ -279,9 +307,13 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
             if (drawn !== el.hasAttribute('data-glass-drawn')) el.toggleAttribute('data-glass-drawn', drawn);
             if (!drawn) continue;
             const r = el.getBoundingClientRect();
-            const deck = el.closest('.deck');
-            const scroller = deck?.getBoundingClientRect();
-            const clip = scroller ? [scroller.left, scroller.top, scroller.right, scroller.bottom] : [0, 0, vw, vh];
+            const owner = el.closest('.deck');
+            if (owner !== deck || !scroller) {
+                deck = owner;
+                scroller = deck?.getBoundingClientRect();
+                clip = scroller ? [scroller.left, scroller.top, scroller.right, scroller.bottom] : [0, 0, vw, vh];
+                anchor = deck && scroller ? [(deck.scrollLeft - scroller.left) * dpr, (deck.scrollTop - scroller.top) * dpr] : [0, 0];
+            }
             if (r.width < 1 || r.height < 1 || r.right <= clip[0] || r.left >= clip[2] || r.bottom <= clip[1] || r.top >= clip[3]) continue;
             const left = r.left <= 2 ? -200 : r.left;
             const top = r.top <= 2 ? -200 : r.top;
@@ -290,7 +322,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
             rects.push(left * dpr, top * dpr, (right - left) * dpr, (bottom - top) * dpr);
             clips.push(...clip.map((v) => v * dpr));
             radii.push((Number.parseFloat(style.borderTopLeftRadius) || 0) * dpr);
-            anchors.push(deck && scroller ? (deck.scrollLeft - scroller.left) * dpr : 0, deck && scroller ? (deck.scrollTop - scroller.top) * dpr : 0);
+            anchors.push(anchor[0], anchor[1]);
             if (radii.length === MAX_SURFACES) break;
         }
         return { rects, clips, radii, anchors };
@@ -310,9 +342,9 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
         const vh = canvas.clientHeight || innerHeight;
         const width = Math.round(vw * dpr);
         const height = Math.round(vh * dpr);
-        if (canvas.width !== width || canvas.height !== height) {
-            canvas.width = width;
-            canvas.height = height;
+        if (surface.width !== width || surface.height !== height) {
+            surface.width = width;
+            surface.height = height;
         }
         if (source.image) buildPyramid(width, height);
         const { rects, clips, radii, anchors } = surfaces(dpr, vw, vh);
@@ -323,7 +355,14 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
         lastTime = time;
         frameCount++;
         const scroll = deckScroll();
-        const passTextures = runner?.render({ time, delta, frame: frameCount, width, height, dpr, dark, pointer: [p[0], p[1]], scroll, values: programValues, images: inputImages }) ?? {};
+        const advance = !throttlePasses || lastAdvance === 0 || now - lastAdvance >= FRAME_MS - 2;
+        if (advance) {
+            lastAdvance = now;
+            passFrame++;
+        }
+        const passDelta = advance ? Math.max(0, time - passTime) : 0;
+        if (advance) passTime = time;
+        const passTextures = runner?.render({ time, delta: passDelta, frame: passFrame, width, height, dpr, dark, pointer: [p[0], p[1]], scroll, values: programValues, images: inputImages, advance }) ?? {};
         pass(glassProgram, null, (u) => {
             if (source.image) {
                 bind(0, wallpaper!);
@@ -349,10 +388,14 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
             gl!.uniform2f(u('uImg'), imageSize[0], imageSize[1]);
             gl!.uniform2f(u('uPointer'), p[0], p[1]);
             gl!.uniform1i(u('uCount'), radii.length);
-            gl!.uniform4fv(u('uRect'), new Float32Array([...rects, ...new Array(MAX_SURFACES * 4 - rects.length).fill(0)]));
-            gl!.uniform4fv(u('uClip'), new Float32Array([...clips, ...new Array(MAX_SURFACES * 4 - clips.length).fill(0)]));
-            gl!.uniform1fv(u('uRadius'), new Float32Array([...radii, ...new Array(MAX_SURFACES - radii.length).fill(0)]));
-            gl!.uniform2fv(u('uAnchor'), new Float32Array([...anchors, ...new Array(MAX_SURFACES * 2 - anchors.length).fill(0)]));
+            rectData.fill(0).set(rects);
+            clipData.fill(0).set(clips);
+            radiusData.fill(0).set(radii);
+            anchorData.fill(0).set(anchors);
+            gl!.uniform4fv(u('uRect'), rectData);
+            gl!.uniform4fv(u('uClip'), clipData);
+            gl!.uniform1fv(u('uRadius'), radiusData);
+            gl!.uniform2fv(u('uAnchor'), anchorData);
             gl!.uniform1f(u('uDpr'), dpr);
             gl!.uniform1f(u('uSigma0'), 3.4);
             gl!.uniform1f(u('uDark'), dark ? 1 : 0);
@@ -372,7 +415,9 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
             gl!.uniform1f(u('uBound'), params.bound);
             for (const [key, value] of Object.entries(materialValues)) gl!.uniform1f(u(uniformName(key)), value);
         });
-        paintCovers(dpr, vw);
+        const image = offscreen ? offscreen.transferToImageBitmap() : canvas;
+        paintCovers(dpr, vw, image);
+        if (presenter) presenter.transferFromImageBitmap(image as ImageBitmap);
         if (signature !== lastSignature) settle = SETTLE_FRAMES;
         lastSignature = signature;
         if (settle > 0) {
@@ -385,36 +430,107 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
         if (source.animated && !reducedMotion.matches && !document.hidden) request();
     }
 
-    const covers = new Map<HTMLElement, HTMLCanvasElement>();
-    function paintCovers(dpr: number, vw: number) {
+    type Cover = { root: HTMLElement; canvas: HTMLCanvasElement; deck: HTMLElement | null; animation: Animation | null; range: number; width: number; left: number };
+    const covers = new Map<HTMLElement, Cover>();
+    const narrow = matchMedia('(max-width: 767px)');
+    const canPan = typeof ScrollTimeline === 'function';
+    let panDeck: HTMLElement | null = null;
+    let panTimeline: ScrollTimeline | null = null;
+
+    function makeCover(deck: HTMLElement | null): Cover {
+        const canvas = document.createElement('canvas');
+        canvas.setAttribute('aria-hidden', 'true');
+        if (!deck) {
+            canvas.className = 'glass-cover';
+            return { root: canvas, canvas, deck, animation: null, range: -1, width: -1, left: Number.NaN };
+        }
+        const root = document.createElement('div');
+        root.className = 'glass-cover glass-cover--pan';
+        root.setAttribute('aria-hidden', 'true');
+        canvas.className = 'glass-cover__strip';
+        canvas.width = 0;
+        canvas.height = 0;
+        root.append(canvas);
+        return { root, canvas, deck, animation: null, range: -1, width: -1, left: Number.NaN };
+    }
+
+    function dropCover(cover: Cover) {
+        cover.animation?.cancel();
+        cover.root.remove();
+    }
+
+    function pan(cover: Cover, deck: HTMLElement, el: HTMLElement, r: DOMRect, deckRect: DOMRect) {
+        if (panDeck !== deck || !panTimeline) {
+            panDeck = deck;
+            panTimeline = new ScrollTimeline({ source: deck, axis: 'x' });
+        }
+        const range = deck.scrollWidth - deck.clientWidth;
+        const keyframes = [{ transform: 'translateX(0px)' }, { transform: `translateX(${range}px)` }];
+        if (!cover.animation || cover.animation.timeline !== panTimeline) {
+            cover.animation?.cancel();
+            cover.animation = cover.canvas.animate(keyframes, { timeline: panTimeline, fill: 'both', easing: 'linear' });
+            cover.animation.ready.then(request, () => {});
+            cover.range = range;
+        } else if (cover.range !== range) {
+            (cover.animation.effect as KeyframeEffect).setKeyframes(keyframes);
+            cover.range = range;
+        }
+        const width = deck.clientWidth;
+        if (cover.width !== width) {
+            cover.width = width;
+            cover.canvas.style.width = `${width}px`;
+        }
+        const left = deckRect.left + deck.clientLeft - (r.left + el.clientLeft) - deck.scrollLeft;
+        if (!(Math.abs(left - cover.left) <= .01)) {
+            cover.left = left;
+            cover.canvas.style.left = `${left}px`;
+        }
+        return cover.canvas.getBoundingClientRect();
+    }
+
+    function paintCovers(dpr: number, vw: number, image: CanvasImageSource) {
         const seen = new Set<HTMLElement>();
+        const panning = canPan && narrow.matches;
+        let deckRect: DOMRect | null = null;
         for (const el of app.querySelectorAll<HTMLElement>(COVER_SELECTOR)) {
-            const host = el.parentElement?.closest(SURFACE_SELECTOR);
+            const host = el.parentElement?.closest<HTMLElement>(SURFACE_SELECTOR);
             if (host && !host.hasAttribute('data-glass-drawn')) continue;
             if (getComputedStyle(el).position === 'static') continue;
+            const parent = host?.parentElement;
+            const deck = panning && parent?.classList.contains('deck') ? parent : null;
             const r = el.getBoundingClientRect();
-            if (r.width < 1 || r.height < 1 || r.right <= 0 || r.left >= vw) continue;
+            const visible = r.width >= 1 && r.height >= 1 && r.right > 0 && r.left < vw;
+            if (!visible && !deck) continue;
             seen.add(el);
-            if (!el.hasAttribute('data-glass-covered')) el.setAttribute('data-glass-covered', '');
             let cover = covers.get(el);
-            if (!cover || cover.parentElement !== el) {
-                cover = document.createElement('canvas');
-                cover.className = 'glass-cover';
-                cover.setAttribute('aria-hidden', 'true');
-                el.prepend(cover);
+            if (!cover || cover.root.parentElement !== el || cover.deck !== deck) {
+                if (cover) dropCover(cover);
+                cover = makeCover(deck);
+                el.prepend(cover.root);
                 covers.set(el, cover);
             }
-            const w = Math.max(1, Math.round(r.width * dpr));
-            const h = Math.max(1, Math.round(r.height * dpr));
-            if (cover.width !== w || cover.height !== h) {
-                cover.width = w;
-                cover.height = h;
+            if (deck) deckRect ??= deck.getBoundingClientRect();
+            const box = deck ? pan(cover, deck, el, r, deckRect!) : r;
+            if (!visible) {
+                if (cover.canvas.width !== 0) {
+                    cover.canvas.width = 0;
+                    cover.canvas.height = 0;
+                }
+                if (el.hasAttribute('data-glass-covered')) el.removeAttribute('data-glass-covered');
+                continue;
             }
-            cover.getContext('2d')?.drawImage(canvas, Math.round(r.left * dpr), Math.round(r.top * dpr), w, h, 0, 0, w, h);
+            if (!el.hasAttribute('data-glass-covered')) el.setAttribute('data-glass-covered', '');
+            const w = Math.max(1, Math.round(box.width * dpr));
+            const h = Math.max(1, Math.round(box.height * dpr));
+            if (cover.canvas.width !== w || cover.canvas.height !== h) {
+                cover.canvas.width = w;
+                cover.canvas.height = h;
+            }
+            cover.canvas.getContext('2d')?.drawImage(image, Math.round(box.left * dpr), Math.round(box.top * dpr), w, h, 0, 0, w, h);
         }
         for (const [el, cover] of covers) {
             if (!seen.has(el)) {
-                cover.remove();
+                dropCover(cover);
                 covers.delete(el);
                 el.removeAttribute('data-glass-covered');
             }
@@ -422,7 +538,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
     }
     function clearCovers() {
         for (const [el, cover] of covers) {
-            cover.remove();
+            dropCover(cover);
             el.removeAttribute('data-glass-covered');
         }
         covers.clear();
@@ -495,7 +611,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
     reducedMotion.addEventListener('change', request);
     document.addEventListener('scroll', onScroll, { capture: true, passive: true });
     addEventListener('pointermove', onPointer, { passive: true });
-    canvas.addEventListener('webglcontextlost', onLost);
+    surface.addEventListener('webglcontextlost', onLost);
 
     canvas.hidden = true;
     app.prepend(canvas);
@@ -514,7 +630,7 @@ export function startGlass(app: HTMLElement, options: GlassOptions = {}): () => 
         reducedMotion.removeEventListener('change', request);
         document.removeEventListener('scroll', onScroll, { capture: true });
         removeEventListener('pointermove', onPointer);
-        canvas.removeEventListener('webglcontextlost', onLost);
+        surface.removeEventListener('webglcontextlost', onLost);
         app.classList.remove(ACTIVE_CLASS);
         for (const el of app.querySelectorAll('[data-glass-drawn]')) el.removeAttribute('data-glass-drawn');
         clearCovers();
