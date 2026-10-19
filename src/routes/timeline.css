@@ -188,7 +188,8 @@
         grid-template-columns: 1fr;
     }
 
-    &--youtube {
+    &--youtube,
+    &--threespeak {
         .timeline-external__image {
             z-index: 2;
         }

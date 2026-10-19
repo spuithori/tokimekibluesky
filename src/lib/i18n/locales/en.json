@@ -624,6 +624,7 @@
     "skin_dynamic": "Dynamic",
     "skin_ios": "Apple System",
     "embed_bluemotion": "Bluemotion",
+    "embed_threespeak": "3Speak",
     "lang_filter_notice": " ",
     "settings_embed_description": "Turn on/off embedding of YouTube, Twitter, etc.",
     "reaction_button_settings_description": "Settings to turn on/off the Like button, etc. and hide numbers",

@@ -435,6 +435,7 @@
   "embed_youtube": "YouTube",
   "embed_x": "X (antigo Twitter)",
   "embed_spotify": "Spotify",
+  "embed_threespeak": "3Speak",
   "lang_filter_notice": "Foi relatado que há muitos casos em que postagens contendo apenas inglês ou kanji são consideradas dos idiomas inglês, chinês, etc., e são mal interpretadas como sendo filtradas e não recuperadas. Recomendamos que você não defina isso a menos que haja um motivo especial.",
   "mobile_post_layout": "Layout da tela de postagem móvel",
   "mobile_post_layout_bottom": "O botão Postar está abaixo",

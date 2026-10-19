@@ -1,6 +1,6 @@
 <script lang="ts">
   import {settings} from "$lib/stores";
-  import { getBluemotionUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl, getKlipyUrl, getPollUrl } from "$lib/components/post/embedUtil";
+  import { getBluemotionUrl, getThreeSpeakUrl, getGiphyId, getSpotifyUri, getTwitterUrl, getYouTubeUrl, getTenorUrl, getKlipyUrl, getPollUrl } from "$lib/components/post/embedUtil";
   import EmbedTenor from "$lib/components/post/EmbedTenor.svelte";
   import EmbedKlipy from "$lib/components/post/EmbedKlipy.svelte";
   import EmbedX from "$lib/components/post/EmbedX.svelte";
@@ -27,6 +27,7 @@
     class="timeline-external timeline-external--{$settings?.design?.postsLayout} timeline-external--{$settings?.design?.externalLayout}"
     class:timeline-external--youtube={getYouTubeUrl(external.uri)}
     class:timeline-external--spotify={getSpotifyUri(external.uri)}
+    class:timeline-external--threespeak={getThreeSpeakUrl(external.uri) && $settings?.embed?.threespeak}
     class:timeline-external--gif={getGiphyId(external.uri) && $settings?.embed?.giphy}
     class:timeline-external--tenor={getTenorUrl(external.uri) && $settings?.embed?.tenor}
     class:timeline-external--klipy={getKlipyUrl(external.uri) && $settings?.embed?.klipy}
@@ -45,6 +46,10 @@
           <div class="timeline-bluemotion-external">
             <iframe loading="lazy" src="https://www.bluemotion.app/embed{getBluemotionUrl(external.uri)}" title="Bluemotion video player" frameBorder="0"></iframe>
           </div>
+        </div>
+      {:else if (getThreeSpeakUrl(external.uri) && $settings?.embed?.threespeak)}
+        <div class="timeline-external__image">
+          <iframe loading="lazy" class="threespeak-iframe" width="560" height="315" src="https://play.3speak.tv/watch?v={getThreeSpeakUrl(external.uri)}&mode=iframe" title="3Speak video player" frameborder="0" allow="encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
         </div>
       {:else if (getTenorUrl(external.uri) && $settings?.embed?.tenor)}
         <div class="timeline-external__image">
@@ -140,7 +145,8 @@
       }
   }
 
-  .youtube-iframe {
+  .youtube-iframe,
+  .threespeak-iframe {
     width: 100%;
     height: 100%;
   }
