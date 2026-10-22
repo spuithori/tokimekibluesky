@@ -29,7 +29,17 @@ export type ProfileView = ProfileViewBasic & {
     indexedAt?: string;
 };
 
+export type ProfileLinkView = {
+    uri: string;
+    cid: string;
+    url: string;
+    title?: string;
+    icon?: string;
+    labels?: Label[];
+};
+
 export type ProfileViewDetailed = ProfileView & {
+    links?: ProfileLinkView[];
     banner?: string;
     followersCount?: number;
     followsCount?: number;

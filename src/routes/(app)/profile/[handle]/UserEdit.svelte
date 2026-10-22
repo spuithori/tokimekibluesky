@@ -1,9 +1,14 @@
 <script lang="ts">
+    import { untrack } from 'svelte';
     import {_} from 'tokimeki-i18n';
     import { compressImage, blobToDataUrl } from '$lib/imageCompressor/compressor';
     import Modal from "$lib/components/ui/Modal.svelte";
     import { ImageEditor } from 'tokimeki-image-editor';
     import { settings } from '$lib/stores';
+    import ProfileLinksEditor from '$lib/components/profile/ProfileLinksEditor.svelte';
+    import ProfileLinkForm from '$lib/components/profile/ProfileLinkForm.svelte';
+    import { normalizeProfileLinkUrl, validateLinkInput, type ProfileLink } from '$lib/profileLinks/rules';
+    import { loadOwnProfileLinks, resolveNewLink, sameProfileLinks, writeProfileLinks } from '$lib/profileLinks/repo';
 
     let { profile, _agent, onclose, onupdate } = $props();
 
@@ -13,7 +18,12 @@
     let currentAvatar = $state(profile.avatar);
     let currentBanner = $state(profile.banner);
     let pronouns = $state(profile.pronouns);
-    let website = $state(profile.website);
+    let links: ProfileLink[] = $state([]);
+    let linksStatus: 'loading' | 'ready' | 'error' = $state('loading');
+    let linkFormIndex: number | null | undefined = $state();
+    let originalLinks: ProfileLink[] = [];
+    let migratedWebsite = false;
+    let websiteResolving: Promise<void> = Promise.resolve();
     let avatar;
     let banner;
     let errorMessage = '';
@@ -100,22 +110,66 @@
         return fileBlob.blob
     }
 
+    function migrateWebsite() {
+        if (typeof profile.website !== 'string') {
+            return;
+        }
+        const url = normalizeProfileLinkUrl(profile.website.trim().replace(/^http:\/\//i, 'https://'));
+        if (!url || validateLinkInput(url, []).error) {
+            return;
+        }
+        links = [{ url }];
+        migratedWebsite = true;
+        websiteResolving = resolveNewLink(_agent, url, true).then(resolved => {
+            if (resolved.blocked) {
+                links = links.filter(link => link.url !== url);
+                migratedWebsite = false;
+                return;
+            }
+            links = links.map(link => {
+                if (link.url !== url || link.icon) {
+                    return link;
+                }
+                const next = { ...link };
+                if (resolved.icon) next.icon = resolved.icon;
+                if (resolved.iconUrl) next.iconUrl = resolved.iconUrl;
+                if (!next.title && resolved.title) next.title = resolved.title;
+                return next;
+            });
+        });
+    }
+
+    const linksLoading = untrack(() => loadOwnProfileLinks(_agent))
+        .then(own => {
+            originalLinks = own.links;
+            links = [...own.links];
+            linksStatus = 'ready';
+            if (!own.refs?.length) {
+                migrateWebsite();
+            }
+        })
+        .catch(e => {
+            console.error(e);
+            linksStatus = 'error';
+        });
+
+    function saveLink(saved: ProfileLink) {
+        links = linkFormIndex == null ? [...links, saved] : links.map((link, i) => i === linkFormIndex ? saved : link);
+        linkFormIndex = undefined;
+    }
+
+    function removeLink() {
+        links = links.filter((_link, i) => i !== linkFormIndex);
+        linkFormIndex = undefined;
+    }
+
     async function submit() {
         isSubmitDisabled = true;
-        let currentProfile;
-        try {
-            currentProfile = await _agent.xrpc.get('com.atproto.repo.getRecord', { repo: _agent.did(), collection: 'app.bsky.actor.profile', rkey: 'self' });
-        } catch(e) {
-           console.log(e)
-        }
 
-        let profileObj = {
+        let profileObj: Record<string, unknown> = {
             displayName: displayName,
             description: description,
-            avatar: currentProfile?.value.avatar,
-            banner: currentProfile?.value.banner,
             pronouns: pronouns,
-            website: website,
         }
         if (avatar) {
             profileObj.avatar = avatar;
@@ -124,18 +178,39 @@
             profileObj.banner = banner;
         }
 
+        let linkWrite: Awaited<ReturnType<typeof writeProfileLinks>> | undefined;
         try {
-            await _agent.upsertProfile(_profile => {
-                const profile = _profile || {};
+            await linksLoading;
+            await websiteResolving;
+            const nextLinks = $state.snapshot(links);
+            if (linksStatus === 'ready' && !sameProfileLinks(nextLinks, originalLinks)) {
+                linkWrite = await writeProfileLinks(_agent, nextLinks, originalLinks);
+            }
+            const refs = linkWrite?.refs;
+            const dropWebsite = linksStatus === 'ready' && migratedWebsite;
 
-                return {
-                    ...profile,
+            await _agent.upsertProfile((_profile: Record<string, unknown>) => {
+                const next: Record<string, unknown> = {
+                    ..._profile,
                     ...profileObj,
                 };
+                if (refs) {
+                    if (refs.length) {
+                        next.links = refs;
+                    } else {
+                        delete next.links;
+                    }
+                }
+                if (dropWebsite) {
+                    delete next.website;
+                }
+                return next;
             });
+            await linkWrite?.deleteRemoved();
             isEditOpen = false;
             onupdate();
         } catch (e) {
+            await linkWrite?.deleteCreated();
             console.error(e)
             errorMessage = e.message;
             isSubmitDisabled = false;
@@ -143,7 +218,21 @@
     }
 </script>
 
-<Modal title={$_('edit_profile_button')} size="small" {onclose}>
+<Modal
+  title={linkFormIndex === undefined ? $_('edit_profile_button') : $_(linkFormIndex === null ? 'profile_link_add' : 'profile_link_edit')}
+  size="small"
+  {onclose}
+  onback={linkFormIndex === undefined ? undefined : () => { linkFormIndex = undefined; }}
+>
+  {#if linkFormIndex !== undefined}
+    <ProfileLinkForm
+      link={linkFormIndex === null ? null : links[linkFormIndex]}
+      otherUrls={links.filter((_link, i) => i !== linkFormIndex).map(link => link.url)}
+      {_agent}
+      onsave={saveLink}
+      onremove={linkFormIndex === null ? undefined : removeLink}
+    ></ProfileLinkForm>
+  {:else}
   <div class="edit-avatar">
     <dl class="input-group">
       <dt class="input-group__name input-group__name--show">
@@ -215,21 +304,14 @@
       </dd>
     </dl>
 
-    <dl class="input-group">
-      <dt class="input-group__name input-group__name--show">
-        <label for="website">{$_('edit_website')}</label>
-      </dt>
-
-      <dd class="input-group__content">
-        <input class="input-group__input" type="text" name="website" id="website" placeholder="" bind:value={website}>
-      </dd>
-    </dl>
+    <ProfileLinksEditor bind:links did={profile.did} status={linksStatus} onedit={(index) => { linkFormIndex = index; }}></ProfileLinksEditor>
   </div>
 
   <div class="edit-buttons">
     <button class="button" onclick={submit} disabled={isSubmitDisabled}>{submitButtonText}</button>
     <button class="button button--border" onclick={onclose}>{$_('edit_cancel_button')}</button>
   </div>
+  {/if}
 </Modal>
 
 {#if cropFile && cropTarget}

@@ -1,4 +1,4 @@
-export { moderatePost, moderateProfile } from './moderate-post';
+export { moderatePost, moderateProfile, moderateProfileLink } from './moderate-post';
 export { ModerationDecision } from './decision';
 export { ModerationUI } from './ui';
 export { interpretLabelValueDefinition, interpretLabelValueDefinitions } from './util';

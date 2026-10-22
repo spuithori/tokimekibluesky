@@ -116,6 +116,19 @@ export function moderateProfile(profile: any, opts: ModerationOpts): ModerationD
 	return ModerationDecision.merge(decideAccount(profile, opts), decideProfile(profile, opts));
 }
 
+export function moderateProfileLink(link: { uri: string; labels?: Label[] }, opts: ModerationOpts): ModerationDecision {
+	const acc = new ModerationDecision();
+	const ownerDid = link.uri.split('/')[2];
+	if (ownerDid?.startsWith('did:')) {
+		acc.setDid(ownerDid);
+		acc.setIsMe(ownerDid === opts.userDid);
+	}
+	for (const label of link.labels ?? []) {
+		acc.addLabel('content', label, opts);
+	}
+	return acc;
+}
+
 function decideAccount(author: any, opts: ModerationOpts): ModerationDecision {
 	const acc = new ModerationDecision();
 	if (!author) return acc;

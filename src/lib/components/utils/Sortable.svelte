@@ -3,7 +3,7 @@
   import GripVertical from '@lucide/svelte/icons/grip-vertical';
   import { pauseColumn } from "$lib/stores";
 
-  let { handle = '.grab-handle', items, onsort, content, onDragStart, onDragEnd } = $props();
+  let { handle = '.grab-handle', items, onsort, content, onDragStart = undefined, onDragEnd = undefined } = $props();
 
   function moveElement<T>(arr: T[], fromIndex: number, toIndex: number): T[] {
     const result = [...arr];

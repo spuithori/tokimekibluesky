@@ -8,7 +8,7 @@
   import {RichText} from '$lib/atproto-richtext';
   import BadgeCheck from '@lucide/svelte/icons/badge-check';
   import {appState} from '$lib/classes/appState.svelte';
-  import {profileLabelling} from '$lib/timelineFilter';
+  import {profileLabelling, profileLinkLabelling} from '$lib/timelineFilter';
   import {TOKIMEKI_LABELER_DID, getSupporterPlan} from '$lib/support/supporterLabels';
   import CircleCheck from '@lucide/svelte/icons/circle-check';
   import Eye from '@lucide/svelte/icons/eye';
@@ -28,6 +28,9 @@
   import {getEndpoint} from "$lib/util";
   import Avatar from "../../Avatar.svelte";
   import AvatarZoomModal from "$lib/components/ui/AvatarZoomModal.svelte";
+  import ProfileLinks from "$lib/components/profile/ProfileLinks.svelte";
+  import {linksFromProfileView} from "$lib/profileLinks/rules";
+  import type {ProfileLinkView} from "$lib/types/atproto";
 
   interface Props {
     handle: any;
@@ -63,6 +66,17 @@
       }
       return entries;
   });
+
+  const isLinkHidden = (view: ProfileLinkView) => {
+      if (!view.labels?.length) return false;
+      try {
+          const ui = profileLinkLabelling(view, _agent.did(), $settings, appState.labelDefs.current).ui('contentList');
+          return ui.filter || ui.blur;
+      } catch {
+          return false;
+      }
+  };
+  const profileLinks = $derived(profile?.links?.length ? linksFromProfileView(profile.links, isLinkHidden) : []);
 
   let firstPostDate = $state('');
   let firstPostUri = $state('');
@@ -224,6 +238,10 @@
                   </div>
                 {/if}
 
+                {#if (profileLinks.length)}
+                  <ProfileLinks links={profileLinks} did={profile.did}></ProfileLinks>
+                {/if}
+
                 {#if (!isLabeler)}
                   <div class="profile-relationship">
                     <a href="/profile/{profile.handle}/follow" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</a>
@@ -247,7 +265,7 @@
                   </div>
 
                   <div class="profile-bottom-list">
-                    {#if profile?.website}
+                    {#if profile?.website && !profileLinks.length}
                       <p class="profile-website">
                         <Globe size="16"></Globe>
                         <a href={profile.website} target="_blank" rel="noopener noreferrer">{new URL(profile.website).hostname}</a>

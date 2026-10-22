@@ -1,4 +1,4 @@
-import {moderatePost, moderateProfile} from '$lib/atproto-moderation';
+import {moderatePost, moderateProfile, moderateProfileLink} from '$lib/atproto-moderation';
 import type {ModerationOpts} from '$lib/atproto-moderation';
 import type {KeywordMute} from '$lib/settings/types';
 import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
@@ -73,6 +73,10 @@ export function contentLabelling(post: any, did: any, settings: any, labelDefs: 
 
 export function profileLabelling(profile: any, did: any, settings: any, labelDefs: any) {
     return moderateProfile(profile, buildModerationOpts(did, settings, labelDefs));
+}
+
+export function profileLinkLabelling(link: any, did: any, settings: any, labelDefs: any) {
+    return moderateProfileLink(link, buildModerationOpts(did, settings, labelDefs));
 }
 
 export function keywordStringToArray(word: string | string[]): string[] {
