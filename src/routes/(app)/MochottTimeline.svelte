@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {MOCHOTT_ORIGIN as MOCHOTT_API_BASE, MOCHOTT_SERVICE_DID} from "$lib/components/mochott/mochottConst";
     import { _ } from 'tokimeki-i18n';
     import Infinite from "$lib/components/utils/Infinite.svelte";
     import {getServiceAuthToken} from "$lib/util";
@@ -13,7 +14,6 @@
     let isEmpty = $state(false);
     let isError = $state(false);
 
-    const MOCHOTT_API_BASE = 'https://mochott.site';
     const isNetworkFeed = column.algorithm?.type === 'networkFeed';
 
     async function fetchFeed(cursor?: string): Promise<{ feed: any[], cursor?: string }> {
@@ -28,7 +28,7 @@
             response = await fetch(`${MOCHOTT_API_BASE}/xrpc/site.mochott.feed.getNetworkFeed?${params}`);
         } else {
             const token = await getServiceAuthToken({
-                aud: 'did:web:mochott.site',
+                aud: MOCHOTT_SERVICE_DID,
                 lxm: 'site.mochott.feed.getTimeline',
             }, _agent);
 

@@ -1370,6 +1370,8 @@
     "blog_empty": "No blog posts",
     "blog_error": "Failed to load blog posts",
     "mochott_timeline": "Timeline (mochott)",
+    "mochott_notifications": "Notifications (mochott)",
+    "all_notifications": "Notifications (Bluesky + mochott)",
     "network_feed": "standard.site",
     "monochrome": "Monochrome mode",
     "merge_timeline": "Merged timeline",

@@ -21,6 +21,8 @@ function sources(overrides: Partial<CatalogSources> = {}): CatalogSources {
             officialBookmark: 'Bookmarks',
             chatList: 'Chats',
             mochott: 'mochott',
+            mochottNotifications: 'mochott notifications',
+            allNotifications: 'all notifications',
             networkFeed: 'standard.site',
         },
         ...overrides,

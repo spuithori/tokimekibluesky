@@ -120,11 +120,8 @@ export function isSafariOrFirefox() {
 }
 
 export async function getServiceAuthToken({aud, lxm, exp} : {aud?: string, lxm: string, exp?: number}, _agent: Agent) {
-    const agentHost = new URL(await getService(_agent.did() as string)).hostname;
-    const agentAud = 'did:web:' + agentHost;
-
     const res = await _agent.getServiceAuth({
-        aud: aud || agentAud,
+        aud: aud || 'did:web:' + new URL(await getService(_agent.did() as string)).hostname,
         lxm,
         exp,
     });

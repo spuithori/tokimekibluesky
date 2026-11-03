@@ -13,6 +13,7 @@
     import NotificationFollowItem from "$lib/components/notification/NotificationFollowItem.svelte";
     import NotificationReactionItem from "$lib/components/notification/NotificationReactionItem.svelte";
     import NotificationStarterpackItem from "$lib/components/notification/NotificationStarterpackItem.svelte";
+    import NotificationMochottItem from "$lib/components/notification/NotificationMochottItem.svelte";
     import TimelineItem from "./TimelineItem.svelte";
     import {
         NOTIFICATION_FILTER_OPTIONS,
@@ -20,9 +21,11 @@
         ensureNotificationFilter,
         loadMoreNotificationColumn,
         needsRefetchForFilter,
+        notificationSourceMode,
         refreshNotificationColumn,
         resetNotificationColumnData,
     } from "$lib/components/notification/notificationPipeline";
+    import {MOCHOTT_FILTER_OPTIONS} from "$lib/components/notification/mochottNotifications";
     import {instantPlaySound} from "$lib/sounds";
     import Infinite from "$lib/components/utils/Infinite.svelte";
 
@@ -32,6 +35,8 @@
     let sound = $derived(column.settings?.playSound);
     let isOnlyShowUnread = $derived(column.settings?.onlyShowUnread);
     let id = $derived(column.id);
+    let sourceMode = $derived(notificationSourceMode(column));
+    let filterOptions = $derived(sourceMode === 'mochott' ? MOCHOTT_FILTER_OPTIONS : NOTIFICATION_FILTER_OPTIONS);
     let filterEpoch = $state(Symbol());
     let notificationTimeoutId: ReturnType<typeof setTimeout>;
     let filterDebounceId: ReturnType<typeof setTimeout>;
@@ -52,7 +57,7 @@
         if (event.data.type === 'notification_event') {
             const eventDid = event.data.data?.did;
 
-            if (eventDid && eventDid === column.did) {
+            if (eventDid && eventDid === column.did && sourceMode !== 'mochott') {
                 clearTimeout(notificationTimeoutId);
                 notificationTimeoutId = setTimeout(putNotifications, 2000);
             }
@@ -117,7 +122,7 @@
 
 <div class="notifications-filter-display">
     <ul class="notifications-filter">
-        {#each NOTIFICATION_FILTER_OPTIONS as item (item)}
+        {#each filterOptions as item (item)}
             {@const Icon = filterIcons[item]}
             <li class="notifications-filter__item notifications-filter__item--{item}" aria-label={$_(item)}>
                 <input class="notifications-filter__input" type="checkbox" id={id + '_' + item} bind:group={column.filter} value={item} onchange={handleFilterChange}>
@@ -138,7 +143,9 @@
         {/if}
 
         {#if (column.filter.includes(item.reason))}
-          {#if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
+          {#if item.notifications[0]?.mochott}
+            <NotificationMochottItem {_agent} {item} showMark={sourceMode === 'all'}></NotificationMochottItem>
+          {:else if (item.reason === 'quote' || item.reason === 'reply' || item.reason === 'mention')}
             {#if item.post}
               <TimelineItem {_agent} data={{post: item.post}} {column}></TimelineItem>
             {/if}

@@ -1370,6 +1370,8 @@
     "blog_empty": "ブログ記事はありません",
     "blog_error": "ブログの読み込みに失敗しました",
     "mochott_timeline": "タイムライン (mochott)",
+    "mochott_notifications": "通知 (mochott)",
+    "all_notifications": "通知 (Bluesky + mochott)",
     "network_feed": "standard.site",
     "monochrome": "白黒モード",
     "merge_timeline": "合成タイムライン",

@@ -5,7 +5,7 @@ import {
     filterNotifications,
     applyLedgerToFeed,
     claimNotificationChime,
-    clearNotificationBadgesForDid,
+    syncNotificationBadges,
     ensureNotificationFilter,
     needsRefetchForFilter,
     projectNotification,
@@ -619,7 +619,7 @@ describe('claimNotificationChime', () => {
     });
 });
 
-describe('clearNotificationBadgesForDid', () => {
+describe('syncNotificationBadges', () => {
     const makeColumn = (over: any = {}) => ({
         id: `badge-${++ctxSeq}`,
         did: 'did:plc:me',
@@ -635,7 +635,7 @@ describe('clearNotificationBadgesForDid', () => {
             makeColumn({ algorithm: { type: 'default' } }),
             splitLeaf,
         ];
-        clearNotificationBadgesForDid(columns, 'did:plc:me');
+        syncNotificationBadges(columns, 'did:plc:me');
         expect(columns[0].unreadCount).toBe(0);
         expect(splitLeaf.unreadCount).toBe(0);
         expect(columns[1].unreadCount).toBe(5);
@@ -646,7 +646,7 @@ describe('clearNotificationBadgesForDid', () => {
             makeColumn({ did: 'did:plc:other' }),
             makeColumn({ algorithm: { type: 'default' } }),
         ];
-        clearNotificationBadgesForDid(columns, 'did:plc:me');
+        syncNotificationBadges(columns, 'did:plc:me');
         expect(columns[0].unreadCount).toBe(5);
         expect(columns[1].unreadCount).toBe(5);
     });

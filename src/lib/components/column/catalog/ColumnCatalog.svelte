@@ -63,6 +63,8 @@
             officialBookmark: $_('official_bookmark'),
             chatList: $_('chat_list'),
             mochott: $_('mochott_timeline'),
+            mochottNotifications: $_('mochott_notifications'),
+            allNotifications: $_('all_notifications'),
             networkFeed: $_('network_feed'),
         },
     }));

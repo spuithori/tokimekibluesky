@@ -68,6 +68,8 @@ export interface CatalogSources {
         officialBookmark: string;
         chatList: string;
         mochott: string;
+        mochottNotifications: string;
+        allNotifications: string;
         networkFeed: string;
     };
 }
@@ -156,6 +158,8 @@ export function buildCatalog(sources: CatalogSources): CatalogSection[] {
 
     const atmosphere: CatalogItem[] = sources.atmosphereEnabled ? [
         item(did, handle, { type: 'mochottTimeline', name: labels.mochott }),
+        item(did, handle, { type: 'notification', algorithm: 'mochott', name: labels.mochottNotifications }),
+        item(did, handle, { type: 'notification', algorithm: 'all', name: labels.allNotifications }),
         item(did, handle, { type: 'networkFeed', name: labels.networkFeed }),
     ] : [];
 

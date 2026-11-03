@@ -1,9 +1,9 @@
 <script lang="ts">
+    import {MOCHOTT_ORIGIN as MOCHOTT_API_BASE} from "$lib/components/mochott/mochottConst";
     import {formatDate} from "$lib/dateFormat";
     import {settings} from "$lib/stores";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
 
-    const MOCHOTT_API_BASE = 'https://mochott.site';
 
     interface Props {
         article: {

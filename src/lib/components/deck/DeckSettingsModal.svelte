@@ -31,7 +31,7 @@
         DECK_WIDTH_MIN, DECK_WIDTH_MAX, DECK_WIDTH_DEFAULT,
         SINGLE_WIDTH_MIN, SINGLE_WIDTH_MAX, SINGLE_WIDTH_DEFAULT,
     } from "$lib/deckWidth";
-    import {resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
+    import {notificationSourceMode, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
 
     interface Props {
         index: any;
@@ -592,6 +592,7 @@
                 {/if}
 
                 {#if (column.algorithm?.type === 'notification')}
+                    {#if notificationSourceMode(column) !== 'mochott'}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('notification_priority_only')}
@@ -615,6 +616,7 @@
                             </div>
                         </dd>
                     </dl>
+                    {/if}
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">

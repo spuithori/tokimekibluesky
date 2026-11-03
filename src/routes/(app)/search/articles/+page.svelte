@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {MOCHOTT_ORIGIN as MOCHOTT_API_BASE} from "$lib/components/mochott/mochottConst";
     import { page } from '$app/stores';
     import { _ } from 'tokimeki-i18n';
     import { onDestroy } from 'svelte';
@@ -10,7 +11,6 @@
     let isEmpty = $state(false);
     let isError = $state(false);
 
-    const MOCHOTT_API_BASE = 'https://mochott.site';
     const controller = new AbortController();
     onDestroy(() => controller.abort());
 

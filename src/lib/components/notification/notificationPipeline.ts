@@ -1,5 +1,19 @@
 import type { Column } from '$lib/types/column';
-import { bumpSeenEpoch, getNotificationLedger, resetNotificationLedger } from './notificationLedger';
+import {
+    bumpSeenEpoch,
+    clearSourceUnreadCount,
+    getNotificationLedger,
+    getSourceUnreadCount,
+    resetNotificationLedger,
+    type NotificationSource,
+} from './notificationLedger';
+import {
+    isMochottNotification,
+    listMochottNotifications,
+    mochottTypesFor,
+    projectMochottNotification,
+    updateMochottSeen,
+} from './mochottNotifications';
 
 export type NotificationFilter =
     | 'reply'
@@ -40,6 +54,14 @@ export interface NotificationView {
     record?: { subject?: { uri?: string } };
     isRead: boolean;
     indexedAt: string;
+    mochott?: MochottDetail;
+}
+
+export interface MochottDetail {
+    type: string;
+    documentTitle?: string;
+    url?: string;
+    commentText?: string;
 }
 
 export interface NotificationPostView {
@@ -79,6 +101,18 @@ export const NOTIFICATION_FETCH_LIMIT = 25;
 export const MAX_NOTIFICATIONS = 300;
 export const GET_POSTS_CHUNK_SIZE = 25;
 
+export type NotificationSourceMode = 'bluesky' | 'mochott' | 'all';
+
+export function notificationSourceMode(column: Pick<Column, 'algorithm'>): NotificationSourceMode {
+    const algorithm = column.algorithm?.algorithm;
+    return algorithm === 'mochott' || algorithm === 'all' ? algorithm : 'bluesky';
+}
+
+export function notificationSources(column: Pick<Column, 'algorithm'>): NotificationSource[] {
+    const mode = notificationSourceMode(column);
+    return mode === 'all' ? ['bluesky', 'mochott'] : [mode];
+}
+
 export function ensureNotificationFilter(column: Column): string[] {
     if (!Array.isArray(column.filter) || !column.filter.length) {
         column.filter = [...NOTIFICATION_DEFAULT_FILTERS];
@@ -104,10 +138,19 @@ export function claimNotificationChime(columnId: string, newestIndexedAt: string
     return true;
 }
 
-export function clearNotificationBadgesForDid(columns: Column[], did: string): void {
+function columnUnreadCount(column: Column): number {
+    const priority = column.settings?.notificationPriority === true;
+    let count = 0;
+    for (const source of notificationSources(column)) {
+        count += getSourceUnreadCount(column.did, source, priority);
+    }
+    return count;
+}
+
+export function syncNotificationBadges(columns: Column[], did: string): void {
     for (const column of columns) {
         if (column?.algorithm?.type === 'notification' && column.did === did) {
-            column.unreadCount = 0;
+            column.unreadCount = columnUnreadCount(column);
         }
     }
 }
@@ -164,7 +207,7 @@ export function filterNotifications(
         filter.includes(item.reason)
         && !item?.author?.viewer?.muted
         && (!opts.onlyUnread || !item.isRead)
-        && (!opts.followingOnly || !!item?.author?.viewer?.following));
+        && (!opts.followingOnly || !!item?.author?.viewer?.following || isMochottNotification(item)));
 }
 
 export function sameNotification(a: NotificationView, b: NotificationView): boolean {
@@ -176,7 +219,11 @@ export function sameNotification(a: NotificationView, b: NotificationView): bool
         || a.reasonSubject !== b.reasonSubject
         || a.indexedAt !== b.indexedAt
         || a.isRead !== b.isRead
-        || a.record?.subject?.uri !== b.record?.subject?.uri) {
+        || a.record?.subject?.uri !== b.record?.subject?.uri
+        || a.mochott?.type !== b.mochott?.type
+        || a.mochott?.documentTitle !== b.mochott?.documentTitle
+        || a.mochott?.url !== b.mochott?.url
+        || a.mochott?.commentText !== b.mochott?.commentText) {
         return false;
     }
     const aa = a.author;
@@ -235,11 +282,13 @@ function makeGroup(members: NotificationView[]): NotificationGroup {
     const first = members[0];
     const groupKey = groupKeyOf(first);
     const key = groupKey === null ? `solo:${first.uri}` : `${groupKey}:${first.uri}`;
-    const subject = first.reasonSubject && first.reason !== 'reply' && first.reason !== 'quote'
-        ? first.record?.subject?.uri
-        : (first.uri && !first.uri.includes('app.bsky.graph.follow')
-            ? first.uri
-            : undefined);
+    const subject = first.mochott
+        ? undefined
+        : first.reasonSubject && first.reason !== 'reply' && first.reason !== 'quote'
+            ? first.record?.subject?.uri
+            : (first.uri && !first.uri.includes('app.bsky.graph.follow')
+                ? first.uri
+                : undefined);
 
     return {
         reason: first.reason,
@@ -417,6 +466,10 @@ export async function refreshNotificationColumn(
     ctx: NotificationCtx,
     opts: { markAsRead?: boolean; allowPrune?: boolean } = {},
 ): Promise<NotificationRefreshResult> {
+    if (notificationSourceMode(ctx.column) !== 'bluesky') {
+        return refreshSourcesColumn(ctx, opts);
+    }
+
     const { column, columnState, _agent } = ctx;
     const markAsRead = opts.markAsRead ?? false;
 
@@ -476,6 +529,10 @@ export async function refreshNotificationColumn(
 }
 
 export async function loadMoreNotificationColumn(ctx: NotificationCtx): Promise<'loaded' | 'complete'> {
+    if (notificationSourceMode(ctx.column) !== 'bluesky') {
+        return loadMoreSourcesColumn(ctx);
+    }
+
     const { column, columnState, _agent } = ctx;
 
     const filter = ensureNotificationFilter(column);
@@ -518,31 +575,85 @@ export async function loadMoreNotificationColumn(ctx: NotificationCtx): Promise<
     return hasMore ? 'loaded' : 'complete';
 }
 
-export async function markNotificationsSeen(ctx: NotificationCtx): Promise<void> {
+function newestMochottIndexedAt(items: NotificationView[]): string | undefined {
+    let newest: string | undefined;
+    let newestTime = -Infinity;
+    for (const item of items) {
+        if (!item.mochott) {
+            continue;
+        }
+        const time = Date.parse(item.indexedAt);
+        if (time > newestTime) {
+            newestTime = time;
+            newest = item.indexedAt;
+        }
+    }
+    return newest;
+}
+
+async function markSourceSeen(ctx: NotificationCtx, source: NotificationSource, scope: 'shown' | 'all'): Promise<boolean> {
     const { column, _agent } = ctx;
 
-    try {
+    if (source === 'bluesky') {
         await _agent.xrpc.post('app.bsky.notification.updateSeen', { seenAt: new Date().toISOString() });
-        bumpSeenEpoch(column.did);
-        column.unreadCount = 0;
-    } catch (e) {
-        console.error(e);
+    } else if (scope === 'all') {
+        await updateMochottSeen(_agent);
+    } else {
+        const seenAt = newestMochottIndexedAt(getNotificationLedger(column.id).notifications);
+        if (!seenAt) {
+            return false;
+        }
+        await updateMochottSeen(_agent, seenAt);
+    }
+
+    bumpSeenEpoch(column.did, source);
+    clearSourceUnreadCount(column.did, source);
+    return true;
+}
+
+export async function markNotificationsSeen(ctx: NotificationCtx): Promise<void> {
+    const { column } = ctx;
+    let marked = false;
+
+    await Promise.all(notificationSources(column).map(async source => {
+        try {
+            if (await markSourceSeen(ctx, source, 'shown')) {
+                marked = true;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }));
+
+    if (marked) {
+        column.unreadCount = columnUnreadCount(column);
     }
 }
 
 export async function markAllNotificationsRead(ctx: NotificationCtx): Promise<void> {
-    const { column, columnState, _agent } = ctx;
+    const { column, columnState } = ctx;
+    const sources = notificationSources(column);
 
-    await _agent.xrpc.post('app.bsky.notification.updateSeen', { seenAt: new Date().toISOString() });
+    const results = await Promise.allSettled(sources.map(source => markSourceSeen(ctx, source, 'all')));
+    const marked = new Set(sources.filter((_, i) => results[i].status === 'fulfilled'));
 
-    bumpSeenEpoch(column.did);
-    column.unreadCount = 0;
+    for (const result of results) {
+        if (result.status === 'rejected') {
+            if (!marked.size) {
+                throw result.reason;
+            }
+            console.error(result.reason);
+        }
+    }
+
+    column.unreadCount = columnUnreadCount(column);
 
     const ledger = getNotificationLedger(column.id);
     const epoch = ledger.epoch;
-    ledger.notifications = ledger.notifications.map(item => item.isRead ? item : { ...item, isRead: true });
+    ledger.notifications = ledger.notifications.map(item =>
+        item.isRead || !marked.has(sourceOf(item)) ? item : { ...item, isRead: true });
 
-    const groups = applyLedgerToFeed(columnState.getFeed(column.id), ledger.notifications);
+    const groups = applyLedgerToFeed(columnState.getFeed(column.id), visibleNotifications(column, ledger.notifications));
     await resolveSubjectPosts(ctx, groups);
 
     if (ledger.epoch !== epoch) {
@@ -550,4 +661,264 @@ export async function markAllNotificationsRead(ctx: NotificationCtx): Promise<vo
     }
 
     columnState.setFeed(column.id, groups);
+}
+
+interface SourceCursor {
+    cursor?: string;
+    oldest?: string;
+    done: boolean;
+}
+
+type SourceCursors = Partial<Record<NotificationSource, SourceCursor>>;
+
+interface SourcePage {
+    source: NotificationSource;
+    items: NotificationView[];
+    rawCount: number;
+    cursor?: string;
+    oldest?: string;
+}
+
+function sourceOf(item: NotificationView): NotificationSource {
+    return item.mochott ? 'mochott' : 'bluesky';
+}
+
+function byNewest(a: NotificationView, b: NotificationView): number {
+    return Date.parse(b.indexedAt) - Date.parse(a.indexedAt);
+}
+
+function readSourceCursors(column: Column): SourceCursors | null {
+    const raw = column.data?.cursor;
+    if (typeof raw !== 'string' || !raw.startsWith('{')) {
+        return null;
+    }
+    try {
+        return JSON.parse(raw) as SourceCursors;
+    } catch {
+        return null;
+    }
+}
+
+function writeSourceCursors(column: Column, cursors: SourceCursors): void {
+    column.data.cursor = JSON.stringify(cursors);
+}
+
+function cursorFromPage(page: SourcePage, pageCount: number, onlyUnread: boolean, prior?: SourceCursor): SourceCursor {
+    return {
+        cursor: page.cursor,
+        oldest: page.oldest ?? prior?.oldest,
+        done: !page.cursor || page.rawCount === 0 || (onlyUnread && pageCount === 0),
+    };
+}
+
+function visibleCutoff(cursors: SourceCursors | null): number {
+    let cutoff = -Infinity;
+    if (!cursors) {
+        return cutoff;
+    }
+    for (const state of Object.values(cursors)) {
+        if (state && !state.done && state.oldest) {
+            const time = Date.parse(state.oldest);
+            if (time > cutoff) {
+                cutoff = time;
+            }
+        }
+    }
+    return cutoff;
+}
+
+function visibleNotifications(column: Column, items: NotificationView[], cursors: SourceCursors | null = readSourceCursors(column)): NotificationView[] {
+    if (notificationSourceMode(column) !== 'all') {
+        return items;
+    }
+    const cutoff = visibleCutoff(cursors);
+    return cutoff === -Infinity ? items : items.filter(item => Date.parse(item.indexedAt) >= cutoff);
+}
+
+async function fetchSourcePage(ctx: NotificationCtx, source: NotificationSource, filter: string[], cursor: string | undefined): Promise<SourcePage> {
+    const { column, _agent } = ctx;
+
+    if (source === 'bluesky') {
+        const res = await _agent.xrpc.get('app.bsky.notification.listNotifications', {
+            limit: NOTIFICATION_FETCH_LIMIT,
+            cursor: cursor ?? '',
+            reasons: filter,
+            ...(column.settings?.notificationPriority ? { priority: true } : {}),
+        });
+        const raw = res.notifications ?? [];
+        return {
+            source,
+            items: raw.map(projectNotification),
+            rawCount: raw.length,
+            cursor: res.cursor,
+            oldest: raw[raw.length - 1]?.indexedAt,
+        };
+    }
+
+    const types = mochottTypesFor(filter);
+    if (!types.length) {
+        return { source, items: [], rawCount: 0 };
+    }
+
+    const res = await listMochottNotifications(_agent, {
+        limit: NOTIFICATION_FETCH_LIMIT,
+        ...(cursor ? { cursor } : {}),
+        types,
+    });
+    const raw = res.notifications ?? [];
+    return {
+        source,
+        items: raw.map(projectMochottNotification).filter((item): item is NotificationView => item !== null),
+        rawCount: raw.length,
+        cursor: res.cursor,
+        oldest: raw[raw.length - 1]?.createdAt,
+    };
+}
+
+async function fetchSourcePages(
+    ctx: NotificationCtx,
+    targets: NotificationSource[],
+    filter: string[],
+    cursors: SourceCursors | null,
+    requireAny: boolean,
+): Promise<SourcePage[]> {
+    const tolerant = notificationSources(ctx.column).length > 1;
+    const settled = await Promise.allSettled(targets.map(source => fetchSourcePage(ctx, source, filter, cursors?.[source]?.cursor)));
+    const pages: SourcePage[] = [];
+    let failure: unknown;
+    for (const result of settled) {
+        if (result.status === 'fulfilled') {
+            pages.push(result.value);
+        } else if (!tolerant) {
+            throw result.reason;
+        } else {
+            failure ??= result.reason;
+            console.error(result.reason);
+        }
+    }
+    if (requireAny && !pages.length && failure !== undefined) {
+        throw failure;
+    }
+    return pages;
+}
+
+async function refreshSourcesColumn(
+    ctx: NotificationCtx,
+    opts: { markAsRead?: boolean; allowPrune?: boolean },
+): Promise<NotificationRefreshResult> {
+    const { column, columnState } = ctx;
+    const markAsRead = opts.markAsRead ?? false;
+
+    const filter = ensureNotificationFilter(column);
+    const ledger = getNotificationLedger(column.id);
+    const epoch = ledger.epoch;
+
+    const pages = await fetchSourcePages(ctx, notificationSources(column), filter, null, true);
+
+    if (ledger.epoch !== epoch) {
+        return { newestIndexedAt: undefined, pruned: false };
+    }
+
+    const onlyUnread = column.settings?.onlyShowUnread === true;
+    const filterOpts = { onlyUnread, followingOnly: column.settings?.notificationPriority === true };
+    let fresh = filterNotifications(pages.flatMap(page => page.items), filter, filterOpts).sort(byNewest);
+
+    let cursors = readSourceCursors(column);
+    let merged: NotificationView[];
+    let pruned = false;
+
+    if (onlyUnread) {
+        if (markAsRead) {
+            const shownUris = new Set(
+                columnState.getFeed(column.id).flatMap(group => group?.notifications?.map((item: NotificationView) => item.uri) ?? [])
+            );
+            fresh = fresh.filter(item => !shownUris.has(item.uri));
+        }
+        merged = mergeNotifications(fresh, []);
+    } else {
+        merged = mergeNotifications(fresh, ledger.notifications, { markKnownAsRead: markAsRead });
+        if (opts.allowPrune && merged.length > MAX_NOTIFICATIONS) {
+            merged = mergeNotifications(fresh, []);
+            cursors = null;
+            pruned = true;
+        }
+    }
+
+    if (!cursors) {
+        cursors = {};
+        for (const page of pages) {
+            cursors[page.source] = cursorFromPage(page, filterNotifications(page.items, filter, filterOpts).length, onlyUnread);
+        }
+    }
+
+    const groups = applyLedgerToFeed(columnState.getFeed(column.id), visibleNotifications(column, merged, cursors));
+    await resolveSubjectPosts(ctx, groups);
+
+    if (ledger.epoch !== epoch) {
+        return { newestIndexedAt: undefined, pruned: false };
+    }
+
+    writeSourceCursors(column, cursors);
+    ledger.notifications = merged;
+    ledger.fetchedReasons = [...filter];
+    columnState.setFeed(column.id, groups);
+
+    return { newestIndexedAt: merged[0]?.indexedAt, pruned };
+}
+
+async function loadMoreSourcesColumn(ctx: NotificationCtx): Promise<'loaded' | 'complete'> {
+    const { column, columnState } = ctx;
+
+    const filter = ensureNotificationFilter(column);
+    const ledger = getNotificationLedger(column.id);
+    const epoch = ledger.epoch;
+    const sources = notificationSources(column);
+    const cursors = readSourceCursors(column) ?? {};
+
+    const pending = sources.filter(source => !cursors[source]?.done);
+    if (!pending.length) {
+        return 'complete';
+    }
+    const unfetched = pending.filter(source => !cursors[source]?.oldest);
+    const targets = unfetched.length
+        ? unfetched
+        : [pending.reduce((a, b) => Date.parse(cursors[b]!.oldest!) > Date.parse(cursors[a]!.oldest!) ? b : a)];
+
+    const pages = await fetchSourcePages(ctx, targets, filter, cursors, false);
+
+    if (ledger.epoch !== epoch) {
+        return 'complete';
+    }
+
+    const onlyUnread = column.settings?.onlyShowUnread === true;
+    const filterOpts = { onlyUnread, followingOnly: column.settings?.notificationPriority === true };
+    const knownUris = new Set(ledger.notifications.map(item => item.uri));
+    const fetched = new Set(pages.map(page => page.source));
+    const pageItems: NotificationView[] = [];
+
+    for (const page of pages) {
+        const items = filterNotifications(page.items, filter, filterOpts).filter(item => !knownUris.has(item.uri));
+        pageItems.push(...items);
+        cursors[page.source] = cursorFromPage(page, items.length, onlyUnread, cursors[page.source]);
+    }
+    for (const source of targets) {
+        if (!fetched.has(source)) {
+            cursors[source] = { ...cursors[source], done: true };
+        }
+    }
+
+    const nextNotifications = [...ledger.notifications, ...pageItems].sort(byNewest);
+    const groups = applyLedgerToFeed(columnState.getFeed(column.id), visibleNotifications(column, nextNotifications, cursors));
+    await resolveSubjectPosts(ctx, groups);
+
+    if (ledger.epoch !== epoch) {
+        return 'complete';
+    }
+
+    writeSourceCursors(column, cursors);
+    ledger.notifications = nextNotifications;
+    ledger.fetchedReasons = [...filter];
+    columnState.setFeed(column.id, groups);
+
+    return sources.some(source => !cursors[source]?.done) ? 'loaded' : 'complete';
 }

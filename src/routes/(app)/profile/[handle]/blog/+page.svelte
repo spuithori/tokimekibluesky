@@ -1,4 +1,5 @@
 <script lang="ts">
+    import {MOCHOTT_ORIGIN as MOCHOTT_API_BASE} from "$lib/components/mochott/mochottConst";
     import { _ } from 'tokimeki-i18n';
     import type { LayoutData } from '../$types';
     import Infinite from "$lib/components/utils/Infinite.svelte";
@@ -15,7 +16,6 @@
     let isEmpty = $state(false);
     let isError = $state(false);
 
-    const MOCHOTT_API_BASE = 'https://mochott.site';
 
     async function handleLoadMore(loaded: () => void, complete: () => void) {
         try {

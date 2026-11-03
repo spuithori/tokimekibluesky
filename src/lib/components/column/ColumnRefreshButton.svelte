@@ -7,7 +7,7 @@
     import {onDestroy, tick, untrack} from "svelte";
     import {refreshSignal} from "$lib/refreshSignal.svelte";
     import { watch } from "runed";
-    import {claimNotificationChime, clearNotificationBadgesForDid, markNotificationsSeen, refreshNotificationColumn} from "$lib/components/notification/notificationPipeline";
+    import {claimNotificationChime, syncNotificationBadges, markNotificationsSeen, refreshNotificationColumn} from "$lib/components/notification/notificationPipeline";
     import {instantPlaySound, playSound} from "$lib/sounds";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { fly } from 'svelte/transition';
@@ -85,7 +85,7 @@
             if (!isAutoRefresh && column.algorithm.type === 'notification') {
                 await currentRefresh;
                 await markNotificationsSeen({ column, columnState, _agent });
-                clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
+                syncNotificationBadges(fixedColumnState.columns, column.did);
             }
             return false;
         }
@@ -197,7 +197,7 @@
 
             if (!isAutoRefresh) {
                 await markNotificationsSeen({ column, columnState, _agent });
-                clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
+                syncNotificationBadges(fixedColumnState.columns, column.did);
             }
         } else if (column.algorithm.type === 'chat') {
             const res = await _agent.xrpc.get('chat.bsky.convo.getMessages', {cursor: '', limit: 50, convoId: column.algorithm.id}, {

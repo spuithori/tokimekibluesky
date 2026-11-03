@@ -30,7 +30,7 @@
     import ColumnRefreshButton from "$lib/components/column/ColumnRefreshButton.svelte";
     import ColumnIconPicker from "$lib/components/column/ColumnIconPicker.svelte";
     import ColumnContent from "./ColumnContent.svelte";
-    import {clearNotificationBadgesForDid, markAllNotificationsRead} from "$lib/components/notification/notificationPipeline";
+    import {syncNotificationBadges, markAllNotificationsRead} from "$lib/components/notification/notificationPipeline";
     import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
     import {getProfileRefreshContext} from "$lib/classes/profileRefreshContext.svelte";
     import {MERGE_PALETTE} from "$lib/merge/mergePalette";
@@ -167,7 +167,7 @@
 
         try {
             await markAllNotificationsRead({ column, columnState, _agent });
-            clearNotificationBadgesForDid(fixedColumnState.columns, column.did);
+            syncNotificationBadges(fixedColumnState.columns, column.did);
         } catch (e) {
             console.error(e);
             toast.error('Error: ' + e);
