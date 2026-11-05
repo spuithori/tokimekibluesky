@@ -91,6 +91,12 @@ describe('buildChottoArticle', () => {
 
     it('本人の profile でない publication では組み立てない', () => {
         expect(() => buildChottoArticle(input({ publication: { uri: 'at://did:plc:someoneelse0000000000000/site.mochott.profile/self' } }))).toThrow();
+        expect(() => buildChottoArticle(input({ publication: { uri: 'at://did:plc:someoneelse0000000000000/site.standard.publication/self' } }))).toThrow();
+    });
+
+    it('旧形式の登録(publication が site.standard.publication/self)は mochott の値をそのまま profile に書く', () => {
+        const legacy = `at://${DID}/site.standard.publication/self`;
+        expect(buildChottoArticle(input({ publication: { uri: legacy } })).record.profile).toBe(legacy);
     });
 
     it('article は mochott が受け付けるキーと形だけで組み立てる', () => {

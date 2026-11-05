@@ -322,7 +322,7 @@ export function articleUrl(handle: string, rkey: string): string {
 
 export function buildChottoArticle(input: ChottoInput): ChottoArticle {
     const { did, handle, now, articleRkey } = input;
-    if (input.publication.uri !== `at://${did}/${PROFILE}/self`) {
+    if (!isOwnMochottPublication(input.publication.uri, did)) {
         throw new Error('mochott publication does not belong to this account');
     }
     const title = resolveTitle(input.title, input.text);
@@ -701,6 +701,10 @@ export function findCidMismatches(results: unknown, expected: { uri: string; cid
         if (result && typeof result.uri === 'string') written.set(result.uri, result.cid);
     }
     return expected.filter(ref => written.has(ref.uri) && written.get(ref.uri) !== ref.cid).map(ref => ref.uri);
+}
+
+function isOwnMochottPublication(uri: string, did: string): boolean {
+    return uri === `at://${did}/${PROFILE}/self` || uri === `at://${did}/${STANDARD_PUBLICATION}/self`;
 }
 
 export function isOwnStandardPublication(uri: unknown, did: string): uri is string {
