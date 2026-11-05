@@ -27,12 +27,14 @@ type Post = {
     lang: string[] | undefined,
     links: string[],
     quotePost: any | undefined,
+    embedExternal?: any,
     replyRef: replyRef,
     selfLabels: any[],
     threadGate: ThreadGate,
     postGate: boolean,
     whisper: WhisperDuration,
     poll: Poll,
+    chottoTitle?: string,
 }
 
 export class PostState {
@@ -60,6 +62,7 @@ export class PostState {
         postGate: this.postGate.current,
         whisper: undefined,
         poll: undefined,
+        chottoTitle: '',
     });
 
     constructor() {

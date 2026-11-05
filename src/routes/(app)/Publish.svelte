@@ -33,6 +33,11 @@
   import { createScheduledPost, uploadScheduleImage, registerWhisperPost, type PostData, type ScheduledImage, type ScheduledExternal, type ThreadPostData, type ProcessedPostContent, type WhisperExpiresIn } from '$lib/scheduleApi';
   import { generatePollOgImage } from '$lib/pollApi';
   import {shortcutManager} from "$lib/keyboard/shortcutManager.svelte";
+  import ChottoPublishDialog from "$lib/components/publish/ChottoPublishDialog.svelte";
+  import {LONG_POST_FIELD, appendChottoLink, articleUrl, buildAnnouncement, buildChottoArticle, chottoAttachments, findCidMismatches, isCoverCandidate, resolveTitle, type BlobRef, type ChottoArticle, type ChottoPreview, type MochottPublication} from "$lib/chotto/chotto";
+  import {graphemeLen} from "$lib/atproto-richtext";
+  import Plus from '@lucide/svelte/icons/plus';
+  import {fetchMochottAuthorization, fetchPublicationState} from "$lib/chotto/mochottApi";
 
   const postState = getPostState();
 
@@ -49,6 +54,12 @@
   let writes = [];
   let continuousTags = [];
   let tid: TID | undefined;
+  let chottoDialog = $state<{authorizeUrl?: string; preview: ChottoPreview; settle: (confirmed: boolean) => void} | undefined>();
+  let isLongPost = $state(false);
+  let canSaveDraft = $derived.by(() => {
+      const current = postState.posts?.[postState.index];
+      return !isPublishing && !!current && (!!current.text || current.images.length > 0 || !!current.embedExternal);
+  });
 
   const isMobile = navigator?.userAgentData?.mobile || false;
   let isMobilePopState = $derived(isMobile ? $page.state.showPublish : false);
@@ -237,6 +248,10 @@
           return false;
       }
 
+      if (isLongPost && postState.posts?.length === 1) {
+          return publishChotto(postState.posts[0]);
+      }
+
       isPublishing = true;
       const toastId = toast.loading($_('process_to_post'));
 
@@ -364,6 +379,181 @@
       }
   }
 
+  function askChottoPublish(preview: ChottoPreview, authorizeUrl?: string): Promise<boolean> {
+      return new Promise(resolve => {
+          chottoDialog = {
+              authorizeUrl,
+              preview,
+              settle: (confirmed: boolean) => {
+                  chottoDialog = undefined;
+                  resolve(confirmed);
+              },
+          };
+      });
+  }
+
+  async function isMochottConnected(): Promise<boolean> {
+      return (await fetchMochottAuthorization(_agent)).authorized;
+  }
+
+  async function resolveMochottPublication(did: string, preview: ChottoPreview): Promise<MochottPublication | null> {
+      const [authorization, state] = await Promise.all([fetchMochottAuthorization(_agent), fetchPublicationState(did)]);
+      if (authorization.authorized) {
+          if (state.kind !== 'registered') {
+              throw new Error('Publication not found');
+          }
+          return (await askChottoPublish(preview)) ? state : null;
+      }
+      if (!(await askChottoPublish(preview, authorization.authorizeUrl))) {
+          return null;
+      }
+      const publication = await fetchPublicationState(did);
+      if (publication.kind !== 'registered') {
+          throw new Error('Publication not found');
+      }
+      return publication;
+  }
+
+  async function uploadChottoCover(image: any, uploaded: BlobRef | undefined): Promise<BlobRef | undefined> {
+      if (!image || isCoverCandidate(uploaded)) {
+          return uploaded;
+      }
+
+      try {
+          const stats = await compressImageWithStats(image.file, {
+              outputType: 'image/webp',
+              maxSizeMB: 0.95,
+              maxWidthOrHeight: 2000,
+          });
+          const res = await _agent.xrpc.post('com.atproto.repo.uploadBlob', stats.blob, {
+              encoding: stats.blob.type,
+          });
+          return isCoverCandidate(res.blob) ? res.blob : undefined;
+      } catch (e) {
+          console.error('Cover image failed:', e);
+          return undefined;
+      }
+  }
+
+  async function publishChotto(post: any) {
+      const did = _agent.did();
+      const handle = _agent.handle();
+      if (!did || !handle || post.replyRef || post.video || post.poll || post.whisper) {
+          return false;
+      }
+      const articleRkey = TID.nextStr();
+
+      isEnabled = true;
+      const moreLabel = $_('chotto_read_more');
+      const announcement = buildAnnouncement(post.json, post.text, graphemeLen(moreLabel));
+      let publication: MochottPublication | null;
+
+      try {
+          publication = await resolveMochottPublication(did, {
+              title: resolveTitle(post.chottoTitle || '', post.text),
+              chars: graphemeLen(post.text.trim()),
+              images: post.images.length,
+              excerpt: announcement.text.replace(/…$/u, ''),
+          });
+      } catch (e) {
+          isEnabled = false;
+          console.error(e);
+          toast.error($_('failed_to_post') + ': ' + e, {duration: 5000});
+          return false;
+      }
+
+      if (!publication) {
+          isEnabled = false;
+          return false;
+      }
+
+      const registered = publication;
+      isPublishing = true;
+      const toastId = toast.loading($_('process_to_post'));
+      const quote = post.quotePost ? {
+          title: post.quotePost.displayName || post.quotePost.name || post.quotePost.record?.name,
+          description: post.quotePost.description || post.quotePost.record?.description,
+      } : undefined;
+
+      try {
+          const built: {article?: ChottoArticle; cid?: string} = {};
+
+          const posted = await publish({
+              ...$state.snapshot(post),
+              text: announcement.text,
+              json: announcement.json,
+              video: undefined,
+              poll: undefined,
+              whisper: undefined,
+          }, undefined, {
+              tailLink: {label: moreLabel, uri: articleUrl(handle, articleRkey)},
+              extend: async (record) => {
+                  const {images, cards} = chottoAttachments(record.embed, quote);
+                  const cover = await uploadChottoCover(post.images[0], images[0]?.blob);
+                  const article = buildChottoArticle({
+                      did,
+                      handle,
+                      publication: registered,
+                      articleRkey,
+                      now: new Date().toISOString(),
+                      title: post.chottoTitle || '',
+                      text: post.text,
+                      json: post.json,
+                      images,
+                      cards,
+                      cover,
+                      labels: (post.selfLabels || []).map((label: { val: string }) => label.val),
+                  });
+                  const cid = await computeCid(article.record);
+                  writes.push(article.write);
+                  built.article = article;
+                  built.cid = cid;
+                  return {[LONG_POST_FIELD]: {uri: article.uri, cid}};
+              },
+          });
+
+          const {article, cid: articleCid} = built;
+          if (!article || !articleCid) {
+              throw new Error('The long post could not be built');
+          }
+
+          if (article.document && posted) {
+              writes.push(article.document(posted));
+          }
+
+          const response = await _agent.xrpc.post('com.atproto.repo.applyWrites', {
+              repo: did,
+              writes: writes,
+              validate: false,
+          });
+
+          const mismatched = findCidMismatches(response?.results, posted ? [{uri: article.uri, cid: articleCid}, posted] : [{uri: article.uri, cid: articleCid}]);
+          if (mismatched.length) {
+              console.error('Long post: the PDS computed a different CID for', mismatched);
+          }
+
+          await afterPublish();
+
+          isPublishing = false;
+          toast.success($_('success_to_post'), {
+              id: toastId,
+              duration: 1500,
+          });
+      } catch (e) {
+          isPublishing = false;
+          isEnabled = false;
+
+          console.error(e);
+          toast.error('Error: ' + e, {
+              id: toastId,
+              duration: 5000,
+          });
+
+          writes = [];
+          tid = undefined;
+      }
+  }
+
   async function afterPublish(rt = undefined) {
       if (rt && Array.isArray(rt.facets)) {
           try {
@@ -420,7 +610,12 @@
       }
   }
 
-  async function publish(post, treeReplyRef = undefined) {
+  type PublishOptions = {
+      tailLink?: { label: string; uri: string };
+      extend?: (record: Record<string, unknown>) => Promise<Record<string, unknown>>;
+  };
+
+  async function publish(post, treeReplyRef = undefined, options: PublishOptions = {}) {
       isEnabled = true;
 
       let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
@@ -452,7 +647,7 @@
       selfLabels = post.selfLabels ? post.selfLabels : [];
 
       if (images.length) {
-          const filePromises = images.map(image => {
+          const filePromises = images.map((image: any) => {
               return uploadBlobWithCompression(image);
           });
 
@@ -698,6 +893,12 @@
           }
       } : undefined;
 
+      let recordText = rt ? rt.text : '';
+      let recordFacets: unknown[] | undefined = rt ? rt.facets : undefined;
+      if (options.tailLink) {
+          ({text: recordText, facets: recordFacets} = appendChottoLink(recordText, recordFacets, options.tailLink.label, options.tailLink.uri));
+      }
+
       tid = TID.next(tid);
       const rkey = tid.toString()
       const uri = `at://${_agent.did()}/app.bsky.feed.post/${rkey}`
@@ -706,8 +907,8 @@
           const record: Record<string, unknown> = {
               $type: 'app.bsky.feed.post',
               embed: embed,
-              facets: rt ? rt.facets : undefined,
-              text: rt ? rt.text : '',
+              facets: recordFacets,
+              text: recordText,
               createdAt: new Date().toISOString(),
               reply: treeReplyRef || shortReplyRef,
               langs: lang.length ? lang : undefined,
@@ -717,6 +918,10 @@
               } : undefined,
               via: 'TOKIMEKI',
           };
+
+          if (options.extend) {
+              Object.assign(record, await options.extend(record));
+          }
 
           if (post.whisper) {
               const durationMs: Record<string, number> = {
@@ -1159,13 +1364,13 @@
         <Settings2 size="20" color="var(--text-color-1)"></Settings2>
       </button>
 
-      {#if (!isEnabled)}
+      {#if (canSaveDraft)}
         <button class="publish-draft-button publish-save-draft" onclick={saveDraft} disabled={postState.posts.length > 1 || !_agent}>{$_('drafts_save')}</button>
       {:else}
         <button class="publish-draft-button publish-view-draft" onclick={openDraft} disabled={postState.posts.length > 1 || !_agent}>{$_('drafts')}</button>
       {/if}
 
-      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || !_agent || postState.posts.some(p => p.video || p.whisper)} aria-label={$_('schedule_button')}>
+      <button class="publish-schedule-button publish-schedule-button--top" onclick={() => {isScheduleModalOpen = true}} disabled={isEnabled || !_agent || isLongPost || postState.posts.some(p => p.video || p.whisper)} aria-label={$_('schedule_button')}>
         <CalendarClock size="20"></CalendarClock>
       </button>
 
@@ -1173,8 +1378,8 @@
         <X color="var(--primary-color)"></X>
       </button>
 
-      <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled || !_agent}>
-        {$_('publish_button_send')}
+      <button class="publish-submit-button publish-submit-button--top" onclick={publishAll} disabled={isEnabled || !_agent} title={isLongPost ? $_('chotto_post_long') : undefined} aria-label={isLongPost ? $_('chotto_post_long') : undefined}>
+        {@render submitLabel()}
       </button>
     </div>
 
@@ -1195,6 +1400,7 @@
                     onpublish={publishAll}
                     bind:editor={editor}
                     bind:isEnabled={isEnabled}
+                    bind:isLongPost={isLongPost}
                     {submitArea}
             >
             </PublishMain>
@@ -1214,6 +1420,10 @@
     <PublishConfigModal onclose={() => {isConfigOpen = false}}></PublishConfigModal>
   {/if}
 
+  {#if (chottoDialog)}
+    <ChottoPublishDialog authorizeUrl={chottoDialog.authorizeUrl} preview={chottoDialog.preview} recheck={isMochottConnected} onsettle={chottoDialog.settle}></ChottoPublishDialog>
+  {/if}
+
   {#if (isScheduleModalOpen)}
     <ScheduleModal
       {_agent}
@@ -1225,9 +1435,17 @@
 </section>
 
 {#snippet submitArea()}
-  <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled || !_agent}>
-    {$_('publish_button_send')}
+  <button class="publish-submit-button publish-submit-button--bottom" onclick={publishAll} disabled={isEnabled || !_agent} title={isLongPost ? $_('chotto_post_long') : undefined} aria-label={isLongPost ? $_('chotto_post_long') : undefined}>
+    {@render submitLabel()}
   </button>
+{/snippet}
+
+{#snippet submitLabel()}
+  {#if isLongPost}
+    <span class="publish-submit-button__long">{$_('publish_button_send')}<Plus size="16" strokeWidth={3} aria-hidden="true"></Plus></span>
+  {:else}
+    {$_('publish_button_send')}
+  {/if}
 {/snippet}
 
 <style lang="postcss">
@@ -1324,6 +1542,12 @@
         @media (min-width: 768px) {
           display: none;
         }
+      }
+
+      &__long {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
       }
 
       &--top {

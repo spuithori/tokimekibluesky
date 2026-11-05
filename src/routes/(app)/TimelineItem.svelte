@@ -38,6 +38,8 @@
   import {getPostState} from "$lib/classes/postState.svelte";
   import MediaTimelineSingleItem from "$lib/components/media/MediaTimelineSingleItem.svelte";
   import {getEditPost} from "$lib/components/post/timelineUtil";
+  import {autoTitle, chottoBodyToEditorHtml, chottoBodyToPlainText, longPostDeleteTargets, parseChottoBody, readChottoRef} from "$lib/chotto/chotto";
+  import {fetchChottoArticle} from "$lib/chotto/mochottApi";
   import {getPollUrl} from "$lib/components/post/embedUtil";
   import {mergeSourceColor} from "$lib/merge/mergePalette";
   import {refreshSignal} from "$lib/refreshSignal.svelte";
@@ -237,6 +239,21 @@
                 rkey: rkey,
             });
 
+            const ownerDid = _agent.did();
+            const longPostTargets = longPostDeleteTargets(data.post.record, ownerDid);
+            if (longPostTargets.length) {
+                const results = await Promise.allSettled(longPostTargets.map(target => _agent.xrpc.post('com.atproto.repo.deleteRecord', {
+                    repo: ownerDid,
+                    collection: target.collection,
+                    rkey: target.rkey,
+                })));
+                results.forEach((result, index) => {
+                    if (result.status === 'rejected') {
+                        console.error(`Failed to delete ${longPostTargets[index].collection}:`, result.reason);
+                    }
+                });
+            }
+
             columnState.deletePost(uri);
             junkColumnState.deletePost(uri);
 
@@ -269,6 +286,18 @@
 
         try {
             const _post = await getEditPost(data);
+            const longPost = readChottoRef(data.post.record, data.post.author.did);
+            if (longPost) {
+                const article = await fetchChottoArticle(longPost.uri);
+                const blocks = article ? parseChottoBody(article.contentJSON, data.post.author.did) : null;
+                if (!article || !blocks) {
+                    throw new Error('Could not load the full text of this long post');
+                }
+                _post.text = chottoBodyToEditorHtml(blocks);
+                if (article.title && article.title !== autoTitle(chottoBodyToPlainText(blocks))) {
+                    _post.chottoTitle = article.title;
+                }
+            }
             postState.replacePost(_post);
             toast.success($_('success_to_delete_and_edit'), {
                 id: toastId,

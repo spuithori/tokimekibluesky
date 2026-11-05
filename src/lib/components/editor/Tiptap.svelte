@@ -42,6 +42,7 @@
     top?: import('svelte').Snippet;
     avatar?: import('svelte').Snippet;
     normal?: import('svelte').Snippet;
+    longPost?: boolean;
   }
 
   let {
@@ -61,6 +62,7 @@
     isThreadSplitting = false,
     canPoll = false,
     hasPoll = false,
+    longPost = false,
   }: Props = $props();
 
     let element = $state();
@@ -435,7 +437,7 @@
       </button>
 
       <div class="publish-length-wrap">
-        <p class="publish-length" class:over={publishContentLength > 300}>{300 - publishContentLength}</p>
+        <p class="publish-length" class:over={publishContentLength > 300 && !longPost} class:long={longPost}>{publishContentLength}</p>
 
         {#if publishContentLength > 300 && onthreadsplit}
           <button class="thread-split-button" onclick={onthreadsplit} disabled={isThreadSplitting} aria-label={$_('thread_split')}>
@@ -587,6 +589,11 @@
         &.over {
             font-weight: bold;
             color: var(--danger-color);
+        }
+
+        &.long {
+            font-weight: bold;
+            color: var(--primary-color);
         }
     }
 

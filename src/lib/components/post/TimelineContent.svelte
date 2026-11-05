@@ -34,6 +34,9 @@
     import TimelineChips from "$lib/components/post/TimelineChips.svelte";
     import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
+    import ChottoMore from "$lib/components/post/ChottoMore.svelte";
+    import ChottoBody from "$lib/components/post/ChottoBody.svelte";
+    import { articleUrl, chottoRefRkey, readChottoRef, stripChottoLink, withoutPostEmbeds, type ChottoRun } from "$lib/chotto/chotto";
     import { toast } from "svelte-sonner";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
@@ -148,6 +151,16 @@
         if (date.getTime() > maxExpiry) return null;
         return raw;
     })();
+
+    const chottoRef = $derived(readChottoRef(post?.record, post?.author?.did));
+    const chottoTail = $derived(chottoRef ? stripChottoLink(post.record, chottoRefRkey(chottoRef)) : null);
+    let chottoRuns = $state<ChottoRun[] | undefined>();
+    let chottoEdited = $state(false);
+
+    function handleChottoExpand(runs: ChottoRun[], edited: boolean) {
+        chottoRuns = withoutPostEmbeds(runs, post?.record?.embed);
+        chottoEdited = edited;
+    }
 
     const audioMeta = (() => {
         const raw: any = post?.record?.["tech.tokimeki.audio"];
@@ -320,6 +333,10 @@
 
 </script>
 
+{#snippet chottoImageCover()}
+    <TimelineWarn labels={warnLabels}></TimelineWarn>
+{/snippet}
+
 {#snippet postNumberBadge()}
     {#if postNumber}<span
         class="thread-post-number"
@@ -444,11 +461,23 @@
         {/if}
 
         {#if !skyblurText}
-            <p class="timeline__text" dir="auto"><TimelineText
-                    record={post.record}
-                    {_agent}
-                    handle={post?.author?.handle}
-                ></TimelineText>{@render postNumberBadge()}</p>
+            {#if chottoRef && chottoRuns}
+                <ChottoBody runs={chottoRuns} edited={chottoEdited} imageCover={isWarn === "media" ? chottoImageCover : undefined}></ChottoBody>
+                {#if postNumber}
+                    <p class="timeline__text">{@render postNumberBadge()}</p>
+                {/if}
+            {:else}
+                <p class="timeline__text" dir="auto"><TimelineText
+                        record={chottoTail?.record ?? post.record}
+                        {_agent}
+                        handle={post?.author?.handle}
+                    ></TimelineText>{#if chottoRef}<ChottoMore
+                        {chottoRef}
+                        did={post.author.did}
+                        url={chottoTail?.url ?? articleUrl(post.author.handle, chottoRefRkey(chottoRef))}
+                        onexpand={handleChottoExpand}
+                    ></ChottoMore>{/if}{@render postNumberBadge()}</p>
+            {/if}
 
             {#if post?.record?.["uk.skyblur.post.uri"]}
                 <button class="skyblur-show" onclick={handleSkyblurShow}>

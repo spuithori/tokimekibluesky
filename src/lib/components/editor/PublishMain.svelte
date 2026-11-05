@@ -39,12 +39,14 @@
   import SelfLabelLabel from "$lib/components/publish/SelfLabelLabel.svelte";
   import {bskyUrlToAtUri, isBskyPostUrl} from "$lib/components/editor/postUtil";
   import { PUBLIC_THREAD_SPLIT_API_SERVER } from '$env/static/public';
+  import { CHOTTO_TEXT_MAX_BYTES, CHOTTO_TITLE_INPUT_MAX, autoTitle, utf8Length } from '$lib/chotto/chotto';
 
   interface Props {
     index: number;
     _agent: any;
     editor: any;
     isEnabled: any;
+    isLongPost?: boolean;
   }
 
   let {
@@ -52,6 +54,7 @@
     _agent = $bindable(),
     editor = $bindable(),
     isEnabled = $bindable(),
+    isLongPost = $bindable(false),
     onadd,
     onpublish,
     submitArea,
@@ -62,7 +65,15 @@
 
     let publishContentLength = $derived(new RichText({text: post.text}).graphemeLength);
     let isEmpty = $derived(!post.text && !post.images.length && !post.embedExternal);
-    let isPublishEnabled = $derived(publishContentLength > 300);
+    let canLongPost = $derived(
+      postState.posts?.length === 1 &&
+      !post.replyRef &&
+      !post.poll &&
+      !post.whisper &&
+      !post.video
+    );
+    let longPost = $derived(publishContentLength > 300 && canLongPost);
+    let isOverLimit = $derived(longPost ? utf8Length(post.text) > CHOTTO_TEXT_MAX_BYTES : publishContentLength > 300);
     let isProcessed = $state(false);
     let isAccountSelectDisabled = false;
     let links: string[] = $state([]);
@@ -146,7 +157,8 @@
     let embed: AppBskyEmbedImages.Main | AppBskyEmbedRecord.Main | AppBskyEmbedRecordWithMedia.Main | AppBskyEmbedExternal.Main | undefined;
 
     $effect(() => {
-        isEnabled = isEmpty || isPublishEnabled || isProcessed || isLinkCardAdding || isAltTextRequired || hasPollWithMedia;
+        isLongPost = longPost;
+        isEnabled = isEmpty || isOverLimit || isProcessed || isLinkCardAdding || isAltTextRequired || hasPollWithMedia;
     });
 
     if (!post.selfLabels) {
@@ -455,6 +467,7 @@
           onupload={uploadContextOpen}
           onpickgif={addGifLinkCard}
           onthreadsplit={handleThreadSplit}
+          {longPost}
           {_agent}
           {isEnabled}
           {isThreadSplitting}
@@ -465,6 +478,19 @@
           onpollclick={() => {isPollModalOpen = true}}
   >
     {#snippet top()}
+      {#if longPost}
+        <div class="chotto-title">
+          <input
+            class="chotto-title__input"
+            type="text"
+            bind:value={post.chottoTitle}
+            maxlength={CHOTTO_TITLE_INPUT_MAX}
+            placeholder={autoTitle(post.text) || $_('chotto_title')}
+            aria-label={$_('chotto_title')}
+          >
+        </div>
+      {/if}
+
       {#if (post.replyRef && typeof post.replyRef !== 'string')}
         <div class="publish-quote publish-quote--reply">
           <button class="publish-quote__delete" onclick={() => {post.replyRef = undefined}}>
@@ -869,6 +895,30 @@
   .publish-quote--reply {
       .timeline-external__description {
           -webkit-line-clamp: none;
+      }
+  }
+
+  .chotto-title {
+      padding: 12px 16px 0;
+
+      &__input {
+          width: 100%;
+          height: 40px;
+          padding: 0 12px;
+          border-radius: var(--radius-control, var(--border-radius-2));
+          background-color: var(--bg-color-2);
+          color: var(--text-color-1);
+          font-size: 16px;
+          font-weight: bold;
+          outline: none;
+
+          &::placeholder {
+              color: var(--text-color-3);
+          }
+
+          &:focus-visible {
+              box-shadow: 0 0 0 2px var(--primary-color);
+          }
       }
   }
 </style>
