@@ -625,6 +625,52 @@ export function groupChottoBody(blocks: ChottoBodyBlock[]): ChottoRun[] {
 
 export type ChottoFacet = { index: { byteStart: number; byteEnd: number }; features: { $type?: string; uri?: string }[] };
 
+type ChottoSegment = { text: string; href?: string };
+type ChottoTextRecord = { text: string; facets?: ChottoFacet[] };
+
+export function chottoSegmentsToRecord(segments: ChottoSegment[]): ChottoTextRecord {
+    let text = '';
+    let bytes = 0;
+    const facets: ChottoFacet[] = [];
+    for (const segment of segments) {
+        const length = utf8Length(segment.text);
+        if (segment.href) {
+            facets.push({ index: { byteStart: bytes, byteEnd: bytes + length }, features: [{ $type: 'app.bsky.richtext.facet#link', uri: segment.href }] });
+        }
+        text += segment.text;
+        bytes += length;
+    }
+    return facets.length ? { text, facets } : { text };
+}
+
+export function chottoRecordToSegments(record: ChottoTextRecord): ChottoSegment[] {
+    const unicode = new UnicodeString(record.text);
+    const links = (record.facets ?? [])
+        .map(facet => ({ index: facet.index, uri: facet.features?.find(f => f?.$type === 'app.bsky.richtext.facet#link')?.uri }))
+        .filter((link): link is { index: ChottoFacet['index']; uri: string } => typeof link.uri === 'string')
+        .sort((a, b) => a.index.byteStart - b.index.byteStart);
+    const segments: ChottoSegment[] = [];
+    let cursor = 0;
+    for (const link of links) {
+        if (link.index.byteStart < cursor) continue;
+        if (link.index.byteStart > cursor) segments.push({ text: unicode.slice(cursor, link.index.byteStart) });
+        segments.push({ text: unicode.slice(link.index.byteStart, link.index.byteEnd), href: link.uri });
+        cursor = link.index.byteEnd;
+    }
+    if (cursor < unicode.length) segments.push({ text: unicode.slice(cursor) });
+    return segments;
+}
+
+export async function translateChottoRuns(
+    runs: ChottoRun[],
+    translate: (record: ChottoTextRecord) => Promise<ChottoTextRecord | null | undefined>,
+): Promise<ChottoRun[] | null> {
+    const texts = runs.filter((run): run is Extract<ChottoRun, { kind: 'text' }> => run.kind === 'text');
+    const results = await Promise.all(texts.map(run => translate(chottoSegmentsToRecord(run.segments))));
+    if (!results.length || results.some(result => !result)) return null;
+    return results.map(result => ({ kind: 'text', segments: chottoRecordToSegments(result!) }));
+}
+
 export function appendChottoLink<F>(text: string, facets: F[] | undefined, label: string, uri: string): { text: string; facets: (F | ChottoFacet)[] } {
     const byteStart = utf8Length(text);
     return {

@@ -36,7 +36,7 @@
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import ChottoMore from "$lib/components/post/ChottoMore.svelte";
     import ChottoBody from "$lib/components/post/ChottoBody.svelte";
-    import { articleUrl, chottoRefRkey, readChottoRef, stripChottoLink, withoutPostEmbeds, type ChottoRun } from "$lib/chotto/chotto";
+    import { articleUrl, chottoRefRkey, readChottoRef, stripChottoLink, translateChottoRuns, withoutPostEmbeds, type ChottoRun } from "$lib/chotto/chotto";
     import { toast } from "svelte-sonner";
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import StarterPackEmbed from "$lib/components/starterpack/StarterPackEmbed.svelte";
@@ -44,7 +44,7 @@
     import EmbedRecordDetached from "$lib/components/post/EmbedRecordDetached.svelte";
     import { getDidFromUri, getService } from "$lib/util";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
-    import { getContext, untrack } from "svelte";
+    import { getContext, onDestroy, untrack } from "svelte";
     import type { Attachment } from "svelte/attachments";
     import BadgeCheck from '@lucide/svelte/icons/badge-check';
     import Languages from '@lucide/svelte/icons/languages';
@@ -156,10 +156,44 @@
     const chottoTail = $derived(chottoRef ? stripChottoLink(post.record, chottoRefRkey(chottoRef)) : null);
     let chottoRuns = $state<ChottoRun[] | undefined>();
     let chottoEdited = $state(false);
+    let translatedChottoRuns = $state<ChottoRun[] | undefined>();
+    let translateMode: "server" | "local" | undefined;
+    let chottoTranslateController: AbortController | undefined;
+
+    onDestroy(() => chottoTranslateController?.abort());
 
     function handleChottoExpand(runs: ChottoRun[], edited: boolean) {
         chottoRuns = withoutPostEmbeds(runs, post?.record?.embed);
         chottoEdited = edited;
+        if (translateMode) {
+            void translateChottoBody(translateMode);
+        }
+    }
+
+    async function translateChottoBody(mode: "server" | "local") {
+        const runs = chottoRuns;
+        if (!runs || translatedChottoRuns) {
+            return;
+        }
+        chottoTranslateController?.abort();
+        const controller = new AbortController();
+        chottoTranslateController = controller;
+        const lang = $settings.general?.userLanguage;
+        const fromGesture = navigator.userActivation?.isActive ?? false;
+        try {
+            const translated = await translateChottoRuns(runs, (record) =>
+                mode === "server"
+                    ? formatTranslateRecord(record.text, lang, _agent, record)
+                    : formatLocalTranslateRecord(record.text, sourceLang, targetLang, _agent, record, { fromGesture, signal: controller.signal }),
+            );
+            if (!controller.signal.aborted && translated) {
+                translatedChottoRuns = translated;
+            }
+        } catch (e) {
+            if (mode === "server") {
+                toast.error("Translate error.");
+            }
+        }
     }
 
     const audioMeta = (() => {
@@ -244,13 +278,19 @@
         }
 
         await untrack(async () => {
+            translateMode = "server";
             try {
-                translatedRecord = await formatTranslateRecord(
-                    post.record.text,
-                    $settings.general?.userLanguage,
-                    _agent,
-                    post.record,
-                );
+                if (chottoRuns) {
+                    await translateChottoBody("server");
+                } else {
+                    const record = chottoTail?.record ?? post.record;
+                    translatedRecord = await formatTranslateRecord(
+                        record.text,
+                        $settings.general?.userLanguage,
+                        _agent,
+                        record,
+                    );
+                }
             } catch (e) {
                 toast.error("Translate error.");
             }
@@ -267,12 +307,13 @@
     ) {
         try {
             const fromGesture = navigator.userActivation?.isActive ?? false;
+            const original = chottoTail?.record ?? post.record;
             const record = await formatLocalTranslateRecord(
-                post.record.text,
+                original.text,
                 source,
                 target,
                 _agent,
-                post.record,
+                original,
                 { fromGesture, signal },
             );
 
@@ -282,6 +323,12 @@
 
             translatedRecord = record;
             isTranslated = true;
+            if (!translateMode) {
+                translateMode = "local";
+                if (chottoRuns) {
+                    void translateChottoBody("local");
+                }
+            }
         } catch (e) {
             if ((e as any)?.name !== 'AbortError' && !signal.aborted) {
                 console.error(e);
@@ -510,13 +557,17 @@
             </a>
         {/if}
 
-        {#if translatedRecord}
+        {#if chottoRuns ? translatedChottoRuns : translatedRecord}
             <div class="timeline-translated-text" dir="auto">
                 <Languages size={16} aria-label="Translated text: " />
-                <p class="timeline__text">
-                    <TimelineText record={translatedRecord} {_agent}
-                    ></TimelineText>
-                </p>
+                {#if chottoRuns && translatedChottoRuns}
+                    <ChottoBody runs={translatedChottoRuns}></ChottoBody>
+                {:else}
+                    <p class="timeline__text">
+                        <TimelineText record={translatedRecord} {_agent}
+                        ></TimelineText>
+                    </p>
+                {/if}
             </div>
         {/if}
 

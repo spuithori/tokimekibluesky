@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
     announcementText,
     appendChottoLink,
@@ -18,10 +18,14 @@ import {
     groupChottoBody,
     parseChottoBody,
     readChottoRef,
+    translateChottoRuns,
     type BlobRef,
     type ChottoInput,
 } from '$lib/chotto/chotto';
 import { computeCid } from '$lib/components/editor/postUtil';
+import { buildTranslatedRecord } from '$lib/translate';
+
+vi.mock('$lib/classes/settingsState.svelte', () => ({ settingsState: { settings: {} } }));
 
 const DID = 'did:plc:abcdefghijklmnopqrstuvwx';
 const POST = { uri: `at://${DID}/app.bsky.feed.post/3m4post000022`, cid: 'bafyreipost' };
@@ -402,6 +406,32 @@ describe('groupChottoBody', () => {
             { kind: 'text', segments: [{ text: 'a' }, { text: '\n' }, { text: 'b', href: 'https://x.test/' }, { text: '\n' }, { text: '\n' }, { text: 'c' }] },
             { kind: 'image', src: 'https://mochott.site/api/image/x/y', alt: '' },
         ]);
+    });
+});
+
+describe('translateChottoRuns(展開した全文の翻訳)', () => {
+    const runs = [
+        { kind: 'text' as const, segments: [{ text: '前半' }, { text: '\n' }, { text: 'リンク', href: 'https://x.test/' }, { text: 'の後' }] },
+        { kind: 'image' as const, src: 'https://mochott.site/api/image/x/y', alt: '' },
+        { kind: 'text' as const, segments: [{ text: '画像の後の段落' }] },
+    ];
+    const translate = (record: { text: string }) => buildTranslatedRecord(record, async prose => `[${prose}]`);
+
+    it('文章の区切りごとに地の文だけを訳し、リンクは文字と行き先を保ち、画像は落とす', async () => {
+        expect(await translateChottoRuns(runs, translate)).toEqual([
+            { kind: 'text', segments: [{ text: '[前半\n]' }, { text: 'リンク', href: 'https://x.test/' }, { text: '[の後]' }] },
+            { kind: 'text', segments: [{ text: '[画像の後の段落]' }] },
+        ]);
+    });
+
+    it('多バイト文字の後ろのリンクも位置がずれない', async () => {
+        const out = await translateChottoRuns([{ kind: 'text', segments: [{ text: '絵文字😀' }, { text: 'a', href: 'https://a.test/' }, { text: 'b', href: 'https://b.test/' }] }], async record => record);
+        expect(out).toEqual([{ kind: 'text', segments: [{ text: '絵文字😀' }, { text: 'a', href: 'https://a.test/' }, { text: 'b', href: 'https://b.test/' }] }]);
+    });
+
+    it('どこかが訳せなければ全体を null にする(一部だけ訳した全文を出さない)', async () => {
+        expect(await translateChottoRuns(runs, record => buildTranslatedRecord(record, async prose => prose.includes('画像') ? null : prose))).toBeNull();
+        expect(await translateChottoRuns([runs[1]], translate)).toBeNull();
     });
 });
 
