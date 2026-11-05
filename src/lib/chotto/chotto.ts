@@ -513,7 +513,11 @@ export function announcementText(text: string, reserve = 0): string {
     return buildAnnouncement(undefined, text, reserve).text;
 }
 
-export type ChottoPreview = { title: string; chars: number; images: number; excerpt: string };
+export type ChottoPreview = { title: string; chars: number; images: number; excerpt: string; more: string };
+
+export function chottoMoreLabel(langs: readonly string[]): string {
+    return /^ja(?:-|$)/i.test(langs[0] ?? '') ? 'もっと見る' : 'Show more';
+}
 
 export type ChottoRef = { uri: string; cid: string };
 

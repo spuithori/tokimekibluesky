@@ -5,6 +5,7 @@ import {
     buildAnnouncement,
     bskyRecordUrl,
     chottoAttachments,
+    chottoMoreLabel,
     stripChottoLink,
     withoutPostEmbeds,
     autoTitle,
@@ -461,6 +462,24 @@ describe('告知の末尾の「もっと見る」', () => {
         expect(stripChottoLink(linked, '3m4zzzzzzzz22')).toBeNull();
         expect(stripChottoLink(appendChottoLink('本文…', [], 'もっと見る', 'https://example.com/x/3m4abcdefgh22'), '3m4abcdefgh22')).toBeNull();
         expect(stripChottoLink({ ...linked, text: linked.text + ' ' }, '3m4abcdefgh22')).toBeNull();
+    });
+
+    it('投稿の主言語が日本語のときだけ「もっと見る」、それ以外は「Show more」', () => {
+        expect(chottoMoreLabel(['ja'])).toBe('もっと見る');
+        expect(chottoMoreLabel(['ja-JP', 'en'])).toBe('もっと見る');
+        expect(chottoMoreLabel(['en', 'ja'])).toBe('Show more');
+        expect(chottoMoreLabel(['ko'])).toBe('Show more');
+        expect(chottoMoreLabel(['jv'])).toBe('Show more');
+        expect(chottoMoreLabel([])).toBe('Show more');
+    });
+
+    it('「…Show more」でも末尾込みで300字に収まる', () => {
+        const more = chottoMoreLabel(['en']);
+        const head = announcementText('a '.repeat(400), [...new Intl.Segmenter().segment(more)].length);
+        const { text } = appendChottoLink(head, [], more, url);
+        expect([...new Intl.Segmenter().segment(text)].length).toBeLessThanOrEqual(300);
+        expect(text.endsWith('…Show more')).toBe(true);
+        expect(stripChottoLink(appendChottoLink(head, [], more, url), '3m4abcdefgh22')?.record.text).toBe(head);
     });
 });
 

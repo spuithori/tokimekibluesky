@@ -34,7 +34,7 @@
   import { generatePollOgImage } from '$lib/pollApi';
   import {shortcutManager} from "$lib/keyboard/shortcutManager.svelte";
   import ChottoPublishDialog from "$lib/components/publish/ChottoPublishDialog.svelte";
-  import {LONG_POST_FIELD, appendChottoLink, articleUrl, buildAnnouncement, buildChottoArticle, chottoAttachments, findCidMismatches, isCoverCandidate, resolveTitle, type BlobRef, type ChottoArticle, type ChottoPreview, type MochottPublication} from "$lib/chotto/chotto";
+  import {LONG_POST_FIELD, appendChottoLink, articleUrl, buildAnnouncement, buildChottoArticle, chottoMoreLabel, chottoAttachments, findCidMismatches, isCoverCandidate, resolveTitle, type BlobRef, type ChottoArticle, type ChottoPreview, type MochottPublication} from "$lib/chotto/chotto";
   import {graphemeLen} from "$lib/atproto-richtext";
   import Plus from '@lucide/svelte/icons/plus';
   import {fetchMochottAuthorization, fetchPublicationState} from "$lib/chotto/mochottApi";
@@ -396,8 +396,8 @@
       return (await fetchMochottAuthorization(_agent)).authorized;
   }
 
-  async function resolveMochottPublication(did: string, preview: ChottoPreview): Promise<MochottPublication | null> {
-      const [authorization, state] = await Promise.all([fetchMochottAuthorization(_agent), fetchPublicationState(did)]);
+  async function resolveMochottPublication(did: string, previewing: Promise<ChottoPreview>): Promise<MochottPublication | null> {
+      const [authorization, state, preview] = await Promise.all([fetchMochottAuthorization(_agent), fetchPublicationState(did), previewing]);
       if (authorization.authorized) {
           if (state.kind !== 'registered') {
               throw new Error('Publication not found');
@@ -444,17 +444,20 @@
       const articleRkey = TID.nextStr();
 
       isEnabled = true;
-      const moreLabel = $_('chotto_read_more');
-      const announcement = buildAnnouncement(post.json, post.text, graphemeLen(moreLabel));
+      const drafting = resolvePostLangs(post.lang, post.text).then(langs => {
+          const more = chottoMoreLabel(langs);
+          return {langs, more, announcement: buildAnnouncement(post.json, post.text, graphemeLen(more))};
+      });
       let publication: MochottPublication | null;
 
       try {
-          publication = await resolveMochottPublication(did, {
+          publication = await resolveMochottPublication(did, drafting.then(({more, announcement}) => ({
               title: resolveTitle(post.chottoTitle || '', post.text),
               chars: graphemeLen(post.text.trim()),
               images: post.images.length,
               excerpt: announcement.text.replace(/…$/u, ''),
-          });
+              more,
+          })));
       } catch (e) {
           isEnabled = false;
           console.error(e);
@@ -468,6 +471,7 @@
       }
 
       const registered = publication;
+      const {langs, more, announcement} = await drafting;
       isPublishing = true;
       const toastId = toast.loading($_('process_to_post'));
       const quote = post.quotePost ? {
@@ -482,11 +486,12 @@
               ...$state.snapshot(post),
               text: announcement.text,
               json: announcement.json,
+              lang: langs,
               video: undefined,
               poll: undefined,
               whisper: undefined,
           }, undefined, {
-              tailLink: {label: moreLabel, uri: articleUrl(handle, articleRkey)},
+              tailLink: {label: more, uri: articleUrl(handle, articleRkey)},
               extend: async (record) => {
                   const {images, cards} = chottoAttachments(record.embed, quote);
                   const cover = await uploadChottoCover(post.images[0], images[0]?.blob);
@@ -615,6 +620,14 @@
       extend?: (record: Record<string, unknown>) => Promise<Record<string, unknown>>;
   };
 
+  async function resolvePostLangs(postLang: any, text: string): Promise<string[]> {
+      let lang = postLang === 'auto' ? await languageDetect(text) : postLang;
+      if (!lang.length && $settings?.general?.userLanguage) {
+          lang = [$settings.general.userLanguage];
+      }
+      return Array.isArray(lang) ? lang : [lang];
+  }
+
   async function publish(post, treeReplyRef = undefined, options: PublishOptions = {}) {
       isEnabled = true;
 
@@ -635,14 +648,7 @@
           return false;
       }
 
-      lang = post.lang === 'auto' ? await languageDetect(post.text) : post.lang;
-      if (!lang.length && $settings?.general?.userLanguage) {
-          lang = [$settings.general.userLanguage];
-      }
-
-      if (!Array.isArray(lang)) {
-          lang = [lang];
-      }
+      lang = await resolvePostLangs(post.lang, post.text);
 
       selfLabels = post.selfLabels ? post.selfLabels : [];
 

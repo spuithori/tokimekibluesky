@@ -97,7 +97,7 @@
             <div class="chotto-dialog__card">
                 <span class="chotto-dialog__label">{$_('chotto_confirm_post')}</span>
                 <p class="chotto-dialog__excerpt">{preview.excerpt}</p>
-                <span class="chotto-dialog__more">…{$_('chotto_read_more')}</span>
+                <span class="chotto-dialog__more">…{preview.more}</span>
             </div>
         </div>
     {/if}
