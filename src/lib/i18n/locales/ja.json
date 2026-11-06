@@ -1527,6 +1527,5 @@
     "chotto_confirm_article": "mochottに公開する記事",
     "chotto_confirm_post": "Blueskyに投稿する冒頭",
     "chotto_confirm_chars": "全文 {count}字",
-    "chotto_confirm_images": "画像 {count}枚",
-    "pronouns": "代名詞"
+    "chotto_confirm_images": "画像 {count}枚"
 }
