@@ -54,7 +54,9 @@
   });
   const profileLabelEntries = $derived.by(() => {
       const entries: { key: string; text: string }[] = [];
-      for (const label of profile?.labels ?? []) {
+      const { alerts, blurs, filters, informs } = profileLabelling(profile, _agent.did(), $settings, appState.labelDefs.current).ui('profileView');
+
+      for (const { label, labelDef: { locales } } of [...alerts, ...blurs, ...filters, ...informs]) {
           if (label?.val === '!no-unauthenticated') continue;
           if (isPlanLabel(label)) {
               if (visiblePlanValues.has(label.val)) {
@@ -62,7 +64,7 @@
               }
               continue;
           }
-          entries.push({ key: label.src + label.val, text: $_(label.val) });
+          entries.push({ key: label.src + label.val, text: locales.find(({ lang }) => lang === $settings.general.userLanguage)?.name ?? locales[0]?.name ?? label.val });
       }
       return entries;
   });
