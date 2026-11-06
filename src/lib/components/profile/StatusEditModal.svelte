@@ -34,6 +34,9 @@
             try {
                 const lang = $settings.general?.userLanguage ? $settings.general?.userLanguage : 'en-US';
                 const res = await fetch('https://tokimeki-api.vercel.app/api/ogp?url=' + encodeURIComponent(url) + '&lang=' + lang);
+                if (!res.ok) {
+                    throw new Error(`OGP ${res.status}`);
+                }
                 const data = await res.json();
 
                 embed = {
@@ -48,7 +51,8 @@
                 }
             } catch (e) {
                 embed = undefined;
-                toast.error('Error!' + e);
+                console.error(e);
+                toast.error($_('link_card_fetch_failed'));
             }
 
             isDisabled = false;

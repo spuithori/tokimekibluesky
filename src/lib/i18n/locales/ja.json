@@ -101,6 +101,7 @@
     "push_subscription_failed": "サブスクリプションに失敗しました。",
     "push_subscription_unsubscribe": "サブスクリプションを解除しました。",
     "link_card_embed": "リンクを埋め込む",
+    "link_card_fetch_failed": "リンク先の情報を取得できませんでした",
     "images_uploading": "画像アップロード中",
     "images_upload_success": "画像のアップロードに成功しました",
     "images_upload_failed": "画像のアップロードに失敗しました",

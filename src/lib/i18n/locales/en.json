@@ -101,6 +101,7 @@
     "push_subscription_failed": "Subscription failed.",
     "push_subscription_unsubscribe": "Unsubscribed.",
     "link_card_embed": "Embed link",
+    "link_card_fetch_failed": "Couldn't load the link preview",
     "images_uploading": "Image(s) uploading",
     "images_upload_success": "Image(s) upload successfully.",
     "images_upload_failed": "Image(s) failed to upload.",
