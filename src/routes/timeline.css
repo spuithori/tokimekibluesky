@@ -394,7 +394,7 @@
     gap: 0 6px;
 
     &--member {
-        gap: 0 8px;
+        gap: 4px 8px;
     }
 }
 
@@ -407,6 +407,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     width: fit-content;
+}
+
+.timeline__pronouns {
+    &--reply {
+        color: var(--text-color-3);
+        font-size: 12px;
+        letter-spacing: .025em;
+        text-box: trim-both cap alphabetic;
+        padding: 6px 8px;
+        border: 1px solid var(--border-color-1);
+        border-radius: 12px;
+    }
 }
 
 .timeline__column {
@@ -879,7 +891,7 @@
         position: absolute;
         left: 29px;
         width: 2px;
-        background-image: linear-gradient(to top,var(--border-color-2) 4px, transparent 4px);
+        background-image: linear-gradient(to top, var(--border-color-2) 4px, transparent 4px);
         background-repeat: repeat-y;
         background-position: left bottom;
         background-size: 4px 8px;
