@@ -509,7 +509,7 @@
                 <p class="timeline__user">{post.replyRef.data.parent.author.displayName || post.replyRef.data.parent.author.handle}</p>
                 {#if (post.replyRef.data.parent.author.pronouns)}
                   <small class="timeline__pronouns timeline__pronouns--reply">
-                    <span class="visually-hidden">{$_('pronouns')}:{' '}</span>{post.replyRef.data.parent.author.pronouns}
+                    {post.replyRef.data.parent.author.pronouns}
                   </small>
                 {/if}
 
