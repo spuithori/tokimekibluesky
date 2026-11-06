@@ -1526,5 +1526,6 @@
     "chotto_confirm_article": "Article published on mochott",
     "chotto_confirm_post": "Opening posted to Bluesky",
     "chotto_confirm_chars": "{count} characters",
-    "chotto_confirm_images": "{count} images"
+    "chotto_confirm_images": "{count} images",
+    "pronouns": "Pronouns"
 }
