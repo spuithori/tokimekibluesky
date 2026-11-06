@@ -511,6 +511,11 @@
             <div class="timeline-external__content">
               <div class="timeline__meta timeline__meta--member">
                 <p class="timeline__user">{post.replyRef.data.parent.author.displayName || post.replyRef.data.parent.author.handle}</p>
+                {#if (post.replyRef.data.parent.author.pronouns)}
+                  <small class="timeline__pronouns timeline__pronouns--reply">
+                    {post.replyRef.data.parent.author.pronouns}
+                  </small>
+                {/if}
 
                 <ThreadMembersList uri={post.replyRef.data.parent.uri} {_agent}></ThreadMembersList>
               </div>
