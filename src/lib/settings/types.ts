@@ -132,6 +132,7 @@ export interface EmbedSettings {
     youtube: boolean;
     spotify: boolean;
     bluemotion: boolean;
+    threespeak: boolean;
     giphy: boolean;
     tenor: boolean;
     klipy: boolean;

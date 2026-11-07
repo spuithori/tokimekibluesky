@@ -486,6 +486,7 @@
   "skin_dynamic": "Dinamico",
   "skin_ios": "Sistema Apple",
   "embed_bluemotion": "Bluemotion",
+  "embed_threespeak": "3Speak",
   "lang_filter_notice": "I post contenenti testo solo in inglese o solo caratteri cinesi vengono spesso identificati erroneamente come inglesi o cinesi e filtrati, portando a segnalazioni di raccolte dati mancanti. Salvo vi sia una ragione specifica, si consiglia di non attivare quest'impostazione.",
   "settings_embed_description": "Attiva/disattiva incorporamenti di YouTube, Twitter, etc.",
   "reaction_button_settings_description": "Impostazioni per attivare/disattivare pulsanti come \"Mi piace\" ed altri, e nascondere i numeri",

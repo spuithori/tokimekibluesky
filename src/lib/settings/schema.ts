@@ -36,6 +36,14 @@ const rawSettingsSchema = [
         default: true,
     },
     {
+        key: "embed.threespeak",
+        category: "embed",
+        scope: "global",
+        type: "toggle",
+        label: "embed_threespeak",
+        default: true,
+    },
+    {
         key: "embed.giphy",
         category: "embed",
         scope: "global",

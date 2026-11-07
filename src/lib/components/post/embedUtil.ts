@@ -77,6 +77,23 @@ export function getBluemotionUrl(uri: string) {
     }
 }
 
+export function getThreeSpeakUrl(uri: string) {
+    try {
+        const url = new URL(uri);
+        const hostname = url.hostname;
+
+        if ((hostname === '3speak.tv' || hostname === 'www.3speak.tv') && url.pathname === '/watch') {
+            const id = url.searchParams.get('v');
+            return id && /^[a-z][a-z0-9.-]{1,14}[a-z0-9]\/[a-z0-9-]+$/.test(id) ? id : undefined;
+        }
+
+        return undefined;
+    } catch (e) {
+        console.log(e);
+        return undefined;
+    }
+}
+
 export function getGiphyId(uri: string) {
     try {
         const url = new URL(uri);

@@ -147,6 +147,7 @@ export function createDefaultSettings(): Settings {
             youtube: true,
             spotify: false,
             bluemotion: true,
+            threespeak: true,
             giphy: true,
             tenor: true,
             klipy: true,

@@ -487,6 +487,7 @@
   "skin_dynamic": "动态颜色",
   "skin_ios": "Apple 系统",
   "embed_bluemotion": "Bluemotion",
+  "embed_threespeak": "3Speak",
   "lang_filter_notice": "仅包含英文或仅包含汉字的帖子可能会被识别为英文、中文等，这会导致帖子被误过滤。除非有特殊原因，否则不建议启用此功能。",
   "settings_embed_description": "启用或禁用 YouTube、Twitter 等的嵌入",
   "reaction_button_settings_description": "启用或禁用点赞按钮等，及隐藏数字计数",
