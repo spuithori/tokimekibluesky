@@ -12,7 +12,6 @@
     import UserFollowButton from "./UserFollowButton.svelte";
     import ProfileMenu from "$lib/components/profile/ProfileMenu.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
-    import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
     import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
     import {beforeNavigate, goto} from "$app/navigation";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
@@ -84,6 +83,8 @@
                     return 'blog';
                 case 'search':
                     return 'search';
+                case 'label':
+                    return 'label';
                 default:
                     return 'posts';
             }
@@ -114,6 +115,7 @@
         lists: 'lists',
         blog: 'blog',
         starterpack: 'starter_packs',
+        label: 'labels',
     };
     const AUTHOR_MODE_LABELS: Record<AuthorMode, string> = {
         all: 'profile_posts_nav_all',
@@ -560,12 +562,6 @@
               <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
             {/if}
           </UserProfile>
-        {/if}
-
-        {#if (isLabeler && profile?.did)}
-          <div class="user-profile-labeler-wrap">
-            <LabelerLabelList did={profile.did}></LabelerLabelList>
-          </div>
         {/if}
       </div>
         </div>
