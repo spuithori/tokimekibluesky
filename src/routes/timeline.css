@@ -730,7 +730,7 @@
             font-weight: bold;
         }
 
-        &:hover {
+        &:hover:not(:disabled) {
             background-color: var(--menu-hover-bg-color);
             border-radius: var(--menu-item-border-radius, var(--border-radius-3));
             text-decoration: none;
