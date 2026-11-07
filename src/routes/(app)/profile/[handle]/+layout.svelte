@@ -13,7 +13,6 @@
     import UserEdit from "./UserEdit.svelte";
     import ProfileMenu from "$lib/components/profile/ProfileMenu.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
-    import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
     import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
     import {goto} from "$app/navigation";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
@@ -73,6 +72,8 @@
                     return 'blog';
                 case 'drawings':
                     return 'drawings';
+                case 'label':
+                    return 'labels';
                 default:
                     return 'posts';
             }
@@ -268,12 +269,6 @@
             {/if}
           </UserProfile>
         {/if}
-
-        {#if (isLabeler && profile?.did)}
-          <div class="user-profile-labeler-wrap">
-            <LabelerLabelList did={profile.did}></LabelerLabelList>
-          </div>
-        {/if}
       </div>
 
       <ul class="profile-tab">
@@ -309,6 +304,7 @@
           </li>
         {:else}
           <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'posts'}><a href="/profile/{data.params.handle}/" data-sveltekit-noscroll>{$_('posts')}</a></li>
+          <li class="profile-tab__item" class:profile-tab__item--active={currentPage === 'labels'}><a href="/profile/{data.params.handle}/label" data-sveltekit-noscroll>{$_('labels')}</a></li>
         {/if}
       </ul>
 
