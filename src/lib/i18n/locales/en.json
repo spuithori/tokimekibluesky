@@ -1186,6 +1186,7 @@
     "switch_to_oauth": "Switch to OAuth",
     "switch_to_password": "Switch to Password",
     "thread_split": "Split",
+    "publish_length_toggle": "Toggle character count (typed / remaining)",
     "thread_split_error": "Failed to split thread",
     "schedule_post_title": "Schedule Post",
     "schedule_auth_required": "Authentication required to use scheduled posts. Please connect in settings.",

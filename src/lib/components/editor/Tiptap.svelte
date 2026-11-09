@@ -33,6 +33,7 @@
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import EmojiList from "$lib/components/editor/EmojiList.svelte";
   import KakuDrawModal from "$lib/components/editor/KakuDrawModal.svelte";
+  import {settingsStore} from "$lib/settings/settings.svelte";
 
   interface Props {
     json: any;
@@ -64,6 +65,8 @@
     hasPoll = false,
     longPost = false,
   }: Props = $props();
+
+    let displayLength = $derived(settingsStore.design.publishLengthCountdown && !longPost ? 300 - publishContentLength : publishContentLength);
 
     let element = $state();
     let editor = $state();
@@ -437,7 +440,14 @@
       </button>
 
       <div class="publish-length-wrap">
-        <p class="publish-length" class:over={publishContentLength > 300 && !longPost} class:long={longPost}>{publishContentLength}</p>
+        <button
+          type="button"
+          class="publish-length"
+          class:over={publishContentLength > 300 && !longPost}
+          class:long={longPost}
+          title={$_('publish_length_toggle')}
+          onclick={() => {settingsStore.design.publishLengthCountdown = !settingsStore.design.publishLengthCountdown}}
+        >{displayLength}</button>
 
         {#if publishContentLength > 300 && onthreadsplit}
           <button class="thread-split-button" onclick={onthreadsplit} disabled={isThreadSplitting} aria-label={$_('thread_split')}>
@@ -576,8 +586,7 @@
         display: flex;
         align-items: center;
         white-space: nowrap;
-        pointer-events: none;
-        cursor: default;
+        line-height: 1.5;
         border-left: 1px solid var(--border-color-2);
         padding-left: 8px;
 

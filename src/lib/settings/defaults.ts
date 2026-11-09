@@ -121,6 +121,7 @@ export function createDefaultSettings(): Settings {
             fontSize: 2,
             datetimeFormat: 'yyyy-MM-dd HH:mm',
             oneImageNoCrop: false,
+            publishLengthCountdown: false,
         },
         timeline: {
             hideRepost: 'all',

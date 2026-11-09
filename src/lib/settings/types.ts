@@ -82,6 +82,7 @@ export interface DesignSettings {
     // Formalised in Phase 2 (design page).
     datetimeFormat: string;
     oneImageNoCrop: boolean;
+    publishLengthCountdown: boolean;
 }
 
 export interface TimelineSettings {
