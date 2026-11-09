@@ -10,6 +10,7 @@ import { interpretLabelValueDefinitions } from '$lib/atproto-moderation';
 import { listRecords as listRecordsFromPds } from '$lib/util';
 import { getMergedTimeline } from '$lib/merge/mergeFetch';
 import { getCloudListTimeline } from '$lib/merge/cloudListFetch';
+import { withoutTokimekiAds } from '$lib/tokimekiAd';
 
 type timelineOpt = {
     limit: number,
@@ -345,9 +346,9 @@ export class Agent {
     async getTimelineByAlgo(timelineOpt: timelineOpt, signal?: AbortSignal) {
         switch (timelineOpt.algorithm.type) {
             case 'custom':
-                return await this.xrpc.get('app.bsky.feed.getFeed', {
+                return withoutTokimekiAds(await this.xrpc.get('app.bsky.feed.getFeed', {
                     limit: timelineOpt.limit, cursor: timelineOpt.cursor, feed: timelineOpt.algorithm.algorithm
-                }, {headers: {'Accept-Language': timelineOpt.lang}, signal});
+                }, {headers: {'Accept-Language': timelineOpt.lang}, signal}));
             case 'list':
                 return await this.getAuthorsFeed(timelineOpt.actors, timelineOpt.count);
             case 'cloudList':
