@@ -293,6 +293,8 @@
 
 <style lang="postcss">
     .embed-poll {
+        position: relative;
+        z-index: 1;
         background-color: var(--bg-color-2);
         border: 1px solid var(--border-color-1);
         border-radius: 8px;

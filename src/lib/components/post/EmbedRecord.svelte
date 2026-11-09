@@ -130,7 +130,7 @@
       {/if}
 
       {#if (AppBskyEmbedExternal.isView(record?.embeds[0]))}
-        <EmbedExternal external={record.embeds[0].external}></EmbedExternal>
+        <EmbedExternal external={record.embeds[0].external} {_agent}></EmbedExternal>
       {/if}
 
       {#if (AppBskyEmbedRecord.isView(record?.embeds[0]))}
@@ -170,7 +170,7 @@
 
       &__content {
         --avatar-gap: 0;
-        --avatar-width: 0;
+        --avatar-size: 0;
       }
   }
 
