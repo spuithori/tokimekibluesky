@@ -43,6 +43,7 @@
     import ProfileTabs from "$lib/components/profile/ProfileTabs.svelte";
     import {profileTabKeys, profileTabOf, type ProfileTabKey, type ProfileTabMenu} from "$lib/profile/profileTabs";
     import {findPageScrollRoot, smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
+    import LabelerLikeButton from "$lib/components/labeler/LabelerLikeButton.svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -553,14 +554,15 @@
         <div class="user-profile-wrap" {@attach observeProfileCard}>
         {#if profile}
           <UserProfile profile={shownProfile} {isLabeler} {_agent} {edit} {atmosphere} stacked={isSplit}>
-            {#if (profile.did !== _agent.did() && !isLabeler)}
-              <div class="user-profile-buttons">
+            <div class="user-profile-buttons">
+              {#if (profile.did !== _agent.did() && !isLabeler)}
                 <UserFollowButton following={profile.viewer?.following} user={profile} {_agent}></UserFollowButton>
                 <UserNotification {_agent} {profile} onupdate={(v) => {profile.viewer.activitySubscription = v}}></UserNotification>
-              </div>
-            {:else if (isLabeler && profile?.did)}
-              <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
-            {/if}
+              {:else if (isLabeler && profile?.did)}
+                <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
+                <LabelerLikeButton _agent={_agent} did={profile.did} />
+              {/if}
+            </div>
           </UserProfile>
         {/if}
       </div>
