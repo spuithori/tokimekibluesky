@@ -379,7 +379,7 @@
   "skip_delete_confirm": "Без проверяване при изтриване на публикация",
   "profile_posts_nav": "Филтриране",
   "profile_posts_nav_all": "Всичко",
-  "profile_posts_nav_filtered": "Без препубликации и отговори",
+  "profile_posts_nav_filtered": "Само публикации",
   "clear_column_posts": "Изчистване на публикациите",
   "reaction_other_account": "Изберете акаунт в работното пространство",
   "reaction_other_account_menu": "React elsewhere...",

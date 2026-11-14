@@ -116,6 +116,7 @@ export function createDefaultSettings(): Settings {
             mobileNewUi: false,
             bubbleTimeline: false,
             defaultColumnIcon: 'icon',
+            profileLayout: 'split',
             threaded: false,
             monochrome: false,
             fontSize: 2,

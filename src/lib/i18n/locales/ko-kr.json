@@ -378,7 +378,7 @@
   "skip_delete_confirm": "투고 삭제 시 확인하지 않음",
   "profile_posts_nav": "필터 설정",
   "profile_posts_nav_all": "전부",
-  "profile_posts_nav_filtered": "리포스트와 리플라이를 제외하다",
+  "profile_posts_nav_filtered": "포스트만",
   "clear_column_posts": "투고를 클리어",
   "reaction_other_account": "워크스페이스 내 계정 선택",
   "reaction_other_account_menu": "다른 계정으로 조작...",

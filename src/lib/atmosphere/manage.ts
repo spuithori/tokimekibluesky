@@ -2,8 +2,11 @@ import type { Agent } from '$lib/agent';
 import { compressImage } from '$lib/imageCompressor/compressor';
 import {
     ATMOSPHERE_DNS_TXT_PREFIX,
+    ATMOSPHERE_MAX_COLLECTIONS,
     ATMOSPHERE_MAX_SCREENSHOTS,
     ATMOSPHERE_SERVICE_COLLECTION,
+    collectionsOutsideHost,
+    isNsid,
     isSafeHttpUrl,
     isServiceRecord,
     type AtmosphereListedService,
@@ -41,6 +44,7 @@ export interface ServiceDraft {
     description: string;
     url: string;
     category: string;
+    collections: string;
     iconFile: File | null;
     iconPreviewUrl: string;
     existingIcon: AtmosphereBlobRef | null;
@@ -61,6 +65,7 @@ export function emptyDraft(): ServiceDraft {
         description: '',
         url: '',
         category: '',
+        collections: '',
         iconFile: null,
         iconPreviewUrl: '',
         existingIcon: null,
@@ -78,6 +83,7 @@ export function draftFromRecord(record: AtmosphereServiceRecord, blobUrlOf: (blo
         description: record.description ?? '',
         url: record.url ?? '',
         category: record.category ?? '',
+        collections: Array.isArray(record.collections) ? record.collections.join('\n') : '',
         iconFile: null,
         iconPreviewUrl: blobUrlOf(record.icon) ?? '',
         existingIcon: record.icon ?? null,
@@ -109,6 +115,26 @@ export function validateDraft(draft: ServiceDraft): 'name' | 'description' | 'ur
     if (!draft.name.trim()) return 'name';
     if (!draft.description.trim()) return 'description';
     if (!isSafeHttpUrl(draft.url.trim())) return 'url';
+    return null;
+}
+
+export function parseCollections(text: string): string[] {
+    return [...new Set(text.split(/[\s,]+/).map((item) => item.trim()).filter(Boolean))];
+}
+
+export type CollectionsProblem =
+    | { kind: 'invalid'; list: string[] }
+    | { kind: 'too_many' }
+    | { kind: 'outside'; host: string; list: string[] };
+
+export function validateCollections(text: string, url: string): CollectionsProblem | null {
+    const collections = parseCollections(text);
+    const invalid = collections.filter((collection) => !isNsid(collection));
+    if (invalid.length) return { kind: 'invalid', list: invalid };
+    if (collections.length > ATMOSPHERE_MAX_COLLECTIONS) return { kind: 'too_many' };
+    const host = hostOfUrl(url.trim());
+    const outside = host ? collectionsOutsideHost(collections, host) : collections;
+    if (outside.length) return { kind: 'outside', host, list: outside };
     return null;
 }
 
@@ -174,6 +200,8 @@ export async function buildRecord(agent: Agent, draft: ServiceDraft, createdAt?:
     };
     if (draft.tagline.trim()) record.tagline = draft.tagline.trim();
     if (draft.category.trim()) record.category = draft.category.trim();
+    const collections = parseCollections(draft.collections);
+    if (collections.length) record.collections = collections;
     if (icon) record.icon = icon;
     if (screenshots.length) record.screenshots = screenshots;
     if (localized.length) record.localized = localized;
@@ -223,7 +251,7 @@ export async function deleteService(agent: Agent, rkey: string): Promise<void> {
     });
 }
 
-export const SUBMIT_ERROR_NAMES = ['InvalidUri', 'NotOwner', 'RepoUnresolvable', 'RecordNotFound', 'RecordInvalid', 'OwnershipNotVerified', 'ServiceHidden'] as const;
+export const SUBMIT_ERROR_NAMES = ['InvalidUri', 'NotOwner', 'RepoUnresolvable', 'RecordNotFound', 'RecordInvalid', 'OwnershipNotVerified', 'ServiceHidden', 'CollectionOutsideDomain'] as const;
 export type SubmitErrorName = typeof SUBMIT_ERROR_NAMES[number];
 
 export function submitErrorName(error: unknown): SubmitErrorName | null {

@@ -1175,6 +1175,28 @@
     };
   }
 
+  function keepReadingPositionWithoutAnchoring(): () => void {
+    const content = isWindowScroll ? document.body : scrollContainer;
+    const root = isWindowScroll ? document.documentElement : scrollContainer;
+    if (!content || !root || getComputedStyle(root).overflowAnchor === 'auto') {
+      return () => {};
+    }
+    let lastOffset = getCanvasTopInContainer();
+    const observer = new ResizeObserver(() => {
+      const offset = getCanvasTopInContainer();
+      const delta = offset - lastOffset;
+      const st = getScrollTop();
+      if (Math.abs(delta) >= 1 && !isNavigating && st > lastOffset) {
+        setScrollTop(st + delta);
+      }
+      lastOffset = offset;
+    });
+    for (const child of content.children) {
+      observer.observe(child);
+    }
+    return () => observer.disconnect();
+  }
+
   function scrollContainerAttach(_element: HTMLElement) {
     resizeObserver = new ResizeObserver(handleResizeEntries);
     lastValidScrollContainer = scrollContainer ?? null;
@@ -1221,6 +1243,8 @@
       extraCleanup = () => containerObserver.disconnect();
     }
 
+    const anchoringCleanup = keepReadingPositionWithoutAnchoring();
+
     return () => {
       cancelSettlement();
       if (resizeObserver) {
@@ -1235,6 +1259,7 @@
       scrollTarget.removeEventListener('touchmove', handleTouch);
       scrollTarget.removeEventListener('touchend', handleTouch);
       extraCleanup?.();
+      anchoringCleanup();
     };
   }
 

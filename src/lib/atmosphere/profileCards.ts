@@ -1,7 +1,8 @@
 import { MOCHOTT_ORIGIN } from '$lib/components/mochott/mochottConst';
 import { mochottArticleUrl } from '$lib/components/mochott/mochottUrls';
+import { fetchIndexedService, servicePath, type AtmosphereIndexedService, type AtmosphereServiceEntry } from './registry';
 
-export type CardShape = 'articles' | 'poll' | 'thumbs' | 'list' | 'status' | 'repos';
+export type CardShape = 'articles' | 'poll' | 'thumbs' | 'list' | 'status' | 'repos' | 'services';
 
 export const CARD_GAP = 8;
 export const CARD_ARTICLE_ROWS = 2;
@@ -9,6 +10,7 @@ export const CARD_LIST_ROWS = 3;
 export const CARD_THUMBS = 4;
 export const CARD_POLL_OPTIONS = 4;
 export const CARD_REPO_ROWS = 2;
+export const CARD_SERVICES = 12;
 
 const CARD_ESTIMATE: Record<CardShape, number> = {
     articles: 190,
@@ -17,6 +19,7 @@ const CARD_ESTIMATE: Record<CardShape, number> = {
     list: 140,
     status: 120,
     repos: 260,
+    services: 96,
 };
 
 export function estimatedCardHeight(shape: CardShape): number {
@@ -85,6 +88,11 @@ export interface CardRepos {
     activity: CardActivityMonth[];
 }
 
+export interface CardService {
+    entry: AtmosphereServiceEntry;
+    href: string;
+}
+
 export interface CardData {
     title?: string;
     updatedAt?: string;
@@ -95,6 +103,7 @@ export interface CardData {
     stats?: CardStat[];
     poll?: CardPoll;
     repos?: CardRepos;
+    services?: CardService[];
 }
 
 export interface CardContext {
@@ -108,11 +117,12 @@ export interface CardContext {
     getPostText?: (uri: string) => Promise<string | undefined>;
 }
 
-export type CardGlyph = 'study' | 'code' | 'article';
+export type CardGlyph = 'study' | 'code' | 'article' | 'atmosphere';
 
 export interface ProfileCardDef {
     id: string;
     name: string;
+    nameKey?: string;
     icon: string | { glyph: CardGlyph };
     shape: CardShape;
     collections: readonly string[];
@@ -494,6 +504,37 @@ export const PROFILE_CARD_DEFS: readonly ProfileCardDef[] = [
 export function detectProfileCards(collections: readonly string[], defs: readonly ProfileCardDef[] = PROFILE_CARD_DEFS): ProfileCardDef[] {
     const owned = new Set(collections);
     return defs.filter((def) => def.collections.some((collection) => owned.has(collection)));
+}
+
+const BUILTIN_NAMESPACES = ['app.bsky.', 'chat.bsky.', 'com.atproto.', 'tools.ozone.'];
+
+export function otherServiceCandidates(collections: readonly string[], defs: readonly ProfileCardDef[] = PROFILE_CARD_DEFS): string[] {
+    const covered = new Set(defs.flatMap((def) => def.collections));
+    return collections.filter((collection) => !covered.has(collection) && !BUILTIN_NAMESPACES.some((prefix) => collection.startsWith(prefix)));
+}
+
+export function matchIndexedServices(index: readonly AtmosphereIndexedService[], candidates: readonly string[]): AtmosphereIndexedService[] {
+    const owned = new Set(candidates);
+    return index.filter((service) => service.collections.some((collection) => owned.has(collection))).slice(0, CARD_SERVICES);
+}
+
+export function otherServicesCard(matched: readonly AtmosphereIndexedService[]): ProfileCardDef {
+    return {
+        id: 'others',
+        name: 'Atmosphere',
+        nameKey: 'atmosphere_card_others',
+        icon: { glyph: 'atmosphere' },
+        shape: 'services',
+        collections: [],
+        href: () => ({ href: '/atmosphere', external: false }),
+        load: async (ctx) => {
+            const entries = await Promise.all(matched.map((service) => fetchIndexedService(service, ctx.fetcher).catch(() => null)));
+            const services = entries
+                .filter((entry): entry is AtmosphereServiceEntry => entry !== null)
+                .map((entry) => ({ entry, href: servicePath(entry.did, entry.rkey) }));
+            return services.length ? { services } : null;
+        },
+    };
 }
 
 export function packPages(heights: readonly number[], available: number, gap: number = CARD_GAP): number[][] {

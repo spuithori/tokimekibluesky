@@ -351,7 +351,7 @@
   "skip_repost_confirm": "Não verificar quando repostar",
   "skip_delete_confirm": "Não verificar quando deletar um post",
   "profile_posts_nav_all": "Todos",
-  "profile_posts_nav_filtered": "Exceto para repostagens e respostas",
+  "profile_posts_nav_filtered": "Só postagens",
   "clear_column_posts": "Limpar posts",
   "reaction_other_account": "Seleciona a conta na área de trabalho",
   "reaction_other_account_menu": "Reaja com conta...",

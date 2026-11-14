@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { _ } from 'tokimeki-i18n';
+  import { _, locale } from 'tokimeki-i18n';
   import { intlRelativeTimeFormatState } from '$lib/classes/intlRelativeTimeFormatState.svelte';
   import { estimatedCardHeight, type CardData, type CardLink, type ProfileCardDef } from '$lib/atmosphere/profileCards';
   import GraduationCap from '@lucide/svelte/icons/graduation-cap';
   import GitBranch from '@lucide/svelte/icons/git-branch';
   import Newspaper from '@lucide/svelte/icons/newspaper';
+  import Orbit from '@lucide/svelte/icons/orbit';
   import Heart from '@lucide/svelte/icons/heart';
   import MessageCircle from '@lucide/svelte/icons/message-circle';
   import Star from '@lucide/svelte/icons/star';
   import EmbedPoll from '$lib/components/post/EmbedPoll.svelte';
+  import { blobCid, blobUrl, pickLocalized } from '$lib/atmosphere/registry';
 
   interface Props {
     def: ProfileCardDef;
@@ -53,12 +55,14 @@
             <GraduationCap size="18"></GraduationCap>
           {:else if def.icon.glyph === 'code'}
             <GitBranch size="18"></GitBranch>
+          {:else if def.icon.glyph === 'atmosphere'}
+            <Orbit size="18"></Orbit>
           {:else}
             <Newspaper size="18"></Newspaper>
           {/if}
         </span>
       {/if}
-      <span class="atmos-card__name">{data?.title ?? def.name}</span>
+      <span class="atmos-card__name">{data?.title ?? (def.nameKey ? $_(def.nameKey) : def.name)}</span>
     </a>
 
     {#if data?.badgeKey}
@@ -209,6 +213,24 @@
         </a>
       {/each}
     </div>
+  {/if}
+
+  {#if data?.services}
+    <ul class="atmos-card__services">
+      {#each data.services as service (service.entry.uri)}
+        {@const iconCid = blobCid(service.entry.record.icon)}
+        <li>
+          <a class="atmos-card__service" href={service.href}>
+            {#if iconCid}
+              <img class="atmos-card__service-icon" src={blobUrl(service.entry.pds, service.entry.did, iconCid)} alt="" width="24" height="24" loading="lazy" decoding="async">
+            {:else}
+              <span class="atmos-card__service-icon atmos-card__service-icon--blank" aria-hidden="true"></span>
+            {/if}
+            <span class="atmos-card__service-name">{pickLocalized(service.entry.record, $locale).name}</span>
+          </a>
+        </li>
+      {/each}
+    </ul>
   {/if}
 
   {#if data?.stats}
@@ -577,6 +599,58 @@
       &__poll-foot {
           font-size: 13px;
           color: var(--text-color-3);
+      }
+
+      &__services {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+
+          > li {
+              display: flex;
+              min-width: 0;
+              max-width: 100%;
+          }
+      }
+
+      &__service {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          max-width: 100%;
+          padding: 4px 12px 4px 4px;
+          border-radius: var(--radius-round, 18px);
+          background-color: var(--bg-color-1);
+          color: var(--text-color-1);
+
+          @media (hover: hover) {
+              &:hover .atmos-card__service-name {
+                  text-decoration: underline;
+              }
+          }
+      }
+
+      &__service-icon {
+          flex: none;
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          object-fit: cover;
+
+          &--blank {
+              background-color: var(--bg-color-2);
+          }
+      }
+
+      &__service-name {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-weight: bold;
       }
 
       &__thumbs {

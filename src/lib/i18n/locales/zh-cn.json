@@ -382,7 +382,7 @@
   "skip_delete_confirm": "删除帖子时不再确认",
   "profile_posts_nav": "筛选设置",
   "profile_posts_nav_all": "全部",
-  "profile_posts_nav_filtered": "不显示转发和回复",
+  "profile_posts_nav_filtered": "仅帖子",
   "clear_column_posts": "清空帖子",
   "reaction_other_account": "选择工作区中的账户",
   "reaction_other_account_menu": "使用其他账户操作...",

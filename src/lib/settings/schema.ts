@@ -349,6 +349,20 @@ const rawSettingsSchema = [
         ],
     },
     {
+        key: "design.profileLayout",
+        category: "design",
+        scope: "global",
+        type: "radio",
+        appearance: "radio",
+        section: "settings_section_layout",
+        label: "profile_layout",
+        default: "split",
+        options: [
+            { value: "split", label: "profile_layout_split" },
+            { value: "stacked", label: "profile_layout_stacked" },
+        ],
+    },
+    {
         key: "design.skin",
         category: "design",
         scope: "global",

@@ -36,6 +36,7 @@
         type ProfileEditResult,
     } from "$lib/profile/profileEdit.svelte";
     import {ProfileAtmosphereState} from "$lib/atmosphere/profileAtmosphere.svelte";
+    import {profileAtmosphereStore} from "$lib/atmosphere/profileAtmosphereStore";
     import {junkScrollRoot} from "$lib/components/virtual/junkScrollRoot.svelte";
     import UserNotification from "./UserNotification.svelte";
     import StatusEditModal from "$lib/components/profile/StatusEditModal.svelte";
@@ -91,13 +92,13 @@
         }
     });
     let edit = $state<ProfileEditSession>();
-    let atmosphere = $state<ProfileAtmosphereState>();
+    let atmosphere = $state<ProfileAtmosphereState | undefined>(untrack(() => profileAtmosphereStore.find($agent?.did(), data.params.handle, !$settings?.general?.disableAtmosphere)));
     let isProfileOut = $state(false);
     let isSearchOpen = $state(false);
     let searchText = $state('');
     const SPLIT_LEFT_MIN = 350;
     let canSplit = $state(false);
-    const isSplit = $derived(canSplit && $settings.design?.layout === 'decks' && !isLabeler);
+    const isSplit = $derived(canSplit && $settings.design?.layout === 'decks' && $settings.design?.profileLayout !== 'stacked' && !isLabeler);
     const isMiniShown = $derived(isProfileOut && !isSplit && !!profile);
     const isSearching = $derived(isSearchOpen || currentPage === 'search');
     const showBlogTab = $derived(currentPage === 'blog' || !!$settings?.general?.disableAtmosphere || !!atmosphere?.has('site.mochott.article'));
@@ -186,6 +187,7 @@
         capture: () => [profile],
         restore: (value) => {
             [profile] = value;
+            ensureAtmosphere(profile);
         }
     };
 
@@ -193,14 +195,15 @@
         if (!target?.did || !target.handle || atmosphere?.did === target.did) {
             return;
         }
-        atmosphere = new ProfileAtmosphereState(target.did, target.handle, {
-            detect: !$settings?.general?.disableAtmosphere,
+        const detect = !$settings?.general?.disableAtmosphere;
+        atmosphere = profileAtmosphereStore.retain(profileAtmosphereStore.find(_agent.did(), target.did, detect) ?? new ProfileAtmosphereState(target.did, target.handle, {
+            detect,
             viewerDid: _agent.did(),
             getPostText: async (uri) => {
                 const res = await _agent.xrpc.get('app.bsky.feed.getPosts', { uris: [uri] });
                 return res?.posts?.[0]?.record?.text;
             },
-        });
+        }));
     }
 
     function getProfile(handle, clear = true) {
@@ -213,7 +216,7 @@
             } else if (clear && profile && profile.handle !== handle && profile.did !== handle) {
                 profile = undefined;
                 isLabeler = false;
-                atmosphere = undefined;
+                atmosphere = profileAtmosphereStore.find(_agent.did(), handle, !$settings?.general?.disableAtmosphere);
             }
         })
 
@@ -393,6 +396,7 @@
                 getProfile(handle, false),
                 profileRefreshContext.refresh?.(),
             ]);
+            atmosphere?.refresh();
         } catch (e) {
             console.error(e);
         } finally {

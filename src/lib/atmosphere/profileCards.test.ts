@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {CARD_GAP, PROFILE_CARD_DEFS, detectProfileCards, packPages, type CardContext } from './profileCards';
+import {CARD_GAP, CARD_SERVICES, PROFILE_CARD_DEFS, detectProfileCards, matchIndexedServices, otherServiceCandidates, otherServicesCard, packPages, type CardContext } from './profileCards';
+import type { AtmosphereIndexedService } from './registry';
 
 function ids(collections: string[]) {
     return detectProfileCards(collections).map((def) => def.id);
@@ -262,3 +263,39 @@ describe('card loaders', () => {
         expect(await def('mochott').load(ctx)).toBeNull();
     });
 });
+
+describe('other services tile', () => {
+    const indexed = (rkey: string, collections: string[]): AtmosphereIndexedService => ({
+        uri: `at://did:plc:dev/tech.tokimeki.atmosphere.service/${rkey}`,
+        did: 'did:plc:dev',
+        rkey,
+        pds: 'https://dev.pds.test',
+        handle: 'dev.test',
+        collections,
+    });
+
+    it('asks the index only about collections that neither Bluesky nor a dedicated card already covers', () => {
+        expect(otherServiceCandidates([
+            'app.bsky.feed.post', 'chat.bsky.actor.declaration', 'com.atproto.lexicon.schema', 'tools.ozone.set.value',
+            'site.mochott.article', 'sh.tangled.repo', 'blue.takibi.post',
+        ])).toEqual(['blue.takibi.post']);
+        expect(otherServiceCandidates(['app.bsky.feed.post', 'site.mochott.article'])).toEqual([]);
+    });
+
+    it('matches services by exact collection, keeps the index order and caps the tile', () => {
+        const index = [indexed('a', ['blue.takibi.post']), indexed('b', ['com.example.other']), indexed('c', ['com.example.note', 'blue.takibi.post'])];
+        expect(matchIndexedServices(index, ['blue.takibi.post']).map((s) => s.rkey)).toEqual(['a', 'c']);
+        expect(matchIndexedServices(index, ['blue.takibi'])).toEqual([]);
+        const many = Array.from({ length: CARD_SERVICES + 5 }, (_, i) => indexed(`s${i}`, ['blue.takibi.post']));
+        expect(matchIndexedServices(many, ['blue.takibi.post'])).toHaveLength(CARD_SERVICES);
+    });
+
+    it('links each service to its store page and drops the tile when no record can be read', async () => {
+        const card = otherServicesCard([indexed('a', ['blue.takibi.post']), indexed('gone', ['blue.takibi.post'])]);
+        const ctx = contextWith({ 'rkey=a': { value: { name: 'takibi', description: 'd', url: 'https://takibi.example/' } } });
+        const data = await card.load(ctx);
+        expect(data?.services?.map((s) => [s.entry.record.name, s.href])).toEqual([['takibi', '/atmosphere/did:plc:dev/a']]);
+        expect(await card.load(contextWith({}))).toBeNull();
+    });
+});
+

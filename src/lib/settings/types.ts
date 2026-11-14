@@ -76,6 +76,7 @@ export interface DesignSettings {
     mobileNewUi: boolean;
     bubbleTimeline: boolean;
     defaultColumnIcon: 'icon' | 'avatar';
+    profileLayout: 'split' | 'stacked';
     threaded: boolean;
     monochrome: boolean;
     fontSize: number;

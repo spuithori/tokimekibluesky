@@ -380,7 +380,7 @@
   "skip_delete_confirm": "Ne pas demander lors de la suppression d'un message",
   "profile_posts_nav": "Filtrer",
   "profile_posts_nav_all": "Tout",
-  "profile_posts_nav_filtered": "Excepté les republications et réponses",
+  "profile_posts_nav_filtered": "Messages uniquement",
   "clear_column_posts": "Effacer les messages",
   "reaction_other_account": "Sélectionnez le compte dans l'espace de travail",
   "reaction_other_account_menu": "Réagir avec un autre compte…",

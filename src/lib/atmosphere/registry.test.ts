@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
     ATMOSPHERE_SERVICE_COLLECTION,
     blobCid,
+    collectionsOutsideHost,
+    isNsid,
+    parseCollectionIndex,
     parseListedServices,
     isServiceRecord,
     handleFromDidDocument,
@@ -120,5 +123,34 @@ describe('parseListedServices', () => {
         expect(rows[1].handle).toBeNull();
         expect(parseListedServices(null)).toEqual([]);
         expect(parseListedServices({ services: 'x' })).toEqual([]);
+    });
+});
+
+describe('collections a service may declare', () => {
+    it('only accepts NSIDs whose authority is the service host or below it', () => {
+        expect(collectionsOutsideHost(['tech.tokimeki.poll.poll'], 'poll.tokimeki.tech')).toEqual([]);
+        expect(collectionsOutsideHost(['tech.tokimeki.poll.poll'], 'tokimeki.tech')).toEqual([]);
+        expect(collectionsOutsideHost(['app.bsky.feed.post', 'site.evilmochott.post', 'app.studynext.socialProfile'], 'mochott.site'))
+            .toEqual(['app.bsky.feed.post', 'site.evilmochott.post', 'app.studynext.socialProfile']);
+        expect(collectionsOutsideHost(['app.studynext.socialProfile'], 'www.studynext.app')).toEqual(['app.studynext.socialProfile']);
+    });
+
+    it('recognises NSIDs', () => {
+        expect(isNsid('com.example.post')).toBe(true);
+        expect(isNsid('com.example')).toBe(false);
+        expect(isNsid('com.example.post.')).toBe(false);
+        expect(isNsid('com.example.1post')).toBe(false);
+    });
+
+    it('drops index rows that are not services, lack a safe PDS or declare nothing usable', () => {
+        const uri = `at://did:plc:dev/${ATMOSPHERE_SERVICE_COLLECTION}/a`;
+        const rows = parseCollectionIndex({ services: [
+            { uri, pds: 'https://pds.test/', handle: 'dev.test', collections: ['blue.takibi.post', 'not an nsid'] },
+            { uri, pds: 'https://pds.test', collections: ['blue.takibi.post'] },
+            { uri: 'at://did:plc:dev/app.bsky.feed.post/x', pds: 'https://pds.test', collections: ['blue.takibi.post'] },
+            { uri: `at://did:plc:dev/${ATMOSPHERE_SERVICE_COLLECTION}/b`, pds: 'javascript:alert(1)', collections: ['blue.takibi.post'] },
+            { uri: `at://did:plc:dev/${ATMOSPHERE_SERVICE_COLLECTION}/c`, pds: 'https://pds.test', collections: ['bad'] },
+        ] });
+        expect(rows).toEqual([{ uri, did: 'did:plc:dev', rkey: 'a', pds: 'https://pds.test', handle: 'dev.test', collections: ['blue.takibi.post'] }]);
     });
 });

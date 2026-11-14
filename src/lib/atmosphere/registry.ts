@@ -8,6 +8,7 @@ export const ATMOSPHERE_CATEGORIES = [
     'bookmarks', 'polls', 'tools', 'developer', 'games', 'community', 'other',
 ] as const;
 export const ATMOSPHERE_MAX_SCREENSHOTS = 10;
+export const ATMOSPHERE_MAX_COLLECTIONS = 20;
 
 export interface AtmosphereLocalizedText {
     lang: string;
@@ -40,6 +41,7 @@ export interface AtmosphereServiceRecord {
     icon?: AtmosphereBlobRef;
     screenshots?: AtmosphereScreenshot[];
     category?: string;
+    collections?: string[];
     createdAt?: string;
 }
 
@@ -62,6 +64,15 @@ export interface AtmosphereListedService {
     verifiedBy: string;
     visible: boolean;
     createdAt: string;
+}
+
+export interface AtmosphereIndexedService {
+    uri: string;
+    did: string;
+    rkey: string;
+    pds: string;
+    handle: string | null;
+    collections: string[];
 }
 
 export interface AtmosphereScreenshotView {
@@ -126,6 +137,24 @@ export function serviceUri(did: string, rkey: string): string {
 
 export function servicePath(did: string, rkey: string): string {
     return `/atmosphere/${did}/${encodeURIComponent(rkey)}`;
+}
+
+const NSID_PATTERN = /^[a-zA-Z](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?)+\.[a-zA-Z][a-zA-Z0-9]{0,62}$/;
+
+export function isNsid(value: unknown): value is string {
+    return typeof value === 'string' && value.length <= 317 && NSID_PATTERN.test(value);
+}
+
+export function nsidAuthorityHost(nsid: string): string {
+    return nsid.split('.').slice(0, -1).reverse().join('.').toLowerCase();
+}
+
+export function collectionsOutsideHost(collections: readonly string[], host: string): string[] {
+    const owned = host.toLowerCase().replace(/\.$/, '');
+    return collections.filter((collection) => {
+        const authority = nsidAuthorityHost(collection);
+        return authority !== owned && !authority.endsWith(`.${owned}`);
+    });
 }
 
 export function isSafeHttpUrl(url: unknown): url is string {
@@ -282,6 +311,53 @@ export async function fetchListedServices(options?: { did?: string; signal?: Abo
     const res = await fetch(`${ATMOSPHERE_API_URL}/xrpc/tech.tokimeki.atmosphere.getServices?${params}`, { signal: options?.signal });
     if (!res.ok) throw new Error(`getServices failed: ${res.status}`);
     return parseListedServices(await res.json());
+}
+
+export function parseCollectionIndex(value: unknown): AtmosphereIndexedService[] {
+    const services = (value as { services?: unknown } | null)?.services;
+    if (!Array.isArray(services)) return [];
+    const indexed: AtmosphereIndexedService[] = [];
+    const seen = new Set<string>();
+    for (const item of services) {
+        const row = item as { uri?: unknown; pds?: unknown; handle?: unknown; collections?: unknown } | null;
+        if (!row || typeof row.uri !== 'string' || seen.has(row.uri)) continue;
+        const parsed = parseAtUri(row.uri);
+        if (!parsed || parsed.collection !== ATMOSPHERE_SERVICE_COLLECTION) continue;
+        if (!isSafeHttpUrl(row.pds) || !Array.isArray(row.collections)) continue;
+        const collections = row.collections.filter(isNsid).slice(0, ATMOSPHERE_MAX_COLLECTIONS);
+        if (!collections.length) continue;
+        seen.add(row.uri);
+        indexed.push({
+            uri: row.uri,
+            did: parsed.did,
+            rkey: parsed.rkey,
+            pds: row.pds.replace(/\/$/, ''),
+            handle: typeof row.handle === 'string' && row.handle ? row.handle : null,
+            collections,
+        });
+    }
+    return indexed;
+}
+
+export async function fetchCollectionIndex(fetcher: typeof fetch = fetch): Promise<AtmosphereIndexedService[]> {
+    const res = await fetcher(`${ATMOSPHERE_API_URL}/xrpc/tech.tokimeki.atmosphere.getCollectionIndex`);
+    if (!res.ok) {
+        await res.body?.cancel().catch(() => {});
+        return [];
+    }
+    return parseCollectionIndex(await res.json());
+}
+
+export async function fetchIndexedService(service: AtmosphereIndexedService, fetcher: typeof fetch = fetch): Promise<AtmosphereServiceEntry | null> {
+    const params = new URLSearchParams({ repo: service.did, collection: ATMOSPHERE_SERVICE_COLLECTION, rkey: service.rkey });
+    const res = await fetcher(`${service.pds}/xrpc/com.atproto.repo.getRecord?${params}`);
+    if (!res.ok) {
+        await res.body?.cancel().catch(() => {});
+        return null;
+    }
+    const value = (await res.json())?.value;
+    if (!isServiceRecord(value)) return null;
+    return { uri: service.uri, did: service.did, rkey: service.rkey, pds: service.pds, handle: service.handle, record: value };
 }
 
 async function loadEntry(uri: string, repoPromise: Promise<RepoInfo>, signal?: AbortSignal): Promise<AtmosphereServiceEntry | null> {

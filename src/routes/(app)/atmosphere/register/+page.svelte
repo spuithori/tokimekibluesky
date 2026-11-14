@@ -17,6 +17,7 @@
   import ShieldCheck from '@lucide/svelte/icons/shield-check';
   import {
       ATMOSPHERE_CATEGORIES,
+      ATMOSPHERE_MAX_COLLECTIONS,
       ATMOSPHERE_MAX_SCREENSHOTS,
       blobCid,
       blobUrl,
@@ -37,6 +38,7 @@
       saveService,
       submitErrorName,
       submitService,
+      validateCollections,
       validateDraft,
       type OwnedService,
       type ServiceDraft,
@@ -206,6 +208,17 @@
           toast.error($_(`atmosphere_form_required_${missing}`));
           return;
       }
+      const collectionsProblem = validateCollections(draft.collections, draft.url);
+      if (collectionsProblem) {
+          if (collectionsProblem.kind === 'invalid') {
+              toast.error($_('atmosphere_form_required_collections', { list: collectionsProblem.list.join(', ') }));
+          } else if (collectionsProblem.kind === 'too_many') {
+              toast.error($_('atmosphere_form_collections_too_many', { max: ATMOSPHERE_MAX_COLLECTIONS }));
+          } else {
+              toast.error($_('atmosphere_form_collections_outside', { host: collectionsProblem.host, list: collectionsProblem.list.join(', ') }));
+          }
+          return;
+      }
 
       saving = true;
       try {
@@ -220,6 +233,10 @@
               closeForm();
           }
           savedUri = result.uri;
+          const listedService = listed?.has(result.uri) ? owned?.find((item) => item.uri === result.uri) : undefined;
+          if (listedService) {
+              await submitListing(listedService);
+          }
       } catch (e) {
           console.error(e);
           toast.error($_('atmosphere_form_error'));
@@ -419,6 +436,13 @@
                     {/each}
                   </select>
                 </div>
+              </dd>
+            </dl>
+
+            <dl class="settings-group">
+              <dt class="settings-group__name">{$_('atmosphere_form_collections')}</dt>
+              <dd class="settings-group__content">
+                <textarea class="form-textarea service-form__textarea service-form__textarea--mono" bind:value={draft.collections} rows="3" placeholder={$_('atmosphere_form_collections_placeholder')} spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
               </dd>
             </dl>
 
@@ -840,6 +864,12 @@
           min-height: 120px;
           font-size: 14px;
           line-height: 1.6;
+
+          &--mono {
+              min-height: 0;
+              font-family: var(--code-font);
+              font-size: 13px;
+          }
       }
 
       &__footer {

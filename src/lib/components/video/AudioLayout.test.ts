@@ -25,10 +25,14 @@ function fixedRect(el: Element, left: number, width: number) {
         ({ left, width, top: 0, right: left + width, bottom: 4, height: 4, x: left, y: 0, toJSON() {} }) as DOMRect;
 }
 
-function pointerDownAt(el: Element, clientX: number) {
-    const ev = new MouseEvent('pointerdown', { clientX, bubbles: true, cancelable: true });
+function pointerAt(type: string, el: Element, clientX: number) {
+    const ev = new MouseEvent(type, { clientX, bubbles: true, cancelable: true });
     Object.defineProperty(ev, 'pointerId', { value: 1 });
     el.dispatchEvent(ev);
+}
+
+function pointerDownAt(el: Element, clientX: number) {
+    pointerAt('pointerdown', el, clientX);
 }
 
 describe('AudioLayout', () => {
@@ -52,7 +56,7 @@ describe('AudioLayout', () => {
         expect(arg).toBeCloseTo(0.5, 2);
     });
 
-    it('seeks via the slider (calls seek with the click fraction of duration)', () => {
+    it('seeks once on release (preview only while pressed) with the release fraction of duration', () => {
         const player = makePlayer({ duration: 200 });
         const { container } = render(AudioLayout, { context: new Map([['player', player]]) });
 
@@ -60,10 +64,12 @@ describe('AudioLayout', () => {
         fixedRect(seek, 0, 100);
 
         pointerDownAt(seek, 75);
+        expect(player.seek).not.toHaveBeenCalled();
 
-        expect(player.seek).toHaveBeenCalled();
-        const arg = player.seek.mock.calls.at(-1)![0];
-        expect(arg).toBeCloseTo(150, 0);
+        pointerAt('pointerup', seek, 75);
+
+        expect(player.seek).toHaveBeenCalledTimes(1);
+        expect(player.seek.mock.calls[0][0]).toBeCloseTo(150, 0);
     });
 
     it('renders no artwork and keeps the volume slider present', () => {

@@ -23,6 +23,7 @@
   import ProfileAtmosphereCard from "$lib/components/profile/ProfileAtmosphereCard.svelte";
   import {CARD_GAP, estimatedCardHeight, packPages} from "$lib/atmosphere/profileCards";
   import type {ProfileAtmosphereState} from "$lib/atmosphere/profileAtmosphere.svelte";
+  import {isMobileViewport} from "$lib/viewportQuery.svelte";
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import TimelineText from "$lib/components/post/TimelineText.svelte";
@@ -102,7 +103,11 @@
   const cards = $derived(atmosphere?.cards ?? []);
   const cardHeights = $state<Record<string, number>>({});
   const heights = $derived(cards.map((card) => cardHeights[card.id] || estimatedCardHeight(card.shape)));
-  const pages = $derived(!stacked && !edit && panelHeight ? packPages(heights, panelHeight - SLIDER_DOTS) : []);
+  const isShelf = $derived(!stacked && !isMobileViewport.current);
+  let isShelfStart = $state(true);
+  let isShelfEnd = $state(true);
+  let isShelfDragging = $state(false);
+  const pages = $derived(!stacked && !isShelf && !edit && panelHeight ? packPages(heights, panelHeight - SLIDER_DOTS) : []);
   const isPaged = $derived(pages.length > 0);
   const activePage = $derived(isPaged ? Math.min(scrolledPage, pages.length) : 0);
   const sliderHeight = $derived.by(() => {
@@ -152,6 +157,132 @@
       }
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       el.scrollBy({ left: direction * sliderStep(el), behavior: reduce ? 'auto' : 'smooth' });
+  }
+
+  function trackShelf(node: HTMLElement) {
+      const update = () => {
+          isShelfStart = node.scrollLeft <= 1;
+          isShelfEnd = node.scrollLeft >= node.scrollWidth - node.clientWidth - 1;
+      };
+      update();
+      node.addEventListener('scroll', update, { passive: true });
+      const observer = new ResizeObserver(update);
+      observer.observe(node);
+      if (node.firstElementChild) {
+          observer.observe(node.firstElementChild);
+      }
+      return () => {
+          node.removeEventListener('scroll', update);
+          observer.disconnect();
+      };
+  }
+
+  function dragShelf(node: HTMLElement) {
+      let pointerId: number | null = null;
+      let startX = 0;
+      let startLeft = 0;
+      let dragged = false;
+
+      const nearestEdge = () => {
+          const origin = node.getBoundingClientRect().left + SLIDER_GUTTER;
+          const max = node.scrollWidth - node.clientWidth;
+          let best = node.scrollLeft;
+          let bestDistance = Infinity;
+          for (const item of node.querySelectorAll<HTMLElement>('.profile-shelf__item')) {
+              const left = Math.min(max, Math.max(0, node.scrollLeft + item.getBoundingClientRect().left - origin));
+              const distance = Math.abs(left - node.scrollLeft);
+              if (distance < bestDistance) {
+                  best = left;
+                  bestDistance = distance;
+              }
+          }
+          return best;
+      };
+
+      const down = (e: PointerEvent) => {
+          if (e.pointerType !== 'mouse' || e.button !== 0) {
+              return;
+          }
+          pointerId = e.pointerId;
+          startX = e.clientX;
+          startLeft = node.scrollLeft;
+          dragged = false;
+      };
+      const move = (e: PointerEvent) => {
+          if (e.pointerId !== pointerId) {
+              return;
+          }
+          const dx = e.clientX - startX;
+          if (!dragged) {
+              if (Math.abs(dx) < 5) {
+                  return;
+              }
+              dragged = true;
+              isShelfDragging = true;
+              node.setPointerCapture(e.pointerId);
+          }
+          node.scrollLeft = startLeft - dx;
+      };
+      const up = (e: PointerEvent) => {
+          if (e.pointerId !== pointerId) {
+              return;
+          }
+          pointerId = null;
+          if (!dragged) {
+              return;
+          }
+          const left = nearestEdge();
+          isShelfDragging = false;
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          node.scrollTo({ left, behavior: reduce ? 'auto' : 'smooth' });
+      };
+      const click = (e: MouseEvent) => {
+          if (dragged) {
+              dragged = false;
+              e.preventDefault();
+              e.stopPropagation();
+          }
+      };
+      const dragstart = (e: DragEvent) => {
+          e.preventDefault();
+      };
+
+      node.addEventListener('pointerdown', down);
+      node.addEventListener('pointermove', move);
+      node.addEventListener('pointerup', up);
+      node.addEventListener('pointercancel', up);
+      node.addEventListener('click', click, true);
+      node.addEventListener('dragstart', dragstart);
+      return () => {
+          node.removeEventListener('pointerdown', down);
+          node.removeEventListener('pointermove', move);
+          node.removeEventListener('pointerup', up);
+          node.removeEventListener('pointercancel', up);
+          node.removeEventListener('click', click, true);
+          node.removeEventListener('dragstart', dragstart);
+      };
+  }
+
+  function loadCardWhenVisible(id: string) {
+      return (node: HTMLElement) => {
+          const observer = new IntersectionObserver((entries) => {
+              if (entries.some((entry) => entry.isIntersecting)) {
+                  observer.disconnect();
+                  atmosphere?.loadCard(id);
+              }
+          });
+          observer.observe(node);
+          return () => observer.disconnect();
+      };
+  }
+
+  function stepShelf(e: MouseEvent & { currentTarget: HTMLButtonElement }, direction: 1 | -1) {
+      const el = e.currentTarget.parentElement?.querySelector<HTMLElement>('.profile-shelf');
+      if (!el) {
+          return;
+      }
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollBy({ left: direction * (el.clientWidth - SLIDER_GUTTER * 2), behavior: reduce ? 'auto' : 'smooth' });
   }
 
   async function openFirstPost() {
@@ -490,6 +621,32 @@
         {/if}
       {/if}
     </div>
+
+    {#if isShelf && !edit && cards.length}
+      <div class="profile-shelf-wrap" style:--slider-gutter="{SLIDER_GUTTER}px" style:--card-gap="{CARD_GAP}px">
+        <div class={['profile-shelf', isShelfDragging && 'profile-shelf--dragging']} role="region" aria-label={$_('atmosphere')} {@attach trackShelf} {@attach dragShelf}>
+          <div class="profile-shelf__track">
+            {#each cards as card (card.id)}
+              <div class="profile-shelf__item" {@attach loadCardWhenVisible(card.id)}>
+                <ProfileAtmosphereCard def={card} data={atmosphere?.data[card.id] ?? undefined} did={profile.did} handle={profile.handle} {_agent}></ProfileAtmosphereCard>
+              </div>
+            {/each}
+          </div>
+        </div>
+
+        {#if !isShelfStart}
+          <button class="profile-slider__arrow profile-slider__arrow--prev" onclick={(e) => stepShelf(e, -1)} aria-label={$_('profile_slider_prev')}>
+            <ChevronLeft size="18"></ChevronLeft>
+          </button>
+        {/if}
+
+        {#if !isShelfEnd}
+          <button class="profile-slider__arrow profile-slider__arrow--next" onclick={(e) => stepShelf(e, 1)} aria-label={$_('profile_slider_next')}>
+            <ChevronRight size="18"></ChevronRight>
+          </button>
+        {/if}
+      </div>
+    {/if}
 
     {#if stacked && cards.length}
       <div class="profile-stack" style:--card-gap="{CARD_GAP}px" {@attach loadWhenVisible}>
@@ -971,7 +1128,50 @@
         }
     }
 
+    .profile-shelf-wrap {
+        position: relative;
+        margin-top: 16px;
+    }
+
+    .profile-shelf {
+        container-type: inline-size;
+        margin-inline: calc(var(--slider-gutter) * -1);
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: var(--slider-gutter);
+        overscroll-behavior-x: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        &--dragging {
+            scroll-snap-type: none;
+            cursor: grabbing;
+            user-select: none;
+        }
+
+        &__track {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--card-gap);
+            width: max-content;
+            padding-inline: var(--slider-gutter);
+        }
+
+        &__item {
+            display: flex;
+            flex-direction: column;
+            flex: 0 0 min(300px, 80cqi);
+            min-width: 0;
+            scroll-snap-align: start;
+        }
+    }
+
     .profile-slider-wrap:hover .profile-slider__arrow,
+    .profile-shelf-wrap:hover .profile-slider__arrow,
     .profile-slider__arrow:focus-visible {
         opacity: 1;
     }

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { migrate } from './migrations';
+import { LEGACY_THEME_RKEYS } from '$lib/theme/legacyMap';
 import { createDefaultSettings, CURRENT_VERSION, DEFAULT_LABELER_SETTINGS, TOKIMEKI_LABELER_SETTINGS } from './defaults';
 
 describe('migrate', () => {
@@ -300,6 +301,8 @@ describe('migrate v9 -> v10 (theme at-uri)', () => {
 
     it('leaves built-in and unknown skins as they are', () => {
         expect(migrate({ version: 9, design: { skin: 'default' } }).design.skin).toBe('default');
-        expect(migrate({ version: 9, design: { skin: 'b891f211-3a57-4c5f-a53a-d4b26418a50a' } }).design.skin).toBe('b891f211-3a57-4c5f-a53a-d4b26418a50a');
+        const unknown = '00000000-0000-4000-8000-000000000000';
+        expect(LEGACY_THEME_RKEYS[unknown]).toBeUndefined();
+        expect(migrate({ version: 9, design: { skin: unknown } }).design.skin).toBe(unknown);
     });
 });
