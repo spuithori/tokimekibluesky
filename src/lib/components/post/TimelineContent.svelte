@@ -1,9 +1,8 @@
 <script lang="ts">
     import { _ } from "tokimeki-i18n";
     import { agentDidsSet, settings } from "$lib/stores";
-    import { formatDate } from "$lib/dateFormat";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import Tooltip from "$lib/components/ui/Tooltip.svelte";
+    import PostTimestamp from "$lib/components/post/PostTimestamp.svelte";
     import { contentLabelling, detectHide } from "$lib/timelineFilter";
     import {
         AppBskyEmbedExternal,
@@ -440,41 +439,7 @@
         {/if}
 
         <p class="timeline__date">
-            {#if $settings?.design.absoluteTime}
-                <Tooltip>
-                    {#snippet ref()}
-                        <span
-                            >{formatDate(
-                                new Date(post.indexedAt),
-                                $settings.design?.datetimeFormat ||
-                                    "yyyy-MM-dd HH:mm",
-                            )}</span
-                        >
-                    {/snippet}
-                    {#snippet content()}
-                        <span aria-hidden="true" class="timeline-tooltip"
-                            >{formatDate(
-                                new Date(post.indexedAt),
-                                "yyyy-MM-dd HH:mm:ss",
-                            )}</span
-                        >
-                    {/snippet}
-                </Tooltip>
-            {:else}
-                <Tooltip>
-                    {#snippet ref()}
-                        <span>{timeDistanceToNow}</span>
-                    {/snippet}
-                    {#snippet content()}
-                        <span aria-hidden="true" class="timeline-tooltip"
-                            >{formatDate(
-                                new Date(post.indexedAt),
-                                "yyyy-MM-dd HH:mm:ss",
-                            )}</span
-                        >
-                    {/snippet}
-                </Tooltip>
-            {/if}
+            <PostTimestamp uri={post.uri} indexedAt={post.indexedAt} relativeTime={timeDistanceToNow}></PostTimestamp>
         </p>
 
         {#if sourceLang}

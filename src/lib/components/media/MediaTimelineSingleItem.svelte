@@ -9,8 +9,7 @@
     import {appState} from "$lib/classes/appState.svelte.js";
     import MediaTimelineSlider from "$lib/components/media/MediaTimelineSlider.svelte";
     import Avatar from "../../../routes/(app)/Avatar.svelte";
-    import Tooltip from "$lib/components/ui/Tooltip.svelte";
-    import {formatDate} from "$lib/dateFormat";
+    import PostTimestamp from "$lib/components/post/PostTimestamp.svelte";
     import {intlRelativeTimeFormatState} from "$lib/classes/intlRelativeTimeFormatState.svelte";
     import TimelineText from "$lib/components/post/TimelineText.svelte";
     import ReactionButtons from "$lib/components/post/ReactionButtons.svelte";
@@ -78,25 +77,7 @@
             </p>
 
             <p class="timeline__date">
-                {#if $settings?.design.absoluteTime}
-                    <Tooltip>
-                        {#snippet ref()}
-                            <span>{formatDate(new Date(data.post.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
-                        {/snippet}
-                        {#snippet content()}
-                            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-                        {/snippet}
-                    </Tooltip>
-                {:else}
-                    <Tooltip>
-                        {#snippet ref()}
-                            <span>{timeDistanceToNow}</span>
-                        {/snippet}
-                        {#snippet content()}
-                            <span aria-hidden="true" class="timeline-tooltip">{formatDate(new Date(data.post.indexedAt), 'yyyy-MM-dd HH:mm:ss')}</span>
-                        {/snippet}
-                    </Tooltip>
-                {/if}
+                <PostTimestamp uri={data.post.uri} indexedAt={data.post.indexedAt} relativeTime={timeDistanceToNow}></PostTimestamp>
             </p>
 
             <ReactionButtons {_agent} post={data.post} reason={data?.reason}></ReactionButtons>

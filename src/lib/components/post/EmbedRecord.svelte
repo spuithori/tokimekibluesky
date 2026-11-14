@@ -1,6 +1,5 @@
 <script lang="ts">
   import { agent, settings } from "$lib/stores";
-  import {formatDate} from "$lib/dateFormat";
   import { AppBskyEmbedExternal, AppBskyEmbedRecord, AppBskyEmbedVideo, AppBskyFeedPost, AppBskyFeedDefs, AppBskyGraphDefs } from "$lib/atproto-guards";
   import { getViewImages, getRecordImages, hasGalleryImages } from "$lib/components/post/embedImages";
   import {_} from "tokimeki-i18n";
@@ -8,6 +7,7 @@
   import Images from "../../../routes/(app)/Images.svelte";
   import {contentLabelling, detectWarn, keywordFilter} from "$lib/timelineFilter";
   import TimelineWarn from "$lib/components/post/TimelineWarn.svelte";
+  import PostTimestamp from "$lib/components/post/PostTimestamp.svelte";
   import {createThreadOpener} from "$lib/components/thread/threadNav";
   import {keywordMuteState} from "$lib/classes/keywordMuteState.svelte";
   import EmbedExternal from "$lib/components/post/EmbedExternal.svelte";
@@ -96,11 +96,12 @@
       <div class="timeline__meta">
         <p class="timeline__user">{ record.author.displayName || record.author.handle }</p>
         <p class="timeline__date">
-          {#if $settings?.design.absoluteTime}
-            <span>{formatDate(new Date(record.indexedAt), $settings.design?.datetimeFormat || 'yyyy-MM-dd HH:mm')}</span>
-          {:else}
-            <span>{intlRelativeTimeFormatState.format({ laterDate: new Date(record.indexedAt) })}</span>
-          {/if}
+          <PostTimestamp
+            uri={record.uri}
+            indexedAt={record.indexedAt}
+            relativeTime={intlRelativeTimeFormatState.format({ laterDate: new Date(record.indexedAt) })}
+            showTooltip={false}
+          ></PostTimestamp>
         </p>
       </div>
     </div>
