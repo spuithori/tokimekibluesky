@@ -86,7 +86,17 @@
 </script>
 
 <div>
-  {#if !following}
+  {#if style === 'compact'}
+    <button
+        class={['button', 'follow-compact', following ? 'follow-compact--following' : 'button--follow']}
+        onclick={following ? unfollowSkip : follow}
+        disabled={isDisabled}
+        aria-pressed={!!following}
+    >
+      <span class="follow-compact__label">{following ? $_('now_following_button') : $_('follow_button')}</span>
+      <span class="follow-compact__label follow-compact__label--ghost" aria-hidden="true">{following ? $_('follow_button') : $_('now_following_button')}</span>
+    </button>
+  {:else if !following}
     <button class="button button--follow" class:button--border={style === 'tiny'} class:button--ss={style === 'tiny'} class:button--sm={style !== 'tiny'} onclick={follow} disabled={isDisabled}>{$_('follow_button')}</button>
   {:else}
     <button class="button button--sm button--following" onclick={unfollowSkip} disabled={isDisabled} data-unfollow-name="{$_('unfollow_button')}">{$_('now_following_button')}</button>
@@ -97,10 +107,38 @@
   <ConfirmModal
           onok={unfollow}
           oncancel={() => {isUnfollowDialogRender = false}}
-          yesText="{$_('unfollow_button')}"
-          cancelText="{$_('cancel')}"
+          yesText={$_('unfollow_button')}
+          cancelText={$_('cancel')}
   >
     <h3 class="modal-title modal-title--smaller modal-title--center">{$_('unfollow_confirm_title')}</h3>
     <p class="modal-description"></p>
   </ConfirmModal>
 {/if}
+
+<style lang="postcss">
+  .follow-compact {
+      display: inline-grid;
+      place-items: center;
+      height: 32px;
+      min-width: 0;
+      padding: 0 14px;
+      border-radius: var(--radius-round, 16px);
+      font-size: 13px;
+      white-space: nowrap;
+  }
+
+  .follow-compact__label {
+      grid-area: 1 / 1;
+  }
+
+  .follow-compact__label--ghost {
+      visibility: hidden;
+  }
+
+  .follow-compact--following {
+      background: none;
+      border: 1px solid var(--border-color-1);
+      box-shadow: none;
+      color: var(--text-color-2);
+  }
+</style>

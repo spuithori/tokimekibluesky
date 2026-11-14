@@ -139,6 +139,10 @@
         position: static;
     }
 
+    .modal-page-frame {
+        display: contents;
+    }
+
     .modal-page-content {
         min-height: 100dvh;
         background: var(--modal-page-bg-color, var(--surface-overlay, var(--bg-color-1)));
@@ -169,6 +173,9 @@
         margin: auto auto auto var(--side-rail-width, 64px);
         background-color: var(--scrim, rgba(0, 0, 0, .35));
         border-radius: var(--decks-border-radius);
+        --modal-page-width: 740px;
+        --modal-page-height: 94vh;
+        --modal-page-radius: clamp(0px, calc((100dvh - var(--modal-page-height)) * 9999), var(--radius-overlay, var(--border-radius-4)));
 
         &::before {
             content: '';
@@ -176,17 +183,15 @@
             inset: 0;
             margin: auto;
             width: 100%;
-            max-width: 740px;
-            height: 94vh;
+            max-width: var(--modal-page-width);
+            height: var(--modal-page-height);
+            border-radius: var(--modal-page-radius);
             backdrop-filter: var(--surface-overlay-backdrop-filter, none);
             pointer-events: none;
-
-            @media (max-width: 767px) {
-                height: 100dvh;
-            }
         }
 
         @media (max-width: 767px) {
+            --modal-page-height: 100dvh;
             margin-left: 0;
             right: 0;
             top: 0;
@@ -223,26 +228,25 @@
         }
     }
 
-    .modal-page-content {
-        width: 100%;
-        max-width: 740px;
+    .modal-page-frame {
         position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        /* border-radius: 10px 0 0 10px; */
+        inset: 0;
+        z-index: 1;
+        width: 100%;
+        max-width: var(--modal-page-width);
+        height: var(--modal-page-height);
         margin: auto;
-        height: 94vh;
+        border-radius: var(--modal-page-radius);
+        overflow: hidden;
+        overflow: clip;
+        box-shadow: var(--elevation-3, 0 10px 30px rgba(0, 0, 0, .3));
+    }
+
+    .modal-page-content {
+        position: relative;
+        height: 100%;
         background: var(--modal-page-bg-color, var(--surface-overlay, var(--bg-color-1)));
         overflow-y: scroll;
-        z-index: 1;
-        box-shadow: var(--elevation-3, 0 10px 30px rgba(0, 0, 0, .3));
-
-        @media (max-width: 767px) {
-            height: 100dvh;
-            border-radius: 0;
-        }
 
         @media (min-width: 768px) {
             scrollbar-color: var(--scroll-bar-color) var(--scroll-bar-bg-color);

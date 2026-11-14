@@ -15,8 +15,6 @@
     import {animateLayout} from "$lib/animations/flip";
     import {scrollDirectionState} from "$lib/classes/scrollDirectionState.svelte";
     import {publishState} from "$lib/classes/publishState.svelte";
-    import ArrowDownWideNarrow from '@lucide/svelte/icons/arrow-down-wide-narrow';
-    import Filter from '@lucide/svelte/icons/filter';
     import GripVertical from '@lucide/svelte/icons/grip-vertical';
     import PictureInPicture2 from '@lucide/svelte/icons/picture-in-picture-2';
     import Settings2 from '@lucide/svelte/icons/settings-2';
@@ -32,7 +30,10 @@
     import ColumnContent from "./ColumnContent.svelte";
     import {syncNotificationBadges, markAllNotificationsRead} from "$lib/components/notification/notificationPipeline";
     import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
-    import {getProfileRefreshContext} from "$lib/classes/profileRefreshContext.svelte";
+    import {getProfileRefreshContext, type AuthorMode, type ProfileColumnControls} from "$lib/classes/profileRefreshContext.svelte";
+    import Menu from "$lib/components/ui/Menu.svelte";
+    import ChevronDown from '@lucide/svelte/icons/chevron-down';
+    import Check from '@lucide/svelte/icons/check';
     import {MERGE_PALETTE} from "$lib/merge/mergePalette";
     import {extractMergeSource} from "$lib/merge/mergeColumnOps";
     import {initialSoloState, soloFeedKey} from "$lib/merge/mergeSolo";
@@ -79,7 +80,9 @@
     let isRefreshing = $state(false);
     let scrollEl = $state<HTMLDivElement | null>(null);
 
-    const authorMode = $derived(
+    const isAuthorColumn = $derived(column?.algorithm?.type === 'author' || column?.algorithm?.type === 'authorReplies' || column?.algorithm?.type === 'authorReposts');
+    let isSortMenuOpen = $state(false);
+    const authorMode: AuthorMode = $derived(
         column?.algorithm?.type === 'authorReplies' ? 'replies'
             : column?.algorithm?.type === 'authorReposts' ? 'reposts'
             : column?.settings?.timeline?.hideRepost === 'none' ? 'filtered'
@@ -118,11 +121,23 @@
         if (!profileRefreshContext) return;
 
         const refresh = () => (refreshEl as any)?.refresh();
+        const controls: ProfileColumnControls = {
+            get authorMode() { return isAuthorColumn ? authorMode : undefined; },
+            get canAdd() { return column?.algorithm?.type !== 'authorLike'; },
+            get isAdded() { return isColumnAlreadyAdded; },
+            setAuthorMode,
+            add: columnAddFromJunk,
+            refresh,
+        };
         profileRefreshContext.refresh = refresh;
+        profileRefreshContext.column = controls;
 
         return () => {
             if (profileRefreshContext.refresh === refresh) {
                 profileRefreshContext.refresh = null;
+            }
+            if (profileRefreshContext.column === controls) {
+                profileRefreshContext.column = null;
             }
         };
     });
@@ -409,7 +424,7 @@
         unique = Symbol();
     }
 
-    function setAuthorMode(mode: 'all' | 'filtered' | 'replies' | 'reposts') {
+    function setAuthorMode(mode: AuthorMode) {
         if (mode === authorMode) {
             return;
         }
@@ -508,46 +523,43 @@
                 </div>
             </div>
         {:else}
-            {#if (column?.algorithm?.type === 'author' || column?.algorithm?.type === 'authorReplies' || column?.algorithm?.type === 'authorReposts')}
-                <dl class="profile-posts-nav">
-                    <dt class="profile-posts-nav__name">
-                        <Filter size="20" color="var(--text-color-3)"></Filter>
-                    </dt>
-                    <dd class="profile-posts-nav__content">
-                        <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('all')}} class:profile-posts-nav__button--active={authorMode === 'all'}>{$_('profile_posts_nav_all')}</button>
-                        <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('filtered')}} class:profile-posts-nav__button--active={authorMode === 'filtered'}>{$_('profile_posts_nav_filtered')}</button>
-                        <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('replies')}} class:profile-posts-nav__button--active={authorMode === 'replies'}>{$_('profile_posts_nav_reply')}</button>
-                        <button class="profile-posts-nav__button" onclick={() => {setAuthorMode('reposts')}} class:profile-posts-nav__button--active={authorMode === 'reposts'}>{$_('profile_posts_nav_repost')}</button>
-                    </dd>
-                </dl>
-            {:else if (column?.algorithm?.type === 'thread')}
-                <dl class="profile-posts-nav">
-                    <dt class="profile-posts-nav__name">
-                        <ArrowDownWideNarrow size="20" color="var(--text-color-3)"></ArrowDownWideNarrow>
-                    </dt>
-                    <dd class="profile-posts-nav__content">
-                        {#each THREAD_SORTS as sort (sort)}
-                            <button
-                                    class="profile-posts-nav__button"
-                                    class:profile-posts-nav__button--active={threadSort === sort}
-                                    onclick={() => {setThreadSort(sort)}}
-                            >{$_(`thread_sort_${sort}`)}</button>
-                        {/each}
-                    </dd>
-                </dl>
+            {#if (column?.algorithm?.type === 'thread')}
+                <Menu bind:isMenuOpen={isSortMenuOpen} buttonClassName="deck-heading-select" position="bottom-start">
+                    {#snippet ref()}
+                        <span>{$_(`thread_sort_${threadSort}`)}</span>
+                        <ChevronDown size={14}></ChevronDown>
+                    {/snippet}
+
+                    {#snippet content()}
+                        <ul class="timeline-menu-list">
+                            {#each THREAD_SORTS as sort (sort)}
+                                <li class="timeline-menu-list__item">
+                                    <button class="timeline-menu-list__button" data-thread-sort={sort} aria-pressed={threadSort === sort} onclick={() => { isSortMenuOpen = false; setThreadSort(sort); }}>
+                                        <span class="menu-check">
+                                            {#if threadSort === sort}
+                                                <Check size={16}></Check>
+                                            {/if}
+                                        </span>
+                                        <span>{$_(`thread_sort_${sort}`)}</span>
+                                    </button>
+                                </li>
+                            {/each}
+                        </ul>
+                    {/snippet}
+                </Menu>
             {/if}
         {/if}
 
         <div class="deck-heading__buttons">
             {#if isJunk && column?.algorithm?.type === 'thread'}
                 <button aria-label="Threaded Mode" class="deck-row-column-add-button" class:deck-row-column-add-button--active={$settings?.design?.threaded} onclick={() => {$settings.design.threaded = !$settings.design.threaded}}>
-                    <TextQuote color="var(--deck-row-settings-button-color, var(--primary-color))"></TextQuote>
+                    <TextQuote size={20} color="var(--deck-row-settings-button-color, var(--primary-color))" strokeWidth="var(--icon-stroke-width, 2px)"></TextQuote>
                 </button>
             {/if}
 
             {#if (isJunk && column?.algorithm?.type !== 'authorLike')}
                 <button class="deck-row-column-add-button" disabled={isColumnAlreadyAdded} onclick={columnAddFromJunk} aria-label="Add column">
-                    <SquarePlus color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'}></SquarePlus>
+                    <SquarePlus size={20} color={isColumnAlreadyAdded ? 'var(--border-color-1)' : 'var(--primary-color)'} strokeWidth="var(--icon-stroke-width, 2px)"></SquarePlus>
                 </button>
             {/if}
 
@@ -693,6 +705,7 @@
 
             .deck-heading {
                 top: var(--deck-heading-height, 52px);
+                padding-left: 16px;
 
                 &:not(.deck-heading--sticky) {
                     border-radius: var(--deck-inner-radius, 0px) var(--deck-inner-radius, 0px) 0 0;
@@ -970,43 +983,22 @@
         }
     }
 
-    .profile-posts-nav {
+    :global(.deck-heading-select) {
         display: flex;
         align-items: center;
-        color: var(--text-color-3);
+        gap: 4px;
+        height: 32px;
+        padding: 0 10px;
+        margin-left: -10px;
+        border-radius: var(--radius-control, var(--border-radius-3));
+        color: var(--text-color-2);
         font-size: 14px;
-        gap: 8px;
-        padding-left: 8px;
-        flex: 1;
-        min-width: 0;
+        font-weight: bold;
+        transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
 
-        &__name {
-            flex-shrink: 0;
-            display: flex;
-        }
-
-        &__content {
-            display: flex;
-            gap: 4px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        &__button {
-            display: flex;
-            align-items: center;
-            padding: 0 8px;
-            border: 1px solid var(--primary-color);
-            height: 28px;
-            border-radius: var(--radius-round, 14px);
-            font-size: 12px;
-            color: var(--primary-color);
-            flex-shrink: 0;
-            white-space: nowrap;
-
-            &--active {
-                background-color: var(--primary-color);
-                color: var(--on-accent, var(--bg-color-1));
+        @media (hover: hover) {
+            &:hover {
+                background-color: var(--state-hover, var(--bg-color-2));
             }
         }
     }

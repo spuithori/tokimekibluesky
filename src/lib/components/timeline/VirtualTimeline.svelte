@@ -10,6 +10,7 @@
   import VirtualList from "$lib/components/virtual/VirtualList.svelte";
   import type {ScrollState} from "$lib/components/virtual/types";
   import {resolveScrollContainer} from "$lib/components/virtual/scroll-helpers";
+  import {junkScrollRoot} from "$lib/components/virtual/junkScrollRoot.svelte";
   import {isReasonPin} from "$lib/atproto-guards";
   import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
   import Annoyed from '@lucide/svelte/icons/annoyed';
@@ -104,6 +105,9 @@
   }
 
   let scrollContainer = $derived.by(() => {
+    if (isJunk) {
+      junkScrollRoot.version;
+    }
     return resolveScrollContainer(parent, isSingleColumnMode, isJunk, column.scrollElement)
       ?? parent?.closest('.deck-column-content') as HTMLElement | null;
   });

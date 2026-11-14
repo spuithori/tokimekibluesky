@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { findPageScrollRoot } from "$lib/components/virtual/scroll-helpers";
     import { _, locale, setLocale } from "tokimeki-i18n";
     import { settingsStore } from "$lib/settings/settings.svelte";
     import { intlRelativeTimeFormatState } from "$lib/classes/intlRelativeTimeFormatState.svelte";
@@ -266,9 +267,7 @@
     beforeNavigate(({ from }) => {
         if (!from?.url) return;
         const key = from.url.pathname + from.url.search;
-        const modal = document.querySelector(
-            ".modal-page-content",
-        ) as HTMLElement | null;
+        const modal = findPageScrollRoot();
         savedScrollPositions.set(key, {
             scroll: from.scroll,
             modalTop: modal ? modal.scrollTop : null,
@@ -286,9 +285,7 @@
                 $settings.design?.layout === "decks" &&
                 saved.modalTop !== null
             ) {
-                const modal = document.querySelector(
-                    ".modal-page-content",
-                ) as HTMLElement | null;
+                const modal = findPageScrollRoot();
                 if (modal && !modal.querySelector(".vl-canvas")) {
                     modal.scrollTop = saved.modalTop;
                 }

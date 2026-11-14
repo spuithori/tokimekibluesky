@@ -86,6 +86,7 @@ export const commands: readonly Command[] = [
     { id: 'refresh.all', label: 'kb_refresh_all', category: 'global', keys: ['.'], run: () => { refreshSignal.bump(); return true; } },
     { id: 'help.toggle', label: 'kb_help', category: 'global', keys: ['?'], run: (ctx) => { ctx.toggleHelp(); return true; } },
     { id: 'publish.close', label: 'kb_close_composer', category: 'global', keys: ['Escape'], group: 'escape', inEditable: true, run: (ctx) => ctx.invoke('publish.close') },
+    { id: 'profile.edit.cancel', label: 'kb_cancel_profile_edit', category: 'global', keys: ['Escape'], group: 'escape', inEditable: true, run: (ctx) => ctx.invoke('profile.edit.cancel') },
     { id: 'page.close', label: 'kb_close_page', category: 'global', keys: ['Escape'], group: 'escape', run: (ctx) => ctx.invoke('page.close') },
     { id: 'post.deselect', label: 'kb_deselect', category: 'global', keys: ['Escape'], group: 'escape', when: hasPost, run: () => blurPost() },
 ];

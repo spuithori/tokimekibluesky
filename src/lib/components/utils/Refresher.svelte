@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { pullIntent } from './pullIntent';
     import { onMount } from 'svelte';
     import { on } from 'svelte/events';
 
@@ -19,6 +20,7 @@
     let refresherVisualElement: HTMLElement | undefined;
 
     let state = $state('pending');
+    let startX = 0;
     let startY = $state(0);
     let currentY = $state(0);
     let pullProgress = $state(0);
@@ -81,6 +83,7 @@
         }
 
         isTouching = true;
+        startX = event.touches[0].clientX;
         startY = event.touches[0].clientY;
         currentY = startY;
         state = 'pending';
@@ -102,8 +105,16 @@
 
         if (dy < 0) dy = 0;
 
-        if (dy > 5 && state === 'pending') {
-            state = 'pulling';
+        if (state === 'pending') {
+            const intent = pullIntent(event.touches[0].clientX - startX, currentY - startY);
+            if (intent === 'abandon') {
+                isTouching = false;
+                startY = 0;
+                return;
+            }
+            if (intent === 'pull') {
+                state = 'pulling';
+            }
         }
 
         if (state === 'pulling') {

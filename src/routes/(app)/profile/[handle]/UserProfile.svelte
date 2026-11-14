@@ -2,25 +2,29 @@
     import Database from '@lucide/svelte/icons/database';
   import {_} from 'tokimeki-i18n';
   import {agent, settings} from '$lib/stores';
-  import {page} from '$app/stores';
+  import {goto} from '$app/navigation';
   import {formatDate} from '$lib/dateFormat';
   import { fade } from 'svelte/transition';
   import {RichText} from '$lib/atproto-richtext';
   import BadgeCheck from '@lucide/svelte/icons/badge-check';
   import {appState} from '$lib/classes/appState.svelte';
   import {profileLabelling, profileLinkLabelling} from '$lib/timelineFilter';
-  import {TOKIMEKI_LABELER_DID, getSupporterPlan} from '$lib/support/supporterLabels';
+  import {buildProfileLabelView, type ProfileLabelView} from '$lib/profile/labelView';
+  import ProfileLabels from "$lib/components/profile/ProfileLabels.svelte";
+  import TimelineChips from "$lib/components/post/TimelineChips.svelte";
   import CircleCheck from '@lucide/svelte/icons/circle-check';
   import Eye from '@lucide/svelte/icons/eye';
   import EyeOff from '@lucide/svelte/icons/eye-off';
-  import Handshake from '@lucide/svelte/icons/handshake';
   import Radio from '@lucide/svelte/icons/radio';
   import Globe from '@lucide/svelte/icons/globe';
   import Calendar from '@lucide/svelte/icons/calendar';
   import Tag from '@lucide/svelte/icons/tag';
   import SocialProof from "$lib/components/profile/SocialProof.svelte";
-  import ProfileAtmosphere from "$lib/components/profile/ProfileAtmosphere.svelte";
-  import emblaCarouselSvelte from 'embla-carousel-svelte';
+  import ProfileAtmosphereCard from "$lib/components/profile/ProfileAtmosphereCard.svelte";
+  import {CARD_GAP, estimatedCardHeight, packPages} from "$lib/atmosphere/profileCards";
+  import type {ProfileAtmosphereState} from "$lib/atmosphere/profileAtmosphere.svelte";
+  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+  import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import TimelineText from "$lib/components/post/TimelineText.svelte";
   import {imageState} from "$lib/classes/imageState.svelte";
   import VerifierModal from "$lib/components/profile/VerifierModal.svelte";
@@ -31,41 +35,48 @@
   import ProfileLinks from "$lib/components/profile/ProfileLinks.svelte";
   import {linksFromProfileView} from "$lib/profileLinks/rules";
   import type {ProfileLinkView} from "$lib/types/atproto";
+  import Camera from '@lucide/svelte/icons/camera';
+  import X from '@lucide/svelte/icons/x';
+  import ProfileImageCropper from "$lib/components/profile/ProfileImageCropper.svelte";
+  import ProfileLinksEditor from "$lib/components/profile/ProfileLinksEditor.svelte";
+  import ProfileLinkForm from "$lib/components/profile/ProfileLinkForm.svelte";
+  import {DESCRIPTION_MAX, DISPLAY_NAME_MAX, isCounterVisible, type ImageTarget, type ProfileEditSession} from "$lib/profile/profileEdit.svelte";
 
   interface Props {
-    handle: any;
-    profile?: any;
+    profile: any;
     isLabeler?: boolean;
+    _agent?: any;
+    edit?: ProfileEditSession;
+    atmosphere?: ProfileAtmosphereState;
+    stacked?: boolean;
+    children?: import('svelte').Snippet;
   }
 
-  let { handle, profile = $bindable(getProfile(handle)), isLabeler = false, _agent = $agent, children }: Props = $props();
+  let { profile, isLabeler = false, _agent = $agent, edit, atmosphere, stacked = false, children }: Props = $props();
 
-  const isPlanLabel = (label: any) => label?.src === TOKIMEKI_LABELER_DID && !!getSupporterPlan(label?.val);
-  const visiblePlanValues = $derived.by(() => {
-      if (!profile?.labels?.some(isPlanLabel)) {
-          return new Set<string>();
-      }
+  const SLIDER_GUTTER = 16;
+  const SLIDER_GAP = 6;
+  const SLIDER_DOTS = 16;
+
+  const EMPTY_LABEL_VIEW: ProfileLabelView = {
+      plans: [],
+      alerts: [],
+      informs: [],
+      relations: [],
+      avatar: { blur: false, noOverride: false },
+      banner: { blur: false, noOverride: false },
+  };
+  const labelView = $derived.by(() => {
       try {
-          const ui = profileLabelling(profile, _agent.did(), $settings, appState.labelDefs.current).ui('profileView');
-          return new Set([...ui.informs, ...ui.alerts].filter((cause) => isPlanLabel(cause.label)).map((cause) => cause.label?.val as string));
+          return buildProfileLabelView(profile, profileLabelling(profile, _agent.did(), $settings, appState.labelDefs.current), _agent.did());
       } catch {
-          return new Set<string>();
+          return EMPTY_LABEL_VIEW;
       }
   });
-  const profileLabelEntries = $derived.by(() => {
-      const entries: { key: string; text: string }[] = [];
-      for (const label of profile?.labels ?? []) {
-          if (label?.val === '!no-unauthenticated') continue;
-          if (isPlanLabel(label)) {
-              if (visiblePlanValues.has(label.val)) {
-                  entries.push({ key: label.src + label.val, text: getSupporterPlan(label.val)!.name });
-              }
-              continue;
-          }
-          entries.push({ key: label.src + label.val, text: $_(label.val) });
-      }
-      return entries;
-  });
+  let isAvatarRevealed = $state(false);
+  let isBannerRevealed = $state(false);
+  const isAvatarBlurred = $derived(labelView.avatar.blur && !isAvatarRevealed);
+  const isBannerBlurred = $derived(labelView.banner.blur && !isBannerRevealed);
 
   const isLinkHidden = (view: ProfileLinkView) => {
       if (!view.labels?.length) return false;
@@ -78,146 +89,233 @@
   };
   const profileLinks = $derived(profile?.links?.length ? linksFromProfileView(profile.links, isLinkHidden) : []);
 
-  let firstPostDate = $state('');
-  let firstPostUri = $state('');
+  const joinedDate = $derived(profile.createdAt ? formatDate(new Date(profile.createdAt), 'yyyy/MM/dd') : '');
+  let isFirstPostLoading = false;
   let textRecord = $derived.by(() => {
     const rich = new RichText({text: profile.description});
     rich.detectFacetsWithoutResolution();
     return rich;
   });
-  let serviceHost = $state('');
-  let gridWidth = $state(0);
-  let slideOptions = $derived({
-    loop: false,
-    watchDrag: gridWidth < 680,
+  const serviceHost = $derived(atmosphere?.pds ?? '');
+  let panelHeight = $state(0);
+  let scrolledPage = $state(0);
+  const cards = $derived(atmosphere?.cards ?? []);
+  const cardHeights = $state<Record<string, number>>({});
+  const heights = $derived(cards.map((card) => cardHeights[card.id] || estimatedCardHeight(card.shape)));
+  const pages = $derived(!stacked && !edit && panelHeight ? packPages(heights, panelHeight - SLIDER_DOTS) : []);
+  const isPaged = $derived(pages.length > 0);
+  const activePage = $derived(isPaged ? Math.min(scrolledPage, pages.length) : 0);
+  const sliderHeight = $derived.by(() => {
+      if (!isPaged) {
+          return undefined;
+      }
+      const page = pages[activePage - 1];
+      const needed = page ? page.reduce((sum, index) => sum + heights[index], 0) + CARD_GAP * (page.length - 1) + SLIDER_DOTS : 0;
+      return Math.max(panelHeight, needed);
   });
-  const __serviceEndpoint = _agent.service();
+  let fileInput = $state<HTMLInputElement>();
+  let pickTarget: ImageTarget = 'avatar';
+  let crop = $state.raw<{ file: File; target: ImageTarget }>();
   let isVerifierModalOpen = $state(false);
   let isAvatarZoomOpen = $state(false);
 
-  $effect(() => {
-    getEndpoint(profile.did)
-            .then(value => {
-              serviceHost = value;
-            })
-            .catch(e => {
-              serviceHost = '';
-            });
-  });
+  function sliderStep(el: HTMLElement) {
+      return el.clientWidth - SLIDER_GUTTER * 2 + SLIDER_GAP;
+  }
 
-  getFirstPostData(handle);
-
-  async function getFirstRecord(handle) {
-      try {
-          const res = await fetch(`${__serviceEndpoint}/xrpc/com.atproto.repo.listRecords?repo=${encodeURIComponent(handle)}&collection=${encodeURIComponent("app.bsky.feed.post")}&limit=1&reverse=true`);
-          return { data: await res.json() };
-      } catch (e) {
-          return null;
+  function handleSliderScroll(e: Event & { currentTarget: HTMLDivElement }) {
+      const el = e.currentTarget;
+      const index = Math.round(el.scrollLeft / sliderStep(el));
+      if (index !== scrolledPage) {
+          scrolledPage = index;
+      }
+      if (el.scrollLeft > SLIDER_GUTTER) {
+          atmosphere?.load();
       }
   }
 
-  async function getFirstPostData(handle = $page.params.handle) {
-      try {
-          const firstPost = await getFirstRecord(handle);
-
-          if (!firstPost) {
-              return false;
+  function loadWhenVisible(node: HTMLElement) {
+      const observer = new IntersectionObserver((entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+              observer.disconnect();
+              atmosphere?.load();
           }
+      });
+      observer.observe(node);
+      return () => observer.disconnect();
+  }
 
-          const firstPostDateRaw = firstPost.data.records[0].value.createdAt;
-          firstPostDate = formatDate(new Date(firstPostDateRaw), 'yyyy/MM/dd');
-          firstPostUri = '/profile/' + handle + '/post/' + firstPost.data.records[0].uri.split('/').slice(-1)[0];
+  function stepSlider(e: MouseEvent & { currentTarget: HTMLButtonElement }, direction: 1 | -1) {
+      const el = e.currentTarget.parentElement?.querySelector<HTMLElement>('.profile-slider');
+      if (!el) {
+          return;
+      }
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollBy({ left: direction * sliderStep(el), behavior: reduce ? 'auto' : 'smooth' });
+  }
+
+  async function openFirstPost() {
+      if (isFirstPostLoading) {
+          return;
+      }
+      isFirstPostLoading = true;
+      const did = profile.did;
+      const profileHandle = profile.handle;
+
+      try {
+          const endpoint = serviceHost || await getEndpoint(did);
+          const res = await fetch(`${endpoint}/xrpc/com.atproto.repo.listRecords?repo=${encodeURIComponent(did)}&collection=app.bsky.feed.post&limit=1&reverse=true`);
+          const data = await res.json();
+          const rkey = data?.records?.[0]?.uri?.split('/').pop();
+          if (rkey) {
+              await goto(`/profile/${profileHandle}/post/${rkey}`);
+          }
       } catch (e) {
-
+          console.error(e);
+      } finally {
+          isFirstPostLoading = false;
       }
   }
 
-  async function getProfile(handle) {
-      if (!handle) {
-          return false;
+  function pickImage(target: ImageTarget) {
+      pickTarget = target;
+      fileInput?.click();
+  }
+
+  function handleFileSelected(e: Event & { currentTarget: HTMLInputElement }) {
+      const file = e.currentTarget.files?.[0];
+      e.currentTarget.value = '';
+      if (file) {
+          crop = { file, target: pickTarget };
       }
+  }
 
-      const res = await _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle});
-      profile = res;
-
-      if (profile.labels && Array.isArray(profile.labels)) {
-          profile.labels = profile.labels.filter(label => label.val !== '!no-unauthenticated');
+  function handleCropComplete(blob: Blob) {
+      const target = crop?.target;
+      crop = undefined;
+      if (edit && target) {
+          edit.setImage(target, blob);
       }
   }
 
   function toggleHideCounts() {
-      if (!$settings.general?.hideProfileCounts) {
-          $settings.general.hideProfileCounts = false;
-      }
-
       $settings.general.hideProfileCounts = !$settings.general.hideProfileCounts;
+  }
+
+  function handleAvatarClick() {
+      if (isAvatarBlurred) {
+          if (!labelView.avatar.noOverride) {
+              isAvatarRevealed = true;
+          }
+          return;
+      }
+      isAvatarZoomOpen = true;
+  }
+
+  function handleBannerClick() {
+      if (isBannerBlurred) {
+          if (!labelView.banner.noOverride) {
+              isBannerRevealed = true;
+          }
+          return;
+      }
+      imageState.open([{ src: profile.banner, msrc: profile.banner, alt: '', width: 3000, height: 1000 }], 0);
   }
 </script>
 
+{#snippet counter(text: string, max: number, left: number)}
+  {#if isCounterVisible(text, max)}
+    <span class={['profile-edit-count', left < 0 && 'profile-edit-count--over']}>{left}</span>
+  {/if}
+{/snippet}
+
 {#if (profile.did)}
   <div class="user-profile">
-    {#if (profileLabelEntries.length)}
-      <dl class="profile-reported">
-        <dt class="profile-reported__name"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="19.999" viewBox="0 0 20 19.999">
-          <path id="exclamation-solid" d="M2.93,17.07a10,10,0,1,1,14.142,0,10,10,0,0,1-14.142,0ZM9,5v6h2V5Zm0,8v2h2V13Z" transform="translate(0)" fill="var(--danger-color)"/>
-        </svg>{$_('reporting_this_user')}: </dt>
+    <div class={['profile-banner', !edit && isBannerBlurred && 'profile-banner--blur']}>
+      {#if edit}
+        {@const bannerSrc = edit.preview('banner', profile.banner)}
+        {#if bannerSrc}
+          <img src={bannerSrc} alt="" width="740" height="247">
+        {/if}
 
-        {#each profileLabelEntries as entry (entry.key)}
-          <dd class="profile-reported__content">{entry.text}</dd>
-        {/each}
-      </dl>
-    {/if}
+        <div class="profile-image-actions">
+          <button class="profile-image-action" onclick={() => pickImage('banner')}>
+            <Camera size="16"></Camera>
+            {$_('profile_edit_image_change')}
+          </button>
 
-    {#if (profile.viewer?.blocking)}
-      {#if (profile.viewer.blocking.split('/').slice(-3)[0] === _agent.did())}
-        <p class="profile-muted">{$_('blocking_this_user')}</p>
-      {/if}
-    {/if}
-
-    {#if (profile.viewer?.blockedBy)}
-      <p class="profile-muted">{$_('blocked_by_this_user')}</p>
-    {/if}
-
-    {#if (profile.viewer?.muted)}
-      <p class="profile-muted">{$_('muting_this_user')}</p>
-    {/if}
-
-    <div class="profile-banner">
-      {#if (profile.banner)}
-        <button onclick={() => imageState.open([{ src: profile.banner, msrc: profile.banner, alt: '', width: 3000, height: 1000 }], 0)}>
+          {#if bannerSrc}
+            <button class="profile-image-action" onclick={() => edit.removeImage('banner')}>{$_('delete')}</button>
+          {/if}
+        </div>
+      {:else if (profile.banner)}
+        <button onclick={handleBannerClick} aria-label={isBannerBlurred && !labelView.banner.noOverride ? $_('show_button') : undefined}>
           <img in:fade={{ duration: 200 }} src="{profile.banner}" alt="" width="740" height="247">
         </button>
       {/if}
     </div>
 
-    <div class="profile-grid" class:profile-grid--disable-atmos={$settings?.general?.disableAtmosphere} bind:clientWidth={gridWidth}>
-      <div class="embla" use:emblaCarouselSvelte={{ options: slideOptions, plugins: [] }}>
-        <div class="embla__container">
-          <div class="embla__slide embla__slide--left">
+    <div class="profile-slider-wrap" style:--slider-gutter="{SLIDER_GUTTER}px" style:--slider-gap="{SLIDER_GAP}px" style:--slider-dots="{SLIDER_DOTS}px" style:--card-gap="{CARD_GAP}px">
+      <div class={['profile-slider', isPaged && 'profile-slider--paged']} style:height={sliderHeight ? `${sliderHeight}px` : undefined} onscroll={handleSliderScroll}>
+          <div class="profile-slider__panel" bind:clientHeight={panelHeight}>
             <div class="profile-grid__left">
               <div class="profile-column">
-                <div class="profile-avatar">
-                  <Avatar avatar={profile.avatar} onavatarclick={() => { isAvatarZoomOpen = true; }}></Avatar>
-                </div>
+                {#if edit}
+                  {@const avatarSrc = edit.preview('avatar', profile.avatar)}
+                  <div class="profile-avatar profile-avatar--edit">
+                    <Avatar avatar={avatarSrc} full={true} onavatarclick={() => pickImage('avatar')}></Avatar>
+                    <span class="profile-avatar-badge"><Camera size="14"></Camera></span>
 
-                <div class="profile-content">
-                  <h1 class="profile-display-name">
-                    {profile.displayName || profile.handle}
-
-                    {#if profile?.verification?.trustedVerifierStatus === 'valid'}
-                        <span class="profile-verify-icon">
-                          <BadgeCheck size="20" color="var(--primary-color)" strokeWidth="2.5"></BadgeCheck>
-                        </span>
-                    {/if}
-
-                    {#if profile?.verification?.verifiedStatus === 'valid'}
-                      <button class="profile-verify-icon" onclick={() => isVerifierModalOpen = true}>
-                        <CircleCheck size="20" color="var(--primary-color)" strokeWidth="2.5"></CircleCheck>
+                    {#if avatarSrc}
+                      <button class="profile-avatar-remove" onclick={() => edit.removeImage('avatar')} aria-label={$_('delete')} title={$_('delete')}>
+                        <X size="14"></X>
                       </button>
                     {/if}
-                  </h1>
+                  </div>
+                {:else}
+                  <div class={['profile-avatar', isAvatarBlurred && 'profile-avatar--blur']}>
+                    <Avatar avatar={profile.avatar} onavatarclick={handleAvatarClick}></Avatar>
+                  </div>
+                {/if}
 
-                  {#if (profile.displayName)}
+                <div class="profile-content">
+                  {#if edit}
+                    <div class="profile-edit-field profile-edit-field--name">
+                      <input
+                          class="profile-display-name profile-edit-input"
+                          type="text"
+                          bind:value={edit.displayName}
+                          aria-label={$_('edit_display_name')}
+                          placeholder={$_('edit_display_name')}
+                          aria-invalid={edit.displayNameLeft < 0}
+                      >
+                      {@render counter(edit.displayName, DISPLAY_NAME_MAX, edit.displayNameLeft)}
+                    </div>
+                  {:else}
+                  <div class="profile-name">
+                    <h1 class="profile-display-name">
+                      {profile.displayName || profile.handle}
+
+                      {#if profile?.verification?.trustedVerifierStatus === 'valid'}
+                          <span class="profile-verify-icon">
+                            <BadgeCheck size="20" color="var(--primary-color)" strokeWidth="2.5"></BadgeCheck>
+                          </span>
+                      {/if}
+
+                      {#if profile?.verification?.verifiedStatus === 'valid'}
+                        <button class="profile-verify-icon" onclick={() => isVerifierModalOpen = true}>
+                          <CircleCheck size="20" color="var(--primary-color)" strokeWidth="2.5"></CircleCheck>
+                        </button>
+                      {/if}
+                    </h1>
+
+                    {#if labelView.plans.length}
+                      <TimelineChips labels={labelView.plans}></TimelineChips>
+                    {/if}
+                  </div>
+                  {/if}
+
+                  {#if (edit || profile.displayName)}
                     <p class="profile-handle">@{profile.handle}</p>
                   {/if}
 
@@ -230,65 +328,105 @@
               </div>
 
               <div class="profile-detail">
-                {#if (profile.description)}
-                  <div class="profile-description">
-                    <p class="profile-description__text">
-                      <TimelineText record={textRecord} {_agent} handle={profile.handle}></TimelineText>
-                    </p>
-                  </div>
-                {/if}
+                <ProfileLabels view={labelView}></ProfileLabels>
 
-                {#if (profileLinks.length)}
-                  <ProfileLinks links={profileLinks} did={profile.did}></ProfileLinks>
+                {#if edit}
+                  {#if edit.error}
+                    <p class="profile-edit-error" role="alert">{edit.error}</p>
+                  {/if}
+
+                  <div class="profile-edit-field">
+                    <div class="profile-edit-area profile-description__text" data-value={edit.description}>
+                      <textarea
+                          class="profile-edit-input"
+                          rows="1"
+                          bind:value={edit.description}
+                          aria-label={$_('edit_description')}
+                          placeholder={$_('edit_description')}
+                          aria-invalid={edit.descriptionLeft < 0}
+                      ></textarea>
+                    </div>
+                    {@render counter(edit.description, DESCRIPTION_MAX, edit.descriptionLeft)}
+                  </div>
+
+                  <div class="profile-edit-field profile-edit-field--pronouns">
+                    <input
+                        class="profile-edit-input"
+                        type="text"
+                        bind:value={edit.pronouns}
+                        aria-label={$_('edit_pronouns')}
+                        placeholder={$_('edit_pronouns')}
+                    >
+                  </div>
+
+                  <div class="profile-edit-links">
+                    {#if edit.linkFormIndex !== undefined}
+                      <ProfileLinkForm
+                          link={edit.linkFormIndex === null ? null : edit.links[edit.linkFormIndex]}
+                          otherUrls={edit.links.filter((_link, i) => i !== edit.linkFormIndex).map((link) => link.url)}
+                          {_agent}
+                          onsave={(link) => edit.saveLink(link)}
+                          onremove={edit.linkFormIndex === null ? undefined : () => edit.removeLink()}
+                      ></ProfileLinkForm>
+                      <button class="profile-edit-links__back text-button" onclick={() => { edit.linkFormIndex = undefined; }}>{$_('edit_cancel_button')}</button>
+                    {:else}
+                      <ProfileLinksEditor bind:links={edit.links} did={profile.did} status={edit.linksStatus} onedit={(index) => { edit.linkFormIndex = index; }}></ProfileLinksEditor>
+                    {/if}
+                  </div>
+                {:else}
+                  {#if (profile.description)}
+                    <div class="profile-description">
+                      <p class="profile-description__text">
+                        <TimelineText record={textRecord} {_agent} handle={profile.handle}></TimelineText>
+                      </p>
+                    </div>
+                  {/if}
+
+                  {#if (profileLinks.length)}
+                    <ProfileLinks links={profileLinks} did={profile.did}></ProfileLinks>
+                  {/if}
                 {/if}
 
                 {#if (!isLabeler)}
                   <div class="profile-relationship">
-                    <a href="/profile/{profile.handle}/follow" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followsCount}</span> {$_('follows')}</a>
-                    <a href="/profile/{profile.handle}/follower" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.followersCount}</span> {$_('followers')}</a>
-                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '---' : profile.postsCount}</span> {$_('posts')}</p>
+                    <a href="/profile/{profile.handle}/follow" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '•••' : profile.followsCount}</span> {$_('follows')}</a>
+                    <a href="/profile/{profile.handle}/follower" data-sveltekit-noscroll class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '•••' : profile.followersCount}</span> {$_('followers')}</a>
+                    <p class="profile-relationship__item"><span>{$settings.general?.hideProfileCounts ? '•••' : profile.postsCount}</span> {$_('posts')}</p>
 
-                    <button class="profile-counts-toggle" onclick={toggleHideCounts} aria-label="Hide profile counts." title="Hide profile counts.">
+                    <button
+                        class="profile-counts-toggle"
+                        onclick={toggleHideCounts}
+                        aria-label={$_($settings.general?.hideProfileCounts ? 'profile_counts_show' : 'profile_counts_hide')}
+                        title={$_($settings.general?.hideProfileCounts ? 'profile_counts_show' : 'profile_counts_hide')}
+                    >
                       {#if ($settings.general?.hideProfileCounts)}
-                        <EyeOff color="var(--text-color-1)" size="22"></EyeOff>
+                        <EyeOff size="16"></EyeOff>
                       {:else}
-                        <Eye color="var(--text-color-1)" size="22"></Eye>
+                        <Eye size="16"></Eye>
                       {/if}
                     </button>
-
-                    {#if (profile.viewer?.followedBy)}
-                      <p class="profile-relationship-by">
-                        <Handshake size="18" color="var(--text-color-3)"></Handshake>
-                        {$_('follows_you')}
-                      </p>
-                    {/if}
                   </div>
 
                   <div class="profile-bottom-list">
-                    {#if profile?.website && !profileLinks.length}
+                    {#if !edit && profile?.website && !profileLinks.length}
                       <p class="profile-website">
                         <Globe size="16"></Globe>
                         <a href={profile.website} target="_blank" rel="noopener noreferrer">{new URL(profile.website).hostname}</a>
                       </p>
                     {/if}
 
-                    {#if profile?.pronouns}
+                    {#if !edit && profile?.pronouns}
                       <p class="profile-pronouns">
                         <Tag size="16"></Tag>
                         {profile.pronouns}
                       </p>
                     {/if}
 
-                    {#if (firstPostDate)}
-                      <p class="profile-first">
+                    {#if (joinedDate)}
+                      <button class="profile-first" onclick={openFirstPost}>
                         <Calendar size="16"></Calendar>
-                        <a href={firstPostUri}>{firstPostDate}</a>
-                      </p>
-                    {:else}
-                      <p class="profile-first">
-                        <Calendar size="16"></Calendar>
-                        ----/--/--
-                      </p>
+                        {joinedDate}
+                      </button>
                     {/if}
                   </div>
 
@@ -321,19 +459,54 @@
             </div>
           </div>
 
-          {#if (!$settings?.general?.disableAtmosphere)}
-            <div class="embla__slide">
-              <div class="profile-grid__right">
-                {#if (serviceHost)}
-                  <ProfileAtmosphere did={profile.did} handle={profile.handle} endpoint={serviceHost}></ProfileAtmosphere>
-                {/if}
+          {#each pages as page (cards[page[0]].id)}
+            <div class="profile-slider__page">
+              <div class="profile-slider__page-inner">
+                {#each page as index (cards[index].id)}
+                  <ProfileAtmosphereCard def={cards[index]} data={atmosphere?.data[cards[index].id] ?? undefined} did={profile.did} handle={profile.handle} {_agent} bind:height={cardHeights[cards[index].id]}></ProfileAtmosphereCard>
+                {/each}
               </div>
             </div>
-          {/if}
-        </div>
+          {/each}
       </div>
+
+      {#if isPaged}
+        <div class="profile-slider__dots" aria-hidden="true">
+          {#each { length: pages.length + 1 } as _, i (i)}
+            <i class={[i === activePage && 'profile-slider__dot--on']}></i>
+          {/each}
+        </div>
+
+        {#if activePage > 0}
+          <button class="profile-slider__arrow profile-slider__arrow--prev" onclick={(e) => stepSlider(e, -1)} aria-label={$_('profile_slider_prev')}>
+            <ChevronLeft size="18"></ChevronLeft>
+          </button>
+        {/if}
+
+        {#if activePage < pages.length}
+          <button class="profile-slider__arrow profile-slider__arrow--next" onclick={(e) => stepSlider(e, 1)} aria-label={$_('profile_slider_next')}>
+            <ChevronRight size="18"></ChevronRight>
+          </button>
+        {/if}
+      {/if}
     </div>
+
+    {#if stacked && cards.length}
+      <div class="profile-stack" style:--card-gap="{CARD_GAP}px" {@attach loadWhenVisible}>
+        {#each cards as card (card.id)}
+          <ProfileAtmosphereCard def={card} data={atmosphere?.data[card.id] ?? undefined} did={profile.did} handle={profile.handle} {_agent}></ProfileAtmosphereCard>
+        {/each}
+      </div>
+    {/if}
   </div>
+
+  {#if edit}
+    <input class="profile-edit-file" type="file" accept="image/jpeg, image/png" bind:this={fileInput} onchange={handleFileSelected}>
+  {/if}
+
+  {#if (edit && crop)}
+    <ProfileImageCropper file={crop.file} target={crop.target} oncomplete={handleCropComplete} oncancel={() => { crop = undefined; }}></ProfileImageCropper>
+  {/if}
 
   {#if (isVerifierModalOpen)}
     <VerifierModal did={profile?.verification?.verifications[0]?.issuer} {_agent} onclose={() => {isVerifierModalOpen = false}}></VerifierModal>
@@ -350,6 +523,7 @@
     }
 
     .profile-banner {
+        position: relative;
         border-radius: var(--radius-card, 10px);
         overflow: hidden;
         margin-bottom: 16px;
@@ -365,6 +539,207 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        &--blur img {
+            filter: blur(24px);
+            transform: scale(1.15);
+        }
+    }
+
+    .profile-avatar--blur :global(img) {
+        filter: blur(10px);
+    }
+
+    .profile-image-actions {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .profile-image-action {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 32px;
+        padding: 0 12px;
+        border-radius: var(--radius-round, 16px);
+        background-color: var(--bg-color-1);
+        color: var(--text-color-1);
+        font-size: 13px;
+        font-weight: bold;
+        box-shadow: 0 0 8px var(--box-shadow-color-1);
+
+        &:hover {
+            background-color: var(--state-hover, var(--border-color-1));
+        }
+    }
+
+    .profile-avatar--edit {
+        position: relative;
+    }
+
+    .profile-avatar-badge,
+    .profile-avatar-remove {
+        position: absolute;
+        z-index: 2;
+        display: grid;
+        place-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: var(--bg-color-1);
+        color: var(--text-color-1);
+        box-shadow: 0 0 8px var(--box-shadow-color-1);
+    }
+
+    .profile-avatar-badge {
+        right: -2px;
+        bottom: -2px;
+        pointer-events: none;
+    }
+
+    .profile-avatar-remove {
+        right: -2px;
+        top: -2px;
+
+        &:hover {
+            background-color: var(--state-hover, var(--border-color-1));
+        }
+    }
+
+    .profile-edit-file {
+        display: none;
+    }
+
+    .profile-edit-field {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        min-width: 0;
+
+        &--name {
+            margin-top: 4px;
+        }
+
+        &--pronouns {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    }
+
+    .profile-edit-input {
+        flex: 1;
+        min-width: 0;
+        margin: -5px 0 -5px -9px;
+        padding: 4px 8px;
+        border: 1px solid var(--border-color-1);
+        border-radius: var(--border-radius-3);
+        background-color: var(--bg-color-1);
+        color: var(--text-color-1);
+        font: inherit;
+        letter-spacing: inherit;
+
+        &:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: -1px;
+        }
+
+        &[aria-invalid="true"] {
+            border-color: var(--danger-color);
+        }
+    }
+
+    .profile-edit-area {
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        margin: -5px 0 -5px -9px;
+
+        &::after {
+            content: attr(data-value) ' ';
+            grid-area: 1 / 1;
+            visibility: hidden;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            padding: 4px 8px;
+            border: 1px solid transparent;
+        }
+
+        textarea {
+            grid-area: 1 / 1;
+            width: 100%;
+            margin: 0;
+            resize: none;
+            overflow: hidden;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    .profile-edit-count {
+        flex-shrink: 0;
+        min-width: 28px;
+        font-size: 12px;
+        font-weight: normal;
+        line-height: 1.75;
+        text-align: right;
+        color: var(--text-color-3);
+        font-variant-numeric: tabular-nums;
+
+        &--over {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+    }
+
+    .profile-edit-error {
+        margin-bottom: 12px;
+        padding: 6px 10px;
+        border-radius: var(--border-radius-3);
+        background-color: color-mix(in srgb, var(--danger-color) 12%, transparent);
+        color: var(--danger-color);
+        font-size: 14px;
+    }
+
+    .profile-edit-links {
+        margin-top: 16px;
+
+        &__back {
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--text-color-3);
+        }
+    }
+
+    .profile-name {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 8px;
+        margin-top: 4px;
+
+        :global(.timeline-chips) {
+            margin-bottom: 0;
+        }
+    }
+
+    .profile-counts-toggle {
+        display: grid;
+        place-content: center;
+        position: absolute;
+        top: -4px;
+        right: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-round, 50%);
+        color: var(--text-color-3);
+        transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
+
+        &:hover {
+            background-color: var(--state-hover, var(--border-color-1));
         }
     }
 
@@ -382,6 +757,7 @@
     }
 
     .profile-content {
+        min-width: 0;
         word-break: break-all;
     }
 
@@ -401,7 +777,6 @@
         line-height: 1.25;
         letter-spacing: .025em;
         font-weight: 900;
-        margin-top: 4px;
 
         @media (max-width: 767px) {
             font-size: 18px;
@@ -438,6 +813,8 @@
     }
 
     .profile-relationship {
+        position: relative;
+        padding-right: 36px;
         font-size: 16px;
         font-weight: bold;
         line-height: 1.5;
@@ -461,115 +838,142 @@
         display: flex;
         gap: 4px;
         align-items: center;
+        font-size: inherit;
 
-        a {
-            color: inherit;
+        &:hover {
+            text-decoration: underline;
         }
     }
 
-    .profile-muted {
+    .profile-grid__left {
+        padding: 16px;
         background-color: var(--bg-color-2);
-        padding: 10px;
-        color: var(--text-color-3);
-        margin-bottom: 15px;
-        border-radius: 6px;
-        border: 1px solid var(--border-color-1);
+        border-radius: var(--radius-card, 10px);
     }
 
-    .profile-reported {
-        color: var(--text-color-1);
-        font-weight: bold;
-        padding: 10px;
-        border-radius: 6px;
-        margin-bottom: 15px;
-        display: none;
-        flex-wrap: wrap;
-        gap: 0 5px;
-        font-size: 16px;
-        border: 2px solid var(--danger-color);
-
-        @media (max-width: 767px) {
-            font-size: 14px;
-        }
-
-        &:has(.profile-reported__content) {
-            display: flex;
-
-            @media (max-width: 767px) {
-                display: block;
-            }
-        }
-
-        &__name {
-            display: flex;
-            align-items: center;
-            gap: 0 4px;
-            white-space: nowrap;
-
-            @media (max-width: 767px) {
-                white-space: normal;
-            }
-
-            svg {
-                margin-top: 2px;
-                flex-shrink: 0;
-            }
-        }
-
-        &__content {
-            @media (max-width: 767px) {
-                margin-left: 25px;
-            }
-        }
+    .profile-slider-wrap {
+        position: relative;
     }
 
-    .profile-grid {
-        @container (max-width: 680px) {
-            grid-template-columns: 1fr;
-        }
-
-        &__left {
-            padding: 16px;
-            background-color: var(--bg-color-2);
-            border-radius: var(--radius-card, 10px);
-        }
-
-        &__right {
-            border-radius: var(--radius-card, 10px);
-            position: relative;
-            min-width: 0;
-            height: 100%;
-
-            &::before{
-                content: '';
-                position: absolute;
-                inset: 0;
-                border-radius: var(--radius-card, 10px);
-                border: 3px solid transparent;
-                background: linear-gradient(65deg, rgba(88, 220, 174, .7) 0%, rgba(167, 136, 223, .7) 20%, rgba(236, 103, 219, .7) 40%, rgba(218, 119, 142, .7) 60%, rgba(228, 142, 138, .7) 80%, rgba(236, 189, 94, .7) 100%) border-box border-box;
-                mask: linear-gradient(#fff 0%, #fff 100%) padding-box, linear-gradient(#fff 0%, #fff 100%) border-box;
-                mask-composite: exclude;
-                -webkit-mask-composite: destination-out;
-            }
-        }
-
-        @media (max-width: 767px) {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .embla {
-        overflow: hidden;
-    }
-
-    .embla__container {
+    .profile-stack {
         display: flex;
-        gap: 16px;
+        flex-direction: column;
+        gap: var(--card-gap);
+        margin-top: 16px;
     }
 
-    .embla__slide {
-        flex: 0 0 calc(100% - 50px);
-        min-width: 0;
+    .profile-slider {
+        display: flex;
+        gap: var(--slider-gap);
+        margin-inline: calc(var(--slider-gutter) * -1);
+        padding-inline: var(--slider-gutter);
+        overflow: hidden;
+
+        &--paged {
+            align-items: flex-start;
+            overflow-x: auto;
+            overflow-y: hidden;
+            transition: height var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
+
+            @media (prefers-reduced-motion: reduce) {
+                transition: none;
+            }
+            scroll-snap-type: x mandatory;
+            scroll-padding-inline: var(--slider-gutter);
+            overscroll-behavior-x: contain;
+            scrollbar-width: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            &::after {
+                content: '';
+                flex: 0 0 calc(var(--slider-gutter) - var(--slider-gap));
+            }
+        }
+
+        &__panel,
+        &__page {
+            flex: 0 0 100%;
+            min-width: 0;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+
+        &__page {
+            position: relative;
+            align-self: stretch;
+        }
+
+        &__page-inner {
+            position: absolute;
+            inset: 0 0 var(--slider-dots) 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--card-gap);
+            overflow: hidden;
+        }
+
+        &__dots {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 5px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            pointer-events: none;
+
+            i {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background-color: var(--border-color-1);
+            }
+        }
+
+        &__dots &__dot--on {
+            background-color: var(--text-color-2);
+        }
+
+        &__arrow {
+            display: none;
+            position: absolute;
+            top: 50%;
+            translate: 0 -50%;
+            z-index: 2;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--bg-color-1);
+            color: var(--text-color-1);
+            box-shadow: 0 0 8px var(--box-shadow-color-1);
+
+            &--prev {
+                left: -12px;
+            }
+
+            &--next {
+                right: -12px;
+            }
+
+            &:hover {
+                background-color: var(--state-hover, var(--border-color-1));
+            }
+
+            @media (hover: hover) and (pointer: fine) {
+                display: grid;
+                place-content: center;
+                opacity: 0;
+                transition: opacity var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
+            }
+        }
+    }
+
+    .profile-slider-wrap:hover .profile-slider__arrow,
+    .profile-slider__arrow:focus-visible {
+        opacity: 1;
     }
 
     .profile-slot {

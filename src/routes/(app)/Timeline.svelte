@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {JUNK_SCROLL_SELECTOR} from '$lib/components/virtual/scroll-helpers';
   import {_} from "tokimeki-i18n";
   import {agent, realtime, settings, changedFollowData} from '$lib/stores';
   import TimelineItem from "./TimelineItem.svelte";
@@ -124,7 +125,7 @@
           return document.documentElement;
       }
       if (isJunk && column.scrollElement) {
-          return (column.scrollElement.closest('.modal-page-content') as HTMLElement) ?? column.scrollElement;
+          return (column.scrollElement.closest(JUNK_SCROLL_SELECTOR) as HTMLElement) ?? column.scrollElement;
       }
       return column.scrollElement || document.documentElement;
   }

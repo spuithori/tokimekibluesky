@@ -193,7 +193,7 @@ img {
         --deck-heading-backdrop-filter: var(--overlay-heading-backdrop-filter, var(--overlay-base-heading-filter));
     }
 
-    :is(.column-heading, .profile-tab, .merge-choices__footer) {
+    :is(.column-heading, .profile-tab, .profile-nav, .merge-choices__footer) {
         backdrop-filter: var(--overlay-heading-backdrop-filter, none);
     }
 }

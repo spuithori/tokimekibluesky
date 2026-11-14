@@ -1,3 +1,9 @@
+export const JUNK_SCROLL_SELECTOR = '[data-junk-scroll], .modal-page-content';
+
+export function findPageScrollRoot(doc: Document = document): HTMLElement | null {
+  return doc.querySelector<HTMLElement>('.modal-page-content [data-junk-scroll]') ?? doc.querySelector<HTMLElement>('.modal-page-content');
+}
+
 export function resolveScrollContainer(
   parent: HTMLElement | undefined | null,
   isSingleColumn: boolean,
@@ -8,7 +14,7 @@ export function resolveScrollContainer(
   if (isSingleColumn) {
     return (isJunk ? parent.closest('[data-junk-scroll]') as HTMLElement | null : null) ?? document.documentElement;
   }
-  if (isJunk) return parent.closest('[data-junk-scroll], .modal-page-content') as HTMLElement | null;
+  if (isJunk) return parent.closest(JUNK_SCROLL_SELECTOR) as HTMLElement | null;
   return columnScrollElement ?? null;
 }
 

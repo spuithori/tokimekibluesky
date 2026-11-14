@@ -28,6 +28,12 @@
     initial-value: 52px;
 }
 
+@property --modal-page-radius {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+}
+
 @property --deck-border-radius {
     syntax: '<length-percentage>';
     inherits: true;

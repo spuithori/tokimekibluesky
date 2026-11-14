@@ -1,6 +1,8 @@
 <script lang="ts">
+  import {JUNK_SCROLL_SELECTOR} from '$lib/components/virtual/scroll-helpers';
     import {resetColumnForRefresh} from "$lib/components/column/forceRefresh";
     import Radio from '@lucide/svelte/icons/radio';
+    import RefreshCw from '@lucide/svelte/icons/refresh-cw';
     import {agent, settings, workerTimer, isRealtimeListenersModalOpen, pauseColumn, realtimeStatuses} from "$lib/stores";
     import {isVirtualTimelineEnabled} from "$lib/components/timeline/virtualGate";
     import {trimFeedAtBorder} from "$lib/components/timeline/feedTrim";
@@ -42,7 +44,7 @@
             return document.documentElement;
         }
         if (isJunk && column.scrollElement) {
-            return (column.scrollElement.closest('.modal-page-content') as HTMLElement) ?? column.scrollElement;
+            return (column.scrollElement.closest(JUNK_SCROLL_SELECTOR) as HTMLElement) ?? column.scrollElement;
         }
         return column.scrollElement || document.documentElement;
     }
@@ -373,9 +375,7 @@
             onclick={() => {refresh(false)}}
             disabled={isRefreshing}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="22.855" viewBox="0 0 16 22.855">
-        <path id="refresh" d="M11,3.428V5.714a5.714,5.714,0,0,0-4.045,9.759L5.343,17.084A8,8,0,0,1,11,3.428Zm5.657,2.343A8,8,0,0,1,11,19.427V17.141a5.714,5.714,0,0,0,4.045-9.759ZM11,22.855,6.428,18.284,11,13.713ZM11,9.142V0L15.57,4.571Z" transform="translate(-2.999)" fill="var(--primary-color)"/>
-      </svg>
+      <RefreshCw size={20} color="var(--primary-color)" strokeWidth="var(--icon-stroke-width, 2px)"></RefreshCw>
     </button>
   {:else}
     {#if (isRefreshing === true && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList')}

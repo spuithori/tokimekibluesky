@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Database from '@lucide/svelte/icons/database';
     import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
     import Repeat2 from '@lucide/svelte/icons/repeat-2';
     import List from '@lucide/svelte/icons/list';
@@ -228,6 +229,13 @@
             </svg>
             <span>{$_('copy_url')}</span>
           </button>
+        </li>
+
+        <li class="timeline-menu-list__item">
+          <a class="timeline-menu-list__button" href="/atproto-viewer/{profile.did}">
+            <Database size="18" color="var(--text-color-3)"></Database>
+            <span>{$_('viewer')}</span>
+          </a>
         </li>
 
           <li class="timeline-menu-list__item timeline-menu-list__item--copy-handle">

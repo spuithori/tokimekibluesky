@@ -28,8 +28,10 @@
 </script>
 
 <div class="modal-page modal-page--{$settings.design?.layout}" class:modal-page--side={publishState.isSideShown} data-glass-overlay>
-  <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
-    {@render children?.()}
+  <div class="modal-page-frame">
+    <div class="modal-page-content" class:modal-page-content--virtual={isVirtual}>
+      {@render children?.()}
+    </div>
   </div>
 
   {#if $settings.design?.layout === 'decks'}

@@ -4,20 +4,25 @@
     import { toast } from 'svelte-sonner';
     import type { PollUrlInfo } from './embedUtil';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
+    import { untrack } from 'svelte';
 
     const POLL_API_BASE = 'https://poll.tokimeki.tech';
 
     interface Props {
         pollInfo: PollUrlInfo;
         _agent: any;
+        compact?: boolean;
+        initial?: PollData;
     }
 
-    let { pollInfo, _agent }: Props = $props();
+    let { pollInfo, _agent, compact = false, initial }: Props = $props();
 
     const minHeight = $derived(
-        pollInfo.options
-            ? pollInfo.options * 52 + 71
-            : 2 * 52 + 71
+        compact
+            ? undefined
+            : pollInfo.options
+                ? pollInfo.options * 52 + 71
+                : 2 * 52 + 71
     );
 
     interface OptionResult {
@@ -42,10 +47,10 @@
         myVoteUri?: string;
     }
 
-    let pollData = $state<PollData | null>(null);
-    let isLoading = $state(true);
+    let pollData = $state<PollData | null>(untrack(() => initial ?? null));
+    let isLoading = $state(untrack(() => !initial));
     let error = $state<string | null>(null);
-    let selectedOption = $state<number | null>(null);
+    let selectedOption = $state<number | null>(untrack(() => initial?.myVote ?? null));
     let isSubmitting = $state(false);
 
     const isAuthor = $derived(_agent?.did?.() === pollInfo.did);
@@ -53,7 +58,9 @@
     const showResults = $derived(hasVoted || pollData?.isEnded || isAuthor);
     const canVote = $derived(!hasVoted && !pollData?.isEnded);
 
-    fetchPoll();
+    if (!untrack(() => initial)) {
+        fetchPoll();
+    }
 
     async function fetchPoll() {
         try {
@@ -199,7 +206,7 @@
     }
 </script>
 
-<div class="embed-poll" style:min-height={minHeight ? `${minHeight}px` : undefined}>
+<div class={['embed-poll', compact && 'embed-poll--compact']} style:min-height={minHeight ? `${minHeight}px` : undefined}>
     {#if isLoading}
         <div class="poll-loading">
             <LoadingSpinner></LoadingSpinner>
@@ -234,7 +241,7 @@
                                 {#if canVote}
                                     <span class="poll-radio" class:checked={isSelected}></span>
                                 {/if}
-                                {option.text}
+                                <span class="poll-option-label">{option.text}</span>
                                 {#if isMyVote}
                                     <span class="poll-my-vote-badge">{$_('poll_voted')}</span>
                                 {/if}
@@ -253,7 +260,7 @@
                         disabled={isSubmitting}
                     >
                         <span class="poll-radio" class:checked={isSelected}></span>
-                        <span class="poll-option-text">{option.text}</span>
+                        <span class="poll-option-text"><span class="poll-option-label">{option.text}</span></span>
                     </button>
                 {/if}
             {/each}
@@ -500,6 +507,79 @@
         &:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+    }
+
+    .embed-poll--compact {
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        background: none;
+        z-index: auto;
+
+        .poll-loading,
+        .poll-error {
+            padding: 16px 0;
+        }
+
+        .poll-options {
+            gap: 6px;
+        }
+
+        .poll-option-button,
+        .poll-option-result {
+            height: 36px;
+            padding: 0 12px;
+            border-width: 1px;
+            background-color: var(--bg-color-1);
+        }
+
+        .poll-option-button {
+            gap: 8px;
+        }
+
+        .poll-option-content {
+            height: 100%;
+        }
+
+        .poll-option-text {
+            flex-wrap: nowrap;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .poll-option-label {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .poll-radio.checked {
+            box-shadow: inset 0 0 0 3px var(--bg-color-1);
+        }
+
+        .poll-my-vote-badge {
+            flex: none;
+        }
+
+        .poll-footer {
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .poll-stats {
+            min-width: 0;
+        }
+
+        .poll-vote-button,
+        .poll-delete-button {
+            height: 28px;
+            padding: 0 14px;
+            white-space: nowrap;
         }
     }
 

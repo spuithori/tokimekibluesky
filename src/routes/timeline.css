@@ -746,6 +746,15 @@
         object-fit: contain;
         object-position: center;
     }
+
+    .menu-check {
+        flex: none;
+        display: grid;
+        place-content: center;
+        width: 18px;
+        height: 18px;
+        color: var(--primary-color);
+    }
 }
 
 .likes-wrap {
