@@ -18,6 +18,8 @@
   import {trimFeedAtBorder} from "$lib/components/timeline/feedTrim";
   import {makeFeedKeys} from "$lib/components/timeline/feedKeys";
   import {appendSoloPage, soloFeedKey, visibleSoloKeys} from "$lib/merge/mergeSolo";
+  import FeedLoadError from "$lib/components/timeline/FeedLoadError.svelte";
+  import {toFeedLoadError} from "$lib/components/timeline/feedLoadError";
 
   let { index, _agent = $agent, isJunk, unique, column: columnProp = undefined, isTopScrolling = false } = $props();
 
@@ -325,6 +327,7 @@
         }
 
           column.data.cursor = res.cursor;
+          columnState.clearFeedError(column.id);
 
         if (res.hitsTotal !== undefined) {
             column.data.hitsTotal = res.hitsTotal;
@@ -412,13 +415,17 @@
 
           if (e.message === 'BlockedActor') {
               toast.error($_('error_get_posts_because_blocking'));
+              complete();
+              return;
           }
 
           if (e.message === 'BlockedByActor') {
               toast.error($_('error_get_posts_because_blocked'));
+              complete();
+              return;
           }
 
-          complete();
+          columnState.setFeedError(column.id, toFeedLoadError(column.algorithm?.type, e));
       }
   }
 
@@ -431,6 +438,7 @@
   })
 
   const rawFeed = $derived(columnState.getFeed(column.id));
+  const loadError = $derived(columnState.getFeedError(column.id));
   const mergeSolo = $derived(column.algorithm?.type === 'merge' ? (column.data?.mergeSolo ?? null) : null);
   const soloExtraFeed = $derived(mergeSolo ? columnState.getFeed(soloFeedKey(column.id)) : []);
   const displayFeed = $derived(mergeSolo
@@ -484,9 +492,18 @@
       {/each}
     </div>
 
-    {#key unique}
-      <Infinite oninfinite={handleLoadMore}></Infinite>
-    {/key}
+    {#if loadError}
+      <FeedLoadError
+        error={loadError}
+        feedUri={column.algorithm?.type === 'custom' ? column.algorithm.algorithm : undefined}
+        onretry={() => columnState.clearFeedError(column.id)}
+        onremove={isJunk ? undefined : () => columnState.remove(column.id)}
+      ></FeedLoadError>
+    {:else}
+      {#key unique}
+        <Infinite oninfinite={handleLoadMore}></Infinite>
+      {/key}
+    {/if}
 
     {#if (isDividerLoading)}
       <div class="more-divider-filler" style="--more-divider-filler-height: {dividerFillerHeight}px"></div>

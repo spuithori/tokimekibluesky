@@ -11,6 +11,7 @@ import {recordError} from "$lib/errorLog";
 import {clearAllNotificationLedgers, deleteNotificationLedger} from "$lib/components/notification/notificationLedger";
 import {SOLO_FEED_SUFFIX, soloFeedKey} from "$lib/merge/mergeSolo";
 import {probeFeedRender} from "$lib/debug/renderProbe";
+import type {FeedLoadError} from "$lib/components/timeline/feedLoadError";
 
 export class ColumnState {
     columns = $state<Column[]>([]);
@@ -22,6 +23,7 @@ export class ColumnState {
     private readonly isJunk: boolean;
     private _feeds = new SvelteMap<string, any[]>();
     private _feedStatus = $state.raw<Record<string, string>>({});
+    private _feedErrors = $state.raw<Record<string, FeedLoadError>>({});
     private _deferredContent = new SvelteSet<string>();
     private contentReleaseGeneration = 0;
     private deckMounted = false;
@@ -54,6 +56,22 @@ export class ColumnState {
     clearFeedStatus(columnId: string): void {
         const { [columnId]: _, ...rest } = this._feedStatus;
         this._feedStatus = rest;
+        this.clearFeedError(columnId);
+    }
+
+    getFeedError(columnId: string): FeedLoadError | undefined {
+        return this._feedErrors[columnId];
+    }
+
+    setFeedError(columnId: string, error: FeedLoadError): void {
+        if (!this.canWriteFeed(columnId)) return;
+        this._feedErrors = { ...this._feedErrors, [columnId]: error };
+    }
+
+    clearFeedError(columnId: string): void {
+        if (!untrack(() => columnId in this._feedErrors)) return;
+        const { [columnId]: _, ...rest } = this._feedErrors;
+        this._feedErrors = rest;
     }
 
     private probeFeedWrite(columnId: string, before: number, after: number) {
@@ -65,6 +83,7 @@ export class ColumnState {
         this.probeFeedWrite(columnId, this._feeds.get(columnId)?.length ?? 0, feed.length);
         this._feeds.set(columnId, feed);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
+        this.clearFeedError(columnId);
     }
 
     updateFeed(columnId: string, fn: (feed: any[]) => void): void {
@@ -88,6 +107,7 @@ export class ColumnState {
         if (!this.canWriteFeed(columnId)) return;
         this._feeds.set(columnId, []);
         if (this._feedStatus[columnId]) this.clearFeedStatus(columnId);
+        this.clearFeedError(columnId);
     }
 
     deleteFeed(columnId: string): void {
@@ -336,12 +356,14 @@ export class ColumnState {
         this._deferredContent.clear();
         this._feeds.clear();
         this._feedStatus = {};
+        this._feedErrors = {};
     }
 
     replaceAllColumns(columns: Column[], slots?: Slot[], version?: number) {
         clearAllNotificationLedgers();
         this._feeds.clear();
         this._feedStatus = {};
+        this._feedErrors = {};
         this._deferredContent.clear();
         const deck = loadDeckState(
             { version, columns, slots },

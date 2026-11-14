@@ -18,6 +18,7 @@
   import {makeFeedKeys, getFeedKey} from "$lib/components/timeline/feedKeys";
   import {soloFeedKey} from "$lib/merge/mergeSolo";
   import {getTimelineItemHeightEstimate, reportTimelineItemHeight} from "$lib/components/timeline/timelineHeightEstimate";
+  import FeedLoadError from "$lib/components/timeline/FeedLoadError.svelte";
 
   let {
     column,
@@ -113,6 +114,7 @@
   });
 
   const rawFeed = $derived(columnState.getFeed(column.id));
+  const loadError = $derived(columnState.getFeedError(column.id));
   const mergeSolo = $derived(column.algorithm?.type === 'merge' ? (column.data?.mergeSolo ?? null) : null);
   const soloExtraFeed = $derived(mergeSolo ? columnState.getFeed(soloFeedKey(column.id)) : []);
   const displayFeed = $derived(mergeSolo
@@ -127,7 +129,7 @@
   let pendingForce = false;
 
   async function triggerLoad() {
-    if (isLoading || isComplete || isRetryLimit) {
+    if (isLoading || isComplete || isRetryLimit || loadError) {
       return;
     }
 
@@ -157,6 +159,12 @@
   function handleResetLimit() {
     retryCount = 0;
     isLoading = false;
+  }
+
+  function handleRetry() {
+    columnState.clearFeedError(column.id);
+    retryCount = 0;
+    triggerLoad();
   }
 
   function handleVirtualScroll() {
@@ -317,21 +325,30 @@
     {/snippet}
   </VirtualList>
 
-  <div class="infinite-loading">
-    {#if isLoading}
-      <LoadingSpinner padding={0}></LoadingSpinner>
-    {/if}
+  {#if loadError}
+    <FeedLoadError
+      error={loadError}
+      feedUri={column.algorithm?.type === 'custom' ? column.algorithm.algorithm : undefined}
+      onretry={handleRetry}
+      onremove={isJunk ? undefined : () => columnState.remove(column.id)}
+    ></FeedLoadError>
+  {:else}
+    <div class="infinite-loading">
+      {#if isLoading}
+        <LoadingSpinner padding={0}></LoadingSpinner>
+      {/if}
 
-    {#if isComplete}
-      <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
-    {/if}
+      {#if isComplete}
+        <p class="infinite-nomore"><span>{$_('no_more')}</span></p>
+      {/if}
 
-    {#if isRetryLimit}
-      <button onclick={handleResetLimit}>
-        <Annoyed color="var(--danger-color)"></Annoyed>
-      </button>
-    {/if}
-  </div>
+      {#if isRetryLimit}
+        <button onclick={handleResetLimit}>
+          <Annoyed color="var(--danger-color)"></Annoyed>
+        </button>
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <style lang="postcss">

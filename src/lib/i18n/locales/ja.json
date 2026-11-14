@@ -1549,5 +1549,14 @@
     "chotto_confirm_images": "画像 {count}枚",
     "mochott_prompt_headline": "書くときめきを。",
     "mochott_prompt_body": "Blueskyのアカウントでそのまま使えるブログサービスです。無料で始められるので、ぜひ使ってみてください！",
-    "mochott_prompt_cta": "mochottをはじめる"
+    "mochott_prompt_cta": "mochottをはじめる",
+    "feed_error_not_found": "このフィードが見つかりません。削除された可能性があります。",
+    "feed_error_misconfigured": "フィードサーバーの設定に問題があるようです。フィードの作成者にお知らせください。",
+    "feed_error_bad_response": "フィードサーバーから不正な応答が返されました。フィードの作成者にお知らせください。",
+    "feed_error_offline": "フィードサーバーがオフラインのようです。フィードの作成者にお知らせください。",
+    "feed_error_unknown": "フィードサーバーへの接続で問題が発生しました。フィードの作成者にお知らせください。",
+    "feed_error_too_many_requests": "このフィードは現在アクセスが集中しており、一時的に利用できません。しばらくしてからもう一度お試しください。",
+    "feed_error_generic": "投稿を読み込めませんでした。",
+    "feed_error_server_message": "サーバーからのメッセージ: {message}",
+    "feed_error_view_profile": "プロフィールを表示"
 }

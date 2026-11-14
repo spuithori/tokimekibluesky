@@ -1549,5 +1549,14 @@
     "chotto_confirm_images": "{count} images",
     "mochott_prompt_headline": "The joy of writing.",
     "mochott_prompt_body": "A blog service you can use with your Bluesky account as is. It's free to start, so give it a try!",
-    "mochott_prompt_cta": "Start using mochott"
+    "mochott_prompt_cta": "Start using mochott",
+    "feed_error_not_found": "This feed could not be found. It may have been deleted.",
+    "feed_error_misconfigured": "The feed server appears to be misconfigured. Please let the feed owner know about this issue.",
+    "feed_error_bad_response": "The feed server gave a bad response. Please let the feed owner know about this issue.",
+    "feed_error_offline": "The feed server appears to be offline. Please let the feed owner know about this issue.",
+    "feed_error_unknown": "An issue occurred when contacting the feed server. Please let the feed owner know about this issue.",
+    "feed_error_too_many_requests": "This feed is currently receiving high traffic and is temporarily unavailable. Please try again later.",
+    "feed_error_generic": "Could not load posts.",
+    "feed_error_server_message": "Message from server: {message}",
+    "feed_error_view_profile": "View profile"
 }

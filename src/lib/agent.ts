@@ -338,8 +338,7 @@ export class Agent {
                 throw new Error('BlockedByActor');
             }
 
-            console.error(e);
-            return undefined;
+            throw e;
         }
     }
 

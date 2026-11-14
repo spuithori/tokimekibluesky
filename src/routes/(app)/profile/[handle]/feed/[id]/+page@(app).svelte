@@ -10,10 +10,13 @@
     import FeedHeading from "$lib/components/feeds/FeedHeading.svelte";
     import {getDidByHandle, isDid} from "$lib/util";
     import {feedHintState} from "$lib/classes/feedHintState.svelte";
+    import FeedLoadError from "$lib/components/timeline/FeedLoadError.svelte";
+    import {toFeedLoadError, type FeedLoadError as FeedLoadErrorData} from "$lib/components/timeline/feedLoadError";
 
     let _agent = $state($agent);
     let feed = $state();
     let did = $state('');
+    let loadError = $state<FeedLoadErrorData>();
 
     export const snapshot: Snapshot = {
         capture: () => [feed, did],
@@ -41,6 +44,10 @@
         const res = await _agent.xrpc.get('app.bsky.feed.getFeedGenerator', {feed: 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id});
         feed = res.view;
       } catch (e) {
+        console.error(e);
+        if (!feed) {
+          loadError = toFeedLoadError('custom', e);
+        }
       }
     });
 </script>
@@ -68,5 +75,9 @@
     {#key $page.params.id}
       <FeedPreview id={$page.params.id} {did} title={feed?.displayName} {_agent} contentMode={feed?.contentMode}></FeedPreview>
     {/key}
+  {:else if loadError}
+    <div class="timeline">
+      <FeedLoadError error={loadError} feedUri={did ? 'at://' + did + '/app.bsky.feed.generator/' + $page.params.id : undefined}></FeedLoadError>
+    </div>
   {/if}
 </PageModal>

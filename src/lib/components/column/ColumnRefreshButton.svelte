@@ -15,6 +15,7 @@
     import { fly } from 'svelte/transition';
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getColumnState} from "$lib/classes/columnState.svelte";
+    import {toFeedLoadError} from "$lib/components/timeline/feedLoadError";
 
     interface Props {
         index: any;
@@ -126,11 +127,18 @@
             const shouldMaintainPosition = !column.settings?.refreshToTop;
             const scrollEl: HTMLElement = getScrollElement();
 
-            const res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
-
-            if (!res) {
+            let res;
+            try {
+                res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
+            } catch (e) {
+                console.error(e);
+                if (columnState.getFeed(column.id).length === 0) {
+                    columnState.setFeedError(column.id, toFeedLoadError(column.algorithm.type, e));
+                }
                 return false;
             }
+
+            columnState.clearFeedError(column.id);
 
             const currentFeed = columnState.getFeed(column.id);
             const existingKeys = new Set(currentFeed.map(getPostKey));
