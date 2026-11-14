@@ -81,6 +81,9 @@ class SettingsStore {
     get support() {
         return this.#data.support;
     }
+    get mochottPrompt() {
+        return this.#data.mochottPrompt;
+    }
     get langFilter() {
         return this.#data.langFilter;
     }

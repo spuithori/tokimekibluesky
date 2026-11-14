@@ -1546,5 +1546,8 @@
     "chotto_confirm_article": "mochottに公開する記事",
     "chotto_confirm_post": "Blueskyに投稿する冒頭",
     "chotto_confirm_chars": "全文 {count}字",
-    "chotto_confirm_images": "画像 {count}枚"
+    "chotto_confirm_images": "画像 {count}枚",
+    "mochott_prompt_headline": "書くときめきを。",
+    "mochott_prompt_body": "Blueskyのアカウントでそのまま使えるブログサービスです。無料で始められるので、ぜひ使ってみてください！",
+    "mochott_prompt_cta": "mochottをはじめる"
 }

@@ -165,6 +165,13 @@ export interface SupportSettings {
     planCheckedDay: string;
 }
 
+export interface MochottPromptSettings {
+    registered: boolean;
+    closedCount: number;
+    nextActiveDay: number;
+    checkedDay: string;
+}
+
 export interface Settings {
     general: GeneralSettings;
     design: DesignSettings;
@@ -175,6 +182,7 @@ export interface Settings {
     onboarding: OnboardingSettings;
     columnCatalog: ColumnCatalogSettings;
     support: SupportSettings;
+    mochottPrompt: MochottPromptSettings;
     langFilter: string[];
     version: number;
 }

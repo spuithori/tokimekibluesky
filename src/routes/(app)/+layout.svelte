@@ -48,6 +48,7 @@
     import BskyStatusBanner from "$lib/components/utils/BskyStatusBanner.svelte";
     import SupportPrompt from "$lib/components/utils/SupportPrompt.svelte";
     import { supportPromptState } from "$lib/support/supportPromptState.svelte";
+    import { mochottPromptState } from "$lib/components/mochott/mochottPromptState.svelte";
     import { bskyStatusState } from "$lib/classes/bskyStatusState.svelte";
     import { setPostState } from "$lib/classes/postState.svelte";
     import { imageState } from "$lib/classes/imageState.svelte";
@@ -339,6 +340,7 @@
         }
         bskyStatusState.boot();
         supportPromptState.boot();
+        mochottPromptState.boot();
         (window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 3000)))(checkThemeUpdates);
 
         return on(document, "visibilitychange", () => {
@@ -499,6 +501,10 @@
 
     {#if appState.ready && supportPromptState.isDue && !wizardVisible && !onboardingState.tourOpen}
         <SupportPrompt></SupportPrompt>
+    {:else if appState.ready && mochottPromptState.isDue && !wizardVisible && !onboardingState.tourOpen}
+        {#await import("$lib/components/mochott/MochottPrompt.svelte") then { default: MochottPrompt }}
+            <MochottPrompt></MochottPrompt>
+        {/await}
     {/if}
 
     {#if sideState.isTokStart}

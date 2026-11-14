@@ -2,6 +2,7 @@ import type { Settings, LabelerPreference } from './types';
 import { defaultReactionButtons } from '$lib/defaultSettings';
 import { isSafariOrFirefox } from '$lib/util';
 import { SUPPORTER_PLANS, TOKIMEKI_LABELER_DID } from '$lib/support/supporterLabels';
+import { FIRST_ACTIVE_DAY } from '$lib/components/mochott/mochottPrompt';
 
 export const TOKIMEKI_LABELER_SETTINGS: LabelerPreference = {
     did: TOKIMEKI_LABELER_DID,
@@ -173,6 +174,12 @@ export function createDefaultSettings(): Settings {
             activeDays: 0,
             plan: '',
             planCheckedDay: '',
+        },
+        mochottPrompt: {
+            registered: false,
+            closedCount: 0,
+            nextActiveDay: FIRST_ACTIVE_DAY,
+            checkedDay: '',
         },
         langFilter: [],
         version: CURRENT_VERSION,

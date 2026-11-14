@@ -2,32 +2,17 @@
     import { _ } from 'tokimeki-i18n';
     import { fade } from 'svelte/transition';
     import { prefersReducedMotion } from 'svelte/motion';
-    import { on } from 'svelte/events';
     import X from '@lucide/svelte/icons/x';
-    import { publishState } from '$lib/classes/publishState.svelte';
-    import { settingsStore } from '$lib/settings/settings.svelte';
     import { supportPromptState } from '$lib/support/supportPromptState.svelte';
     import { COFFEE_URL, SUPPORT_URL } from '$lib/support/supportPrompt';
-
-    function trackSideEdge(node: HTMLElement) {
-        void publishState.isBottom;
-        void settingsStore.design.layout;
-
-        const measure = () => {
-            const side = document.querySelector<HTMLElement>('.side');
-            const right = side ? Math.max(0, side.getBoundingClientRect().right) : 0;
-            node.style.setProperty('--support-prompt-left', `${right}px`);
-        };
-        measure();
-        return on(window, 'resize', measure);
-    }
+    import { trackSideEdge } from './trackSideEdge';
 </script>
 
 <aside
     class="support-prompt"
     aria-labelledby="support-prompt-title"
     out:fade={{ duration: prefersReducedMotion.current ? 0 : 160 }}
-    {@attach trackSideEdge}
+    {@attach trackSideEdge('--support-prompt-left')}
 >
     <div class="support-prompt__hero" aria-hidden="true">
         <svg class="support-prompt__mark" viewBox="0 0 64 64">

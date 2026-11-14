@@ -1546,5 +1546,8 @@
     "chotto_confirm_article": "Article published on mochott",
     "chotto_confirm_post": "Opening posted to Bluesky",
     "chotto_confirm_chars": "{count} characters",
-    "chotto_confirm_images": "{count} images"
+    "chotto_confirm_images": "{count} images",
+    "mochott_prompt_headline": "The joy of writing.",
+    "mochott_prompt_body": "A blog service you can use with your Bluesky account as is. It's free to start, so give it a try!",
+    "mochott_prompt_cta": "Start using mochott"
 }
