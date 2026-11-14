@@ -12,7 +12,6 @@
     import UserFollowButton from "./UserFollowButton.svelte";
     import ProfileMenu from "$lib/components/profile/ProfileMenu.svelte";
     import PageModal from "$lib/components/ui/PageModal.svelte";
-    import LabelerLabelList from "$lib/components/labeler/LabelerLabelList.svelte";
     import LabelerSubscribeButton from "$lib/components/labeler/LabelerSubscribeButton.svelte";
     import {beforeNavigate, goto} from "$app/navigation";
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
@@ -44,6 +43,7 @@
     import ProfileTabs from "$lib/components/profile/ProfileTabs.svelte";
     import {profileTabKeys, profileTabOf, type ProfileTabKey, type ProfileTabMenu} from "$lib/profile/profileTabs";
     import {findPageScrollRoot, smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
+    import LabelerLikeButton from "$lib/components/labeler/LabelerLikeButton.svelte";
 
     const junkColumnState = getColumnState(true);
 
@@ -84,6 +84,8 @@
                     return 'blog';
                 case 'search':
                     return 'search';
+                case 'label':
+                    return 'label';
                 default:
                     return 'posts';
             }
@@ -114,6 +116,7 @@
         lists: 'lists',
         blog: 'blog',
         starterpack: 'starter_packs',
+        label: 'labels',
     };
     const AUTHOR_MODE_LABELS: Record<AuthorMode, string> = {
         all: 'profile_posts_nav_all',
@@ -551,21 +554,16 @@
         <div class="user-profile-wrap" {@attach observeProfileCard}>
         {#if profile}
           <UserProfile profile={shownProfile} {isLabeler} {_agent} {edit} {atmosphere} stacked={isSplit}>
-            {#if (profile.did !== _agent.did() && !isLabeler)}
-              <div class="user-profile-buttons">
+            <div class="user-profile-buttons">
+              {#if (profile.did !== _agent.did() && !isLabeler)}
                 <UserFollowButton following={profile.viewer?.following} user={profile} {_agent}></UserFollowButton>
                 <UserNotification {_agent} {profile} onupdate={(v) => {profile.viewer.activitySubscription = v}}></UserNotification>
-              </div>
-            {:else if (isLabeler && profile?.did)}
-              <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
-            {/if}
+              {:else if (isLabeler && profile?.did)}
+                <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
+                <LabelerLikeButton _agent={_agent} did={profile.did} />
+              {/if}
+            </div>
           </UserProfile>
-        {/if}
-
-        {#if (isLabeler && profile?.did)}
-          <div class="user-profile-labeler-wrap">
-            <LabelerLabelList did={profile.did}></LabelerLabelList>
-          </div>
         {/if}
       </div>
         </div>

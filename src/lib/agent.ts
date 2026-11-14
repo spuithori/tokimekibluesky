@@ -11,6 +11,7 @@ import { listRecords as listRecordsFromPds } from '$lib/util';
 import { getMergedTimeline } from '$lib/merge/mergeFetch';
 import { getCloudListTimeline } from '$lib/merge/cloudListFetch';
 import { withoutTokimekiAds } from '$lib/tokimekiAd';
+import type { LabelerViewDetailed } from './types/atproto.js';
 
 type timelineOpt = {
     limit: number,
@@ -80,6 +81,22 @@ export class Agent {
 
     configureLabelers(dids: string[]): void {
         this.xrpc.configureLabelers(dids);
+    }
+
+    async getLabelerServiceViewDetailed(did: string): Promise<LabelerViewDetailed | null> {
+        const res = await this.xrpc.get('app.bsky.labeler.getServices', {
+            dids: [did],
+            detailed: true,
+        });
+        if (!res) {
+            return null;
+        }
+        const { views } = res;
+        if (!views || views.length <= 0) {
+            return null;
+        }
+
+        return views[0] as LabelerViewDetailed;
     }
 
     async getLabelDefinitions(subscribedLabelers: string[]): Promise<Record<string, any[]>> {

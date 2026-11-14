@@ -7,6 +7,42 @@ export type Label = {
     cts?: string;
 } & Extensible;
 
+export type LabelerView = {
+    uri: string,
+    cid: string,
+    creator: {
+        did: string,
+        handle: string,
+        displayName?: string,
+        avatar?: string,
+        createdAt?: string,
+    },
+    indexedAt: string,
+} & Extensible;
+
+export type LabelerViewDetailed = LabelerView & {
+    policies: {
+        labelValues: string[],
+        labelValueDefinitions: {
+            adultOnly: boolean,
+            blurs: 'content' | 'media' | 'none',
+            identifier: string,
+            locales: {
+                lang: string,
+                name: string,
+                description: string,
+            }[],
+            severity: 'inform' | 'alert' | 'none',
+            defaultSetting: 'ignore' | 'warn' | 'hide',
+        }[],
+    },
+    likeCount?: number,
+    labels?: Label[],
+    viewer?: {
+        like?: string,
+    },
+};
+
 export type ViewerState = {
     muted?: boolean;
     blockedBy?: boolean;
