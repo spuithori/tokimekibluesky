@@ -1,6 +1,9 @@
 import { createContext } from 'svelte';
 import { PersistedState } from 'runed';
 import type { Agent } from '$lib/agent';
+import type { XrpcClient } from '$lib/xrpc-client';
+import { RefResolver } from './resolver.svelte';
+import { indexedApps, type AppMatch } from './apps';
 import type { Identity } from './identity';
 import { describeRepo, getRecord, getRepoStatus, listRecords, type RepoRecord, type RepoStatus } from './pds';
 import { loadLexicons, resolveLexicon, type Lexicons, type ResolvedLexicon } from './lexicon';
@@ -146,7 +149,7 @@ export class RecordListState {
     }
 }
 
-export type DetailTab = 'record' | 'backlinks' | 'info' | 'schema';
+export type DetailTab = 'view' | 'record' | 'backlinks' | 'info' | 'schema';
 
 export class RepoContext {
     readonly did: string;
@@ -157,7 +160,10 @@ export class RepoContext {
     status = $state.raw<RepoStatus>();
     counts = $state.raw<Map<string, number>>();
     car = $state.raw<CarRepo>();
-    detailTab = $state<DetailTab>('record');
+    detailTab = $state<DetailTab>('view');
+    apps = $state.raw<AppMatch[]>([]);
+    readonly resolver: RefResolver | undefined;
+    #appsLoading = false;
     reverse = $state(false);
     #lexicons = new Map<string, Promise<Lexicons>>();
     #resolved = new Map<string, Promise<ResolvedLexicon | undefined>>();
@@ -167,9 +173,11 @@ export class RepoContext {
         readonly identity: Identity,
         readonly source: RepoSource | undefined,
         readonly base = '/atproto-viewer',
+        readonly xrpc?: XrpcClient,
     ) {
         this.did = identity.did;
         this.pds = identity.pds;
+        this.resolver = xrpc && !source?.local ? new RefResolver(xrpc, this.#controller.signal) : undefined;
         if (source?.local) {
             this.collectionsState = 'ready';
             if (source.car) {
@@ -205,6 +213,14 @@ export class RepoContext {
             const message = (e as Error)?.message ?? '';
             this.collectionsState = /deactivat/i.test(message) ? 'deactivated' : /taken ?down|suspend/i.test(message) ? 'takendown' : 'unreachable';
         }
+    }
+
+    loadApps(locale: string | undefined): void {
+        if (this.#appsLoading || !this.collections.length) return;
+        this.#appsLoading = true;
+        indexedApps(this.collections, locale).then((indexed) => {
+            if (indexed.length && !this.#controller.signal.aborted) this.apps = indexed;
+        }, () => {});
     }
 
     lexicon(nsid: string): Promise<ResolvedLexicon | undefined> {

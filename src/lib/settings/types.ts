@@ -172,6 +172,10 @@ export interface MochottPromptSettings {
     checkedDay: string;
 }
 
+export interface ExplorerSettings {
+    visual: boolean;
+}
+
 export interface Settings {
     general: GeneralSettings;
     design: DesignSettings;
@@ -183,6 +187,7 @@ export interface Settings {
     columnCatalog: ColumnCatalogSettings;
     support: SupportSettings;
     mochottPrompt: MochottPromptSettings;
+    explorer: ExplorerSettings;
     langFilter: string[];
     version: number;
 }

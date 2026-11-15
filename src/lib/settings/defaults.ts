@@ -181,6 +181,9 @@ export function createDefaultSettings(): Settings {
             nextActiveDay: FIRST_ACTIVE_DAY,
             checkedDay: '',
         },
+        explorer: {
+            visual: true,
+        },
         langFilter: [],
         version: CURRENT_VERSION,
     };

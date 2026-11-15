@@ -3,22 +3,27 @@
   import { tidToDate } from '$lib/explorer/tid';
   import { formatDate } from '$lib/dateFormat';
   import type { RepoRecord } from '$lib/explorer/pds';
+  import type { RefResolver } from '$lib/explorer/resolver.svelte';
 
-  let { record, rkey, href, selected = false, checked = undefined, onopen, oncheck = undefined }: {
+  let { record, rkey, href, selected = false, checked = undefined, resolver = undefined, onopen, oncheck = undefined }: {
     record: RepoRecord;
     rkey: string;
     href: string;
     selected?: boolean;
     checked?: boolean;
+    resolver?: RefResolver;
     onopen: (event: MouseEvent) => void;
     oncheck?: (event: MouseEvent) => void;
   } = $props();
 
   const summary = $derived(summarizeRecord(record.value));
+  const wanted = $derived(resolver && !summary.text ? summary.ref : undefined);
+  const resolved = $derived(wanted ? resolver?.get(wanted) : undefined);
+  const actor = $derived(resolved?.kind === 'post' ? resolved.author : resolved?.kind === 'actor' ? resolved : undefined);
   const date = $derived(tidToDate(rkey) ?? (summary.createdAt ? new Date(summary.createdAt) : null));
 </script>
 
-<a class="record-row" class:record-row--selected={selected} {href} onclick={checked === undefined ? onopen : oncheck} aria-current={selected ? 'true' : undefined} data-rkey={rkey}>
+<a class="record-row" class:record-row--selected={selected} {href} onclick={checked === undefined ? onopen : oncheck} aria-current={selected ? 'true' : undefined} data-rkey={rkey} {@attach wanted ? () => resolver?.request(wanted) : undefined}>
   {#if checked !== undefined}
     <span class="record-row__check" class:record-row__check--on={checked} aria-hidden="true"></span>
   {/if}
@@ -26,6 +31,18 @@
     <span class="record-row__text">
       {#if summary.text}
         {summary.text}
+      {:else if actor}
+        {#if actor.avatar}
+          <img class="record-row__avatar" src={actor.avatar.replace('/img/avatar/plain/', '/img/avatar_thumbnail/plain/')} alt="" width="18" height="18" loading="lazy" decoding="async" />
+        {:else}
+          <span class="record-row__avatar"></span>
+        {/if}
+        <span class="record-row__name">{actor.displayName || '@' + actor.handle}</span>
+        {#if resolved?.kind === 'post'}
+          <span class="record-row__sub">{resolved.text}</span>
+        {:else if actor.displayName}
+          <span class="record-row__sub">@{actor.handle}</span>
+        {/if}
       {:else if summary.ref}
         <span class="record-row__ref">→ {shortRef(summary.ref)}</span>
       {:else}
@@ -34,7 +51,7 @@
     </span>
     <span class="record-row__meta">
       <span class="record-row__rkey">{rkey}</span>
-      {#if summary.text && summary.ref}
+      {#if summary.ref && (summary.text || actor)}
         <span class="record-row__ref">→ {shortRef(summary.ref)}</span>
       {/if}
       {#if date}
@@ -83,6 +100,26 @@
           text-overflow: ellipsis;
       }
 
+      &__avatar {
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          margin-right: 6px;
+          vertical-align: -4px;
+          border-radius: var(--avatar-border-radius, 50%);
+          background-color: var(--bg-color-3);
+          object-fit: cover;
+      }
+
+      &__name {
+          font-weight: 600;
+      }
+
+      &__sub {
+          margin-left: 6px;
+          color: var(--text-color-3);
+      }
+
       &__meta {
           display: flex;
           gap: 10px;
@@ -95,7 +132,8 @@
 
       &__rkey {
           font-family: var(--code-font);
-          flex: 0 1 auto;
+          flex: 0 0 auto;
+          max-width: 60%;
           overflow: hidden;
           text-overflow: ellipsis;
       }

@@ -6,10 +6,12 @@
   import Radio from '@lucide/svelte/icons/radio';
   import ChartNoAxesColumn from '@lucide/svelte/icons/chart-no-axes-column';
   import Plus from '@lucide/svelte/icons/plus';
-  import { _ } from 'tokimeki-i18n';
+  import { _, locale } from 'tokimeki-i18n';
   import { toast } from 'svelte-sonner';
   import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
   import { getOwnAgent, getRepoContext } from '$lib/explorer/explorerState.svelte';
+  import { settingsStore } from '$lib/settings/settings.svelte';
+  import { KNOWN_APPS, collectionAuthority, domainOf, findApp, type CollectionApp } from '$lib/explorer/apps';
 
   interface Profile {
     displayName?: string;
@@ -35,21 +37,32 @@
     { id: 'analyze', label: 'explorer_view_analyze', icon: ChartNoAxesColumn },
   ];
 
+  interface Item {
+    nsid: string;
+    name: string;
+    app?: CollectionApp;
+  }
+
   let filter = $state('');
+
+  const visual = $derived(settingsStore.explorer.visual && !local);
 
   const groups = $derived.by(() => {
     const needle = filter.trim().toLowerCase();
-    const map = new Map<string, Array<{ nsid: string; name: string }>>();
+    const map = new Map<string, { app?: CollectionApp; items: Item[] }>();
     for (const nsid of repo.collections) {
       if (needle && !nsid.toLowerCase().includes(needle)) continue;
-      const parts = nsid.split('.');
-      const authority = parts.slice(0, 2).reverse().join('.');
-      const list = map.get(authority);
-      const item = { nsid, name: parts.slice(2).join('.') || nsid };
-      if (list) list.push(item);
-      else map.set(authority, [item]);
+      const known = visual ? findApp(nsid, KNOWN_APPS) : undefined;
+      const prefix = known?.prefix ?? collectionAuthority(nsid);
+      const item = { nsid, name: nsid.slice(prefix.length + 1) || nsid, app: known ? undefined : visual ? findApp(nsid, repo.apps)?.app : undefined };
+      const group = map.get(prefix);
+      if (group) group.items.push(item);
+      else map.set(prefix, { app: known?.app, items: [item] });
     }
-    return [...map].map(([authority, items]) => ({ authority, items }));
+    return [...map].map(([prefix, group]) => {
+      const shared = group.items[0].app && group.items.every((item) => item.app === group.items[0].app) ? group.items[0].app : undefined;
+      return { authority: domainOf(prefix), app: group.app ?? shared, items: shared ? group.items.map((item) => ({ ...item, app: undefined })) : group.items };
+    });
   });
   const currentView = $derived(collection ? undefined : view ?? (wide ? (local ? 'analyze' : 'overview') : undefined));
 
@@ -92,7 +105,7 @@
       {/each}
   </nav>
 
-  <div class="repo-side__section">
+  <div class="repo-side__section" {@attach visual && repo.collections.length ? () => repo.loadApps($locale) : undefined}>
     <h3 class="repo-side__heading">
       {$_('explorer_collections')}
       <span class="repo-side__total">{repo.collections.length || ''}</span>
@@ -111,11 +124,29 @@
       <LoadingSpinner padding={20} size={20} />
     {:else}
       {#each groups as group (group.authority)}
+        {@const app = group.app}
         <div class="repo-side__group">
-          <p class="repo-side__authority">{group.authority}</p>
+          {#if app}
+            <p class="repo-side__authority repo-side__authority--app">
+              {#if app.icon}
+                <img class="repo-side__app-icon" src={app.icon} alt="" width="16" height="16" loading="lazy" decoding="async" />
+              {/if}
+              {#if app.href}
+                <a class="repo-side__app-name" href={app.href}>{app.name}</a>
+              {:else}
+                <span class="repo-side__app-name">{app.name}</span>
+              {/if}
+              <span class="repo-side__domain">{group.authority}</span>
+            </p>
+          {:else}
+            <p class="repo-side__authority">{group.authority}</p>
+          {/if}
           {#each group.items as item (item.nsid)}
             <a class="repo-side__link repo-side__link--collection" class:repo-side__link--active={collection === item.nsid} href={repo.path(item.nsid)} aria-current={collection === item.nsid ? 'page' : undefined} title={item.nsid}>
               <span class="repo-side__collection">{item.name}</span>
+              {#if item.app}
+                <span class="repo-side__tag">{item.app.name}</span>
+              {/if}
               {#if repo.counts}
                 <span class="repo-side__count">{(repo.counts.get(item.nsid) ?? 0).toLocaleString()}</span>
               {/if}
@@ -296,6 +327,33 @@
           white-space: nowrap;
       }
 
+      &__authority--app {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+      }
+
+      &__app-icon {
+          flex: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+          object-fit: cover;
+      }
+
+      &__app-name {
+          flex: none;
+          font-size: 12px;
+          color: var(--text-color-1);
+      }
+
+      &__domain {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          font-weight: 400;
+      }
+
       &__collection {
           font-family: var(--code-font);
           font-size: 12px;
@@ -303,6 +361,17 @@
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+      }
+
+      &__tag {
+          flex: none;
+          margin-left: auto;
+          padding: 0 6px;
+          border-radius: var(--radius-round, 999px);
+          font-size: 10px;
+          line-height: 16px;
+          color: var(--text-color-3);
+          background-color: var(--bg-color-3);
       }
 
       &__count {

@@ -14,6 +14,9 @@
   import JsonNode from './JsonNode.svelte';
   import Backlinks from './Backlinks.svelte';
   import LexiconView from './LexiconView.svelte';
+  import RecordPreview from './RecordPreview.svelte';
+  import { describeRecord, previewTarget } from '$lib/explorer/preview';
+  import { settingsStore } from '$lib/settings/settings.svelte';
   import { getOwnAgent, getRepoContext, type DetailTab } from '$lib/explorer/explorerState.svelte';
   import { getRecordProof, xrpcUrl, type RepoRecord } from '$lib/explorer/pds';
   import { verifyRecordProof, type RecordProof } from '$lib/explorer/verify';
@@ -47,13 +50,19 @@
   let deleting = $state(false);
 
   const TABS: Array<{ id: DetailTab; label: string }> = [
+    { id: 'view', label: 'explorer_tab_view' },
     { id: 'record', label: 'explorer_tab_record' },
     { id: 'backlinks', label: 'explorer_tab_backlinks' },
     { id: 'info', label: 'explorer_tab_info' },
     { id: 'schema', label: 'explorer_tab_schema' },
   ];
 
-  const tabs = $derived(repo.source?.local ? TABS.filter((tab) => tab.id !== 'backlinks') : TABS);
+  const local = !!repo.source?.local;
+  const hasVisual = $derived(
+    settingsStore.explorer.visual && !local && !!repo.xrpc && !!record
+      && (!!previewTarget(target.uri, target.collection, record.value) || !!describeRecord(record.value)),
+  );
+  const tabs = $derived(TABS.filter((item) => (item.id === 'view' ? hasVisual : item.id === 'backlinks' ? !local : true)));
   const tab = $derived(tabs.some((item) => item.id === repo.detailTab) ? repo.detailTab : 'record');
   const issues = $derived(record && lexicons ? validateRecord(record.value, target.collection, lexicons) : undefined);
   const issueMap = $derived.by(() => {
@@ -186,6 +195,8 @@
       <LoadingSpinner padding={32} />
     {:else if status === 'missing' || !record}
       <p class="explorer-empty">{$_('explorer_record_missing')}</p>
+    {:else if tab === 'view'}
+      <RecordPreview {collection} {record} />
     {:else if tab === 'record'}
       <div class="record-detail__json">
         <JsonNode value={record.value} issues={issueMap} {blobUrl} />

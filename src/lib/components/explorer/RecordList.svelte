@@ -12,6 +12,7 @@
   import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
   import RecordRow from './RecordRow.svelte';
   import { getOwnAgent, getRepoContext, rkeyOf, type RecordListState } from '$lib/explorer/explorerState.svelte';
+  import { settingsStore } from '$lib/settings/settings.svelte';
 
   const ROW = 56;
   const OVERSCAN = 8;
@@ -44,6 +45,7 @@
   const end = $derived(Math.min(visible.length, Math.ceil((scrollTop + viewport) / ROW) + OVERSCAN));
   const slice = $derived(visible.slice(start, end));
   const total = $derived(repo.counts?.get(list.collection));
+  const resolver = $derived(settingsStore.explorer.visual ? repo.resolver : undefined);
   const canWrite = $derived(!!ownAgent() && !repo.source?.local);
 
   onDestroy(() => list.dispose());
@@ -188,6 +190,7 @@
             href={repo.path(list.collection, key)}
             selected={key === rkey}
             checked={selecting ? picked.has(record.uri) : undefined}
+            {resolver}
             onopen={(event) => open(event, key)}
             oncheck={(event) => toggle(event, record.uri, start + index)}
           />

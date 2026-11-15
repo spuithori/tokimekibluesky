@@ -27,7 +27,7 @@
     base?: string;
   } = $props();
 
-  const repo = untrack(() => new RepoContext(identity, source ?? (identity.pds ? pdsSource(identity.pds, identity.did) : undefined), base));
+  const repo = untrack(() => new RepoContext(identity, source ?? (identity.pds ? pdsSource(identity.pds, identity.did) : undefined), base, $agent?.xrpc));
   setRepoContext(repo);
   setOwnAgent(() => $agentsByDid.get(repo.did));
   onDestroy(() => repo.dispose());

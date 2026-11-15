@@ -5,6 +5,8 @@
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import Clock from '@lucide/svelte/icons/clock';
   import CornerDownLeft from '@lucide/svelte/icons/corner-down-left';
+  import Eye from '@lucide/svelte/icons/eye';
+  import Braces from '@lucide/svelte/icons/braces';
   import type { Snippet } from 'svelte';
   import { _ } from 'tokimeki-i18n';
   import { goto } from '$app/navigation';
@@ -14,6 +16,7 @@
   import { resolveHandleToDid } from '$lib/explorer/identity';
   import { explorerRecents } from '$lib/explorer/explorerState.svelte';
   import { shortcutManager } from '$lib/keyboard/shortcutManager.svelte';
+  import { settingsStore } from '$lib/settings/settings.svelte';
 
   interface Crumb {
     label: string;
@@ -241,6 +244,15 @@
 
   {@render actions?.()}
 
+  <div class="explorer-mode" role="group" aria-label={$_('explorer_mode')}>
+    <button class="explorer-mode__option" class:explorer-mode__option--on={settingsStore.explorer.visual} aria-pressed={settingsStore.explorer.visual} onclick={() => { settingsStore.explorer.visual = true; }} aria-label={$_('explorer_mode_visual')} title={$_('explorer_mode_visual')}>
+      <Eye size="16" />
+    </button>
+    <button class="explorer-mode__option" class:explorer-mode__option--on={!settingsStore.explorer.visual} aria-pressed={!settingsStore.explorer.visual} onclick={() => { settingsStore.explorer.visual = false; }} aria-label={$_('explorer_mode_data')} title={$_('explorer_mode_data')}>
+      <Braces size="16" />
+    </button>
+  </div>
+
   <a class="explorer-bar__button" href="/" aria-label={$_('close')}>
     <X size="20" color="var(--text-color-1)" />
   </a>
@@ -273,6 +285,29 @@
               &:hover {
                   background-color: var(--state-hover, var(--bg-color-2));
               }
+          }
+      }
+  }
+
+  .explorer-mode {
+      flex: none;
+      display: flex;
+      padding: 2px;
+      border-radius: var(--radius-control, 8px);
+      background-color: var(--bg-color-2);
+
+      &__option {
+          display: grid;
+          place-content: center;
+          width: 32px;
+          height: 32px;
+          border-radius: calc(var(--radius-control, 8px) - 2px);
+          color: var(--text-color-3);
+
+          &--on {
+              background-color: var(--bg-color-1);
+              color: var(--text-color-1);
+              box-shadow: 0 0 0 1px var(--border-color-1);
           }
       }
   }

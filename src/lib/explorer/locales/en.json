@@ -45,7 +45,7 @@
     "explorer_editor_not_object": "A record must be a JSON object",
     "explorer_editor_rkey_auto": "Leave empty to generate",
     "explorer_editor_upload": "Attach file",
-    "explorer_tab_record": "Record",
+    "explorer_tab_record": "JSON",
     "explorer_tab_backlinks": "Backlinks",
     "explorer_tab_info": "Info",
     "explorer_tab_schema": "Schema",
@@ -172,5 +172,11 @@
     "explorer_error_no_pds": "No PDS",
     "explorer_error_network": "Could not connect",
     "explorer_error_not_found": "Not found",
-    "explorer_error_http": "The server returned an error"
+    "explorer_error_http": "The server returned an error",
+    "explorer_mode": "Display mode",
+    "explorer_mode_visual": "Visual view",
+    "explorer_mode_data": "Data view",
+    "explorer_tab_view": "View",
+    "explorer_preview_ref": "Refers to",
+    "explorer_preview_unavailable": "Nothing to show could be retrieved"
 }

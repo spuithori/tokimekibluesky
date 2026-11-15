@@ -6,9 +6,13 @@
   import { explorerPath } from '$lib/explorer/values';
   import { tidToDate } from '$lib/explorer/tid';
   import { formatDate } from '$lib/dateFormat';
+  import { getRepoContext } from '$lib/explorer/explorerState.svelte';
+  import { settingsStore } from '$lib/settings/settings.svelte';
 
   let { target }: { target: string } = $props();
 
+  const repo = getRepoContext();
+  const resolver = $derived(settingsStore.explorer.visual ? repo.resolver : undefined);
   const controller = new AbortController();
   onDestroy(() => controller.abort());
 
@@ -79,9 +83,22 @@
             <ul class="backlinks__records">
               {#each records as record (record.did + record.collection + record.rkey)}
                 {@const date = tidToDate(record.rkey)}
+                {@const resolved = resolver?.get(record.did)}
                 <li>
-                  <a class="backlinks__record" href={explorerPath({ repo: record.did, collection: record.collection, rkey: record.rkey })}>
-                    <span class="backlinks__did">{record.did}</span>
+                  <a class="backlinks__record" href={explorerPath({ repo: record.did, collection: record.collection, rkey: record.rkey })} {@attach resolver ? () => resolver.request(record.did) : undefined}>
+                    {#if resolved?.kind === 'actor'}
+                      {#if resolved.avatar}
+                        <img class="backlinks__avatar" src={resolved.avatar.replace('/img/avatar/plain/', '/img/avatar_thumbnail/plain/')} alt="" width="18" height="18" loading="lazy" decoding="async" />
+                      {:else}
+                        <span class="backlinks__avatar"></span>
+                      {/if}
+                      <span class="backlinks__name">{resolved.displayName || '@' + resolved.handle}</span>
+                      {#if resolved.displayName}
+                        <span class="backlinks__handle">@{resolved.handle}</span>
+                      {/if}
+                    {:else}
+                      <span class="backlinks__did">{record.did}</span>
+                    {/if}
                     <span class="backlinks__rkey">{record.rkey}</span>
                     {#if date}<time class="backlinks__time">{formatDate(date, 'yyyy/MM/dd HH:mm')}</time>{/if}
                   </a>
@@ -181,6 +198,38 @@
           text-overflow: ellipsis;
           white-space: nowrap;
           color: var(--link-color, var(--primary-color));
+      }
+
+      &__avatar {
+          flex: none;
+          align-self: center;
+          width: 18px;
+          height: 18px;
+          margin-right: -4px;
+          border-radius: var(--avatar-border-radius, 50%);
+          background-color: var(--bg-color-3);
+          object-fit: cover;
+      }
+
+      &__name {
+          flex: 0 1 auto;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-family: var(--font-body);
+          font-size: 13px;
+          font-weight: 600;
+      }
+
+      &__handle {
+          flex: 0 2 auto;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-family: var(--font-body);
+          color: var(--text-color-3);
       }
 
       &__rkey {

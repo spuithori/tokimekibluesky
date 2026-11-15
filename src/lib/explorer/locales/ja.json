@@ -45,7 +45,7 @@
     "explorer_editor_not_object": "レコードは JSON のオブジェクトである必要があります",
     "explorer_editor_rkey_auto": "空欄なら自動で決まります",
     "explorer_editor_upload": "ファイルを添付",
-    "explorer_tab_record": "レコード",
+    "explorer_tab_record": "JSON",
     "explorer_tab_backlinks": "バックリンク",
     "explorer_tab_info": "情報",
     "explorer_tab_schema": "スキーマ",
@@ -172,5 +172,11 @@
     "explorer_error_no_pds": "PDS がありません",
     "explorer_error_network": "接続できませんでした",
     "explorer_error_not_found": "見つかりません",
-    "explorer_error_http": "サーバーがエラーを返しました"
+    "explorer_error_http": "サーバーがエラーを返しました",
+    "explorer_mode": "表示モード",
+    "explorer_mode_visual": "ビジュアル表示",
+    "explorer_mode_data": "データ表示",
+    "explorer_tab_view": "表示",
+    "explorer_preview_ref": "参照先",
+    "explorer_preview_unavailable": "表示できる内容を取得できませんでした"
 }
