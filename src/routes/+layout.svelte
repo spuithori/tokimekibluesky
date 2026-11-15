@@ -6,7 +6,7 @@
     let { children }: { children: Snippet } = $props();
 
     afterNavigate(({ from, to }) => {
-        if (to?.route.id && from?.url.pathname !== to.url.pathname) {
+        if (to?.route.id && from?.url?.pathname !== to.url.pathname) {
             trackPageView(to.route.id);
         }
     });
