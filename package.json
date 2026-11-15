@@ -65,7 +65,6 @@
         "@tiptap/extensions": "3.31.3",
         "@tiptap/pm": "3.31.3",
         "@tiptap/suggestion": "3.31.3",
-        "@vercel/analytics": "^2.0.1",
         "@vercel/blob": "^2.8.0",
         "@vercel/functions": "3.6.2",
         "ai": "^7.0.107",

@@ -13,8 +13,6 @@
         bluefeedAddModal,
     } from "$lib/stores";
     import { beforeNavigate, afterNavigate } from "$app/navigation";
-    import { dev } from "$app/environment";
-    import { injectAnalytics } from "@vercel/analytics/sveltekit";
     import { tick, untrack } from "svelte";
     import { Toaster } from "svelte-sonner";
     import viewPortSetting from "$lib/viewport";
@@ -62,19 +60,6 @@
     import { recordError } from "$lib/errorLog";
     import { shortcutManager } from "$lib/keyboard/shortcutManager.svelte";
     import ShortcutHelp from "$lib/keyboard/ShortcutHelp.svelte";
-
-    injectAnalytics({
-        mode: dev ? "development" : "production",
-        beforeSend(event) {
-            if (
-                event.url === "https://tokimeki.blue/" ||
-                event.url === "https://tokimekibluesky.vercel.app/"
-            ) {
-                return event;
-            }
-            return null;
-        },
-    });
 
     interface Props {
         children?: import("svelte").Snippet;
