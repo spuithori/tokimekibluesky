@@ -1,0 +1,246 @@
+{
+  "global": {
+    "name": "グローバル",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "sort": "chronological",
+    "visibility": "private"
+  },
+  "photos": {
+    "name": "画像だけ",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateHasImage",
+          "value": true
+        }
+      ]
+    },
+    "sort": "chronological",
+    "visibility": "private"
+  },
+  "videos": {
+    "name": "動画",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateHasVideo",
+          "value": true
+        },
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateHasLabel",
+          "value": false
+        }
+      ]
+    },
+    "sort": "chronological",
+    "visibility": "private",
+    "contentMode": "video"
+  },
+  "following": {
+    "name": "フォロー中",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "following"
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#filterGroup",
+          "op": "or",
+          "items": [
+            {
+              "$type": "tech.tokimeki.feeds.defs#predicateHasReply",
+              "value": false
+            },
+            {
+              "$type": "tech.tokimeki.feeds.defs#predicateReplyToFollowing",
+              "value": true
+            }
+          ]
+        }
+      ]
+    },
+    "sort": "chronological",
+    "visibility": "public"
+  },
+  "aboutMe": {
+    "name": "自分あて",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#filterGroup",
+          "op": "or",
+          "items": [
+            {
+              "$type": "tech.tokimeki.feeds.defs#predicateReplyTo",
+              "did": "$viewer.did"
+            },
+            {
+              "$type": "tech.tokimeki.feeds.defs#predicateQuotes",
+              "did": "$viewer.did"
+            },
+            {
+              "$type": "tech.tokimeki.feeds.defs#predicateMentions",
+              "did": "$viewer.did"
+            }
+          ]
+        }
+      ]
+    },
+    "sort": "chronological",
+    "visibility": "public"
+  },
+  "cleanHot": {
+    "name": "話題",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateAuthorMaxPosts",
+          "max": 100,
+          "withinHours": 24
+        },
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateIsDuplicate",
+          "value": false
+        },
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateHasLabel",
+          "value": false
+        }
+      ]
+    },
+    "sort": "hotness",
+    "sortWindow": "PT24H",
+    "visibility": "private",
+    "maxPerAuthor": 2
+  },
+  "lateNight": {
+    "name": "深夜",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateLanguage",
+          "codes": [
+            "ja"
+          ]
+        },
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateTimeOfDay",
+          "timezone": "Asia/Tokyo",
+          "start": "22:00",
+          "end": "05:00"
+        },
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateIsDuplicate",
+          "value": false
+        }
+      ]
+    },
+    "sort": "chronological",
+    "visibility": "private"
+  },
+  "trending": {
+    "name": "いま伸びている",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceTimeline",
+      "scope": "global"
+    },
+    "sort": "trending",
+    "sortWindow": "PT24H",
+    "visibility": "private",
+    "hideSeen": true
+  },
+  "forYou": {
+    "name": "あなた向け",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceForYou",
+      "events": [
+        "like",
+        "repost"
+      ],
+      "withinHours": 24
+    },
+    "sort": "relevance",
+    "visibility": "private",
+    "maxPerAuthor": 2,
+    "hideSeen": true
+  },
+  "friendsLiked": {
+    "name": "友だちの反応",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceFollowingEngagement",
+      "events": [
+        "like",
+        "repost"
+      ],
+      "minActors": 1,
+      "withinHours": 24
+    },
+    "filter": {
+      "$type": "tech.tokimeki.feeds.defs#filterGroup",
+      "op": "and",
+      "items": [
+        {
+          "$type": "tech.tokimeki.feeds.defs#predicateIsFromFollowing",
+          "value": false
+        }
+      ]
+    },
+    "sort": "likeCount",
+    "sortWindow": "PT24H",
+    "visibility": "private"
+  },
+  "authors": {
+    "name": "特定の人",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceAuthors",
+      "dids": []
+    },
+    "sort": "chronological",
+    "visibility": "private"
+  },
+  "collection": {
+    "name": "コレクション",
+    "source": {
+      "$type": "tech.tokimeki.feeds.defs#sourceCollection",
+      "postUris": []
+    },
+    "sort": "chronological",
+    "visibility": "public"
+  }
+}

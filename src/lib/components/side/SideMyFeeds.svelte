@@ -6,6 +6,7 @@
     import Bookmark from '@lucide/svelte/icons/bookmark';
     import List from '@lucide/svelte/icons/list';
     import Newspaper from '@lucide/svelte/icons/newspaper';
+    import Plus from '@lucide/svelte/icons/plus';
     import {_} from "tokimeki-i18n";
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import {getAccountIdByDidFromDb} from "$lib/util";
@@ -137,6 +138,12 @@
     <div class="side-feeds-content">
         {#if (currentTab === 'feeds' || currentTab === 'all')}
             <div class="side-feeds-list" data-category="feeds">
+                <li class="side-feeds-list__item">
+                    <a class="side-feeds-list__link" href="/feeds" onclick={handleSelect}>
+                        <Plus color="var(--text-color-1)" size="20"></Plus>
+                        {$_('feed_builder_link')}</a>
+                </li>
+
                 {#if customFeeds.length}
                     {#each customFeeds as feed}
                         <li class="side-feeds-list__item">

@@ -1558,5 +1558,9 @@
     "feed_error_too_many_requests": "This feed is currently receiving high traffic and is temporarily unavailable. Please try again later.",
     "feed_error_generic": "Could not load posts.",
     "feed_error_server_message": "Message from server: {message}",
-    "feed_error_view_profile": "View profile"
+    "feed_error_view_profile": "View profile",
+    "feed_show_more": "Show more like this",
+    "feed_show_less": "Show less like this",
+    "feed_feedback_sent": "Feedback sent to the feed",
+    "feed_builder_link": "New feed"
 }

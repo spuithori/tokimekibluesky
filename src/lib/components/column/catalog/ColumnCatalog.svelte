@@ -5,7 +5,7 @@
     import Search from '@lucide/svelte/icons/search';
     import X from '@lucide/svelte/icons/x';
     import { db } from '$lib/db';
-    import { bookmarkModal, cloudBookmarkModal, cloudListModal, listModal, officialListModal, userLists } from '$lib/stores';
+    import { agent, bookmarkModal, cloudBookmarkModal, cloudListModal, isColumnModalOpen, listModal, officialListModal, userLists } from '$lib/stores';
     import { settingsStore } from '$lib/settings/settings.svelte';
     import { getColumnState } from '$lib/classes/columnState.svelte';
     import { migrateLocalList, migrateLocalLists, unmigratedLocalLists as filterUnmigratedLocalLists } from '$lib/localListMigration';
@@ -287,7 +287,11 @@
                     ontoggle={(open) => toggle(section.id, open)}
                 >
                     {#snippet actions()}
-                        {#if section.id === 'lists'}
+                        {#if section.id === 'feeds'}
+                            {#if _agent?.did() === $agent?.did()}
+                                <a class="catalog__action" href="/feeds" onclick={() => isColumnModalOpen.set(false)}>{$_('feed_builder_link')}</a>
+                            {/if}
+                        {:else if section.id === 'lists'}
                             <button class="catalog__action" type="button" onclick={() => { $officialListModal.open = true; }}>{$_('catalog_create_list')}</button>
                             <button class="catalog__action" type="button" onclick={() => cloudListModal.set({ open: true, data: undefined })}>{$_('catalog_create_cloud_list')}</button>
                         {:else if section.id === 'bookmarks'}

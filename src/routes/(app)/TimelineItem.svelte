@@ -43,6 +43,8 @@
   import {getPollUrl} from "$lib/components/post/embedUtil";
   import {mergeSourceColor} from "$lib/merge/mergePalette";
   import {refreshSignal} from "$lib/refreshSignal.svelte";
+  import {feedSeenAttachment} from "$lib/feedInteractions";
+  import FeedInteractionMenu from "$lib/components/post/FeedInteractionMenu.svelte";
 
     let {
         _agent = $agent,
@@ -550,6 +552,7 @@
              style:--merge-source-color={mergeAccent}
              tabindex="-1"
              onclick={handleClick}
+             {@attach feedSeenAttachment(_agent, column, data)}
     >
       {#if isPinned}
         <p class="sticky-text"><Pin size={18} color="var(--primary-color)" />{$_('pinned_post')}
@@ -653,6 +656,8 @@
                 </li>
               {/if}
             {/if}
+
+            <FeedInteractionMenu {_agent} {column} item={data} onsend={() => {isMenuOpen = false}}></FeedInteractionMenu>
 
             <li class="timeline-menu-list__item timeline-menu-list__item--translate">
               <button class="timeline-menu-list__button" onclick={translation}>

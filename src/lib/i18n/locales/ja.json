@@ -1558,5 +1558,9 @@
     "feed_error_too_many_requests": "このフィードは現在アクセスが集中しており、一時的に利用できません。しばらくしてからもう一度お試しください。",
     "feed_error_generic": "投稿を読み込めませんでした。",
     "feed_error_server_message": "サーバーからのメッセージ: {message}",
-    "feed_error_view_profile": "プロフィールを表示"
+    "feed_error_view_profile": "プロフィールを表示",
+    "feed_show_more": "もっと見る",
+    "feed_show_less": "表示を減らす",
+    "feed_feedback_sent": "フィードに送信しました",
+    "feed_builder_link": "フィードを作成"
 }
