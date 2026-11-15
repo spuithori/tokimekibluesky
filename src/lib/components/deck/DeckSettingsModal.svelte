@@ -481,14 +481,12 @@
                         </dt>
 
                         <dd class="settings-group__content">
-                            <div class="form-select">
-                                <ChevronDown size={20} color="var(--primary-color)" />
-
-                                <select class="form-select__select" bind:value={column.settings.autoRefresh}>
-                                    {#each autoRefreshSettings as option}
-                                        <option value="{option.value}">{option.name}</option>
-                                    {/each}
-                                </select>
+                            <div class="radio-v-group">
+                                {#each autoRefreshSettings as option (option.value)}
+                                    <div class="radio-v-group__item">
+                                        <input type="radio" id={column.id + 'auto_refresh_' + option.value} bind:group={column.settings.autoRefresh} name="{column.id}_auto_refresh" value={option.value}><label for={column.id + 'auto_refresh_' + option.value}>{option.name}</label>
+                                    </div>
+                                {/each}
                             </div>
                         </dd>
                     </dl>
