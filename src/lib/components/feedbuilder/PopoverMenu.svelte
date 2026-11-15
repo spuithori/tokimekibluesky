@@ -6,6 +6,7 @@
     offset,
     flip,
     shift,
+    size,
     autoUpdate,
     type Placement
   } from 'svelte-floating-ui/dom';
@@ -51,7 +52,17 @@
     const { x, y, strategy } = await computePosition(triggerEl, contentEl, {
       strategy: 'fixed',
       placement: initialPlacement,
-      middleware: [offset(initialGap), flip(), shift({ padding: initialPadding })]
+      middleware: [
+        offset(initialGap),
+        flip({ padding: initialPadding }),
+        shift({ padding: initialPadding, crossAxis: true }),
+        size({
+          padding: initialPadding,
+          apply({ availableHeight, elements }) {
+            elements.floating.style.setProperty('--popover-max-height', `${Math.floor(availableHeight)}px`);
+          }
+        })
+      ]
     });
     if (!contentEl) return;
     contentEl.style.position = strategy;
@@ -135,5 +146,10 @@
   }
   .popover-menu-dialog::backdrop {
     background: transparent;
+  }
+  :where(.popover-menu-dialog) > :global(*) {
+    max-height: var(--popover-max-height);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 </style>
