@@ -389,9 +389,10 @@
               <OrGroupChip
                 items={node.items}
                 presetCategories={OR_CATEGORIES}
-                onChildChange={(ci, next) => feedBuilder.updateInOrGroup(i, ci, next)}
-                onChildRemove={(ci) => feedBuilder.removeFromOrGroup(i, ci)}
+                onLeafChange={(child, sub, next) => feedBuilder.updateConditionAt({ group: i, child, sub }, next)}
+                onLeafRemove={(child, sub) => feedBuilder.removeConditionAt({ group: i, child, sub })}
                 onAdd={(p) => feedBuilder.addToOrGroup(i, p)}
+                onAddAnd={(child, p) => feedBuilder.addAndCondition(i, child, p)}
                 onRemoveGroup={() => feedBuilder.removePredicate(i)}
                 groupIndex={i}
                 childDraggable={drag.draggable}

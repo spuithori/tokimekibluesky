@@ -5,7 +5,16 @@ import type { BuilderDraft, DraftSource } from './feedBuilder.svelte';
 import { timeOfDayLabel, localTimeZone } from './timeOfDay';
 import { floodLabel } from './floodWindow';
 import { getCachedProfile } from './profileResolver.svelte';
-import { isNegated, isOrGroup, leafPred, makeLeaf, type FilterLeaf, type PredicateOrGroup } from './filterModel';
+import {
+  isAndGroup,
+  isNegated,
+  isOrGroup,
+  leafPred,
+  leavesOf,
+  makeLeaf,
+  type FilterLeaf,
+  type PredicateOrGroup
+} from './filterModel';
 
 export type EasySourceId = 'global' | 'following' | 'engagement' | 'forYou' | 'search' | 'feed';
 
@@ -253,7 +262,7 @@ export interface FlatCond {
 export function flattenConds(preds: PredicateOrGroup[]): FlatCond[] {
   const out: FlatCond[] = [];
   preds.forEach((p, group) => {
-    const items = isOrGroup(p) ? p.items : [p];
+    const items = leavesOf(p);
     for (const leaf of items) out.push({ pred: leafPred(leaf), negated: isNegated(leaf), group, groupSize: items.length });
   });
   return out;
@@ -265,7 +274,7 @@ export function joinerAfter(preds: PredicateOrGroup[], i: number): Joiner {
 }
 
 function toGroups(preds: PredicateOrGroup[]): FilterLeaf[][] {
-  return preds.map((p) => (isOrGroup(p) ? [...p.items] : [p]));
+  return preds.map((p) => [...leavesOf(p)]);
 }
 
 function fromGroups(groups: FilterLeaf[][]): PredicateOrGroup[] {
@@ -401,7 +410,10 @@ export function easySupport(d: BuilderDraft): EasySupport {
     return { ok: false, reason: tr('tfeeds_easy_no_exact') };
   }
   for (const p of d.predicates) {
-    const items = isOrGroup(p) ? p.items : [p];
+    if (isOrGroup(p) && p.items.some(isAndGroup)) {
+      return { ok: false, reason: tr('tfeeds_easy_no_and_group') };
+    }
+    const items = leavesOf(p);
     if (isOrGroup(p) && items.length === 0) return { ok: false, reason: tr('tfeeds_easy_no_empty_or') };
     if (items.some((x) => !easyConditionOf(x))) return { ok: false, reason: tr('tfeeds_easy_no_cond') };
   }

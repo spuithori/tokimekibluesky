@@ -40,8 +40,7 @@ interface Session {
   el: HTMLElement;
   root: HTMLElement;
   from: NodeAddr;
-
-  isGroup: boolean;
+  kind: 'leaf' | 'and' | 'or';
   pointerId: number;
   touch: boolean;
   startX: number;
@@ -90,12 +89,13 @@ export class ChipDrag {
     const group = Number(el.dataset.dndGroup);
     if (!Number.isFinite(group)) return;
     const child = el.dataset.dndChild !== undefined ? Number(el.dataset.dndChild) : undefined;
+    const sub = el.dataset.dndSub !== undefined ? Number(el.dataset.dndSub) : undefined;
     const r = el.getBoundingClientRect();
     this.session = {
       el,
       root,
-      from: child === undefined ? { group } : { group, child },
-      isGroup: child === undefined && el.hasAttribute('data-dnd-or'),
+      from: child === undefined ? { group } : sub === undefined ? { group, child } : { group, child, sub },
+      kind: el.hasAttribute('data-dnd-or') ? 'or' : el.hasAttribute('data-dnd-and') ? 'and' : 'leaf',
       pointerId: e.pointerId,
       touch: e.pointerType === 'touch',
       startX: e.clientX,
@@ -170,10 +170,22 @@ export class ChipDrag {
     const box = (el: Element): Box => el.getBoundingClientRect();
     const inside = (b: Box) => x >= b.left && x <= b.right && y >= b.top && y <= b.bottom;
 
-    if (!s.isGroup) {
+    if (s.kind === 'leaf') {
+      for (const a of s.root.querySelectorAll<HTMLElement>('[data-dnd-and]')) {
+        if (!inside(box(a))) continue;
+        const items = [...a.querySelectorAll<HTMLElement>('[data-dnd-item][data-dnd-sub]')];
+        const boxes = items.map(box);
+        const index = insertionIndex(boxes, x, y);
+        s.target = { kind: 'and', group: Number(a.dataset.dndGroup), child: Number(a.dataset.dndAnd), index };
+        this.indicator = indicatorAt(boxes, index);
+        return;
+      }
+    }
+
+    if (s.kind !== 'or') {
       for (const g of s.root.querySelectorAll<HTMLElement>('[data-dnd-or]')) {
         if (!inside(box(g))) continue;
-        const items = [...g.querySelectorAll<HTMLElement>('[data-dnd-item][data-dnd-child]')];
+        const items = [...g.querySelectorAll<HTMLElement>('[data-dnd-item][data-dnd-child]:not([data-dnd-sub])')];
         const boxes = items.map(box);
         const index = insertionIndex(boxes, x, y);
         s.target = { kind: 'group', group: Number(g.dataset.dndOr), index };

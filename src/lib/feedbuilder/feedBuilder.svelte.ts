@@ -17,27 +17,36 @@ import { session } from './session.svelte';
 import { easySupport } from './easyMode';
 import { squareAvatar, toBlobJson, type BlobJson } from './avatar';
 import {
+  addAnd,
   excludeAuthorLeaf,
   excludedAuthorIndex,
   filterToPredicates,
+  isAndGroup,
   isNegated,
   isOrGroup,
-  leafPred,
+  leavesOf,
   moveNode,
   predicatesToFilter,
+  removeAt,
+  setLeafAt,
   type DropTarget,
   type FilterLeaf,
   type NodeAddr,
+  type OrItem,
   type PredicateOrGroup
 } from './filterModel';
 
 export {
+  isAndGroup,
   isNegated,
   isOrGroup,
   leafPred,
   makeLeaf,
+  type AndGroup,
   type FilterLeaf,
   type NegatedPredicate,
+  type NodeAddr,
+  type OrItem,
   type PredicateOrGroup
 } from './filterModel';
 import {
@@ -280,7 +289,7 @@ export function draftHasKeyword(d: BuilderDraft): boolean {
   if (d.source.kind === 'search') return true;
 
   const isKw = (l: FilterLeaf) => !isNegated(l) && l.$type === CUSTOM_FEED_DEFS.predicateKeyword;
-  return d.predicates.some((p) => (isOrGroup(p) ? p.items.some(isKw) : isKw(p)));
+  return d.predicates.some((p) => leavesOf(p).some(isKw));
 }
 
 export function draftIsCorrelated(d: BuilderDraft): boolean {
@@ -1102,36 +1111,19 @@ class FeedBuilderStore {
     this.scheduleValidate();
   }
 
-  updateInOrGroup(
-    groupIndex: number,
-    childIndex: number,
-    p: FilterLeaf
-  ): void {
-    const current = this.draft.predicates[groupIndex];
-    if (!current || !isOrGroup(current)) return;
-    const items = [...current.items];
-    items[childIndex] = p;
-    const next = [...this.draft.predicates];
-    next[groupIndex] = { kind: 'or', items };
-    this.draft = { ...this.draft, predicates: next };
+  updateConditionAt(addr: NodeAddr, p: FilterLeaf): void {
+    this.draft = { ...this.draft, predicates: setLeafAt(this.draft.predicates, addr, p) };
     this.scheduleValidate();
   }
 
-  removeFromOrGroup(groupIndex: number, childIndex: number): void {
-    const current = this.draft.predicates[groupIndex];
-    if (!current || !isOrGroup(current)) return;
-    const items = current.items.filter((_, i) => i !== childIndex);
-    let next: PredicateOrGroup[];
-    if (items.length === 0) {
-      next = this.draft.predicates.filter((_, i) => i !== groupIndex);
-    } else if (items.length === 1) {
-      next = [...this.draft.predicates];
-      next[groupIndex] = items[0];
-    } else {
-      next = [...this.draft.predicates];
-      next[groupIndex] = { kind: 'or', items };
-    }
-    this.draft = { ...this.draft, predicates: next };
+  removeConditionAt(addr: NodeAddr): void {
+    this.draft = { ...this.draft, predicates: removeAt(this.draft.predicates, addr) };
+    this.scheduleValidate();
+  }
+
+  addAndCondition(groupIndex: number, childIndex: number, p: FilterLeaf): void {
+    this.draft = { ...this.draft, predicates: addAnd(this.draft.predicates, groupIndex, childIndex, p) };
+    this.activeCardId = 'filter';
     this.scheduleValidate();
   }
 
@@ -1499,11 +1491,15 @@ function describePredicates(preds: PredicateOrGroup[]): string {
     .map((p) => {
       if (isOrGroup(p)) {
         if (p.items.length === 0) return tr('tfeeds_or_empty');
-        return '(' + p.items.map(leafLabel).join(tr('tfeeds_summary_or')) + ')';
+        return '(' + p.items.map(orItemLabel).join(tr('tfeeds_summary_or')) + ')';
       }
       return leafLabel(p);
     })
     .join(tr('tfeeds_summary_and'));
+}
+
+function orItemLabel(item: OrItem): string {
+  return isAndGroup(item) ? '(' + item.items.map(leafLabel).join(tr('tfeeds_summary_and')) + ')' : leafLabel(item);
 }
 
 function targetLabel(t: string | undefined): string {
