@@ -182,6 +182,9 @@ export async function deleteScheduledPost(agent: Agent, id: string): Promise<boo
         'Authorization': `Bearer ${token}`,
       },
     });
+    if (response.status === 404) {
+      return true;
+    }
     const result: ApiResponse = await response.json();
     return result.success;
   } catch {

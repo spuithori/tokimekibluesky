@@ -1098,6 +1098,8 @@
       })
   }
 
+  const SCHEDULE_THUMB_INDEX_BASE = 1000;
+
   async function processScheduleImages(
       images: any[],
       tempPostId: string,
@@ -1265,7 +1267,7 @@
 
               for (let postIndex = 0; postIndex < postState.posts.length; postIndex++) {
                   const post = postState.posts[postIndex];
-                  const content = await processSchedulePostContent(post, tempPostId, imageIndexCounter, 90 + postIndex);
+                  const content = await processSchedulePostContent(post, tempPostId, imageIndexCounter, SCHEDULE_THUMB_INDEX_BASE + postIndex);
 
                   if (content.hasImages) hasAnyImages = true;
                   if (post.images?.length) imageIndexCounter += post.images.length;
@@ -1287,7 +1289,7 @@
                   imagePostId: hasAnyImages ? tempPostId : undefined,
               };
           } else {
-              const content = await processSchedulePostContent(firstPost, tempPostId, 0, 99);
+              const content = await processSchedulePostContent(firstPost, tempPostId, 0, SCHEDULE_THUMB_INDEX_BASE);
               hasAnyImages = content.hasImages;
 
               postData = {

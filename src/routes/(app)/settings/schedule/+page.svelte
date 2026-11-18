@@ -241,7 +241,7 @@
                         <p class="schedule-empty">{$_('schedule_settings_no_posts')}</p>
                     {:else}
                         <ul class="schedule-posts-list">
-                            {#each selectedState.scheduledPosts as post}
+                            {#each selectedState.scheduledPosts as post (post.id)}
                                 <li class="schedule-post-item">
                                     <div class="schedule-post-content">
                                         <div class="schedule-post-header">
@@ -265,7 +265,7 @@
                                             <p class="schedule-post-error">{post.error_message}</p>
                                         {/if}
                                     </div>
-                                    {#if post.status === 'pending'}
+                                    {#if post.status === 'pending' || post.status === 'failed'}
                                         <button
                                             class="schedule-post-delete"
                                             onclick={() => handleDeletePost(selectedState, post.id)}
