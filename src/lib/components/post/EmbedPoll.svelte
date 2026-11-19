@@ -5,6 +5,9 @@
     import type { PollUrlInfo } from './embedUtil';
     import LoadingSpinner from "$lib/components/ui/LoadingSpinner.svelte";
     import { untrack } from 'svelte';
+    import type { Attachment } from 'svelte/attachments';
+    import { pollLive, type PollLiveUpdate } from '$lib/poll/pollLive';
+    import { applyServer, castVote, confirmVote, createTally, displayCounts, removeVote, PENDING_VOTE_URI, type PollTally } from '$lib/poll/pollTally';
 
     const POLL_API_BASE = 'https://poll.tokimeki.tech';
 
@@ -52,6 +55,14 @@
     let error = $state<string | null>(null);
     let selectedOption = $state<number | null>(untrack(() => initial?.myVote ?? null));
     let isSubmitting = $state(false);
+    let isGone = $state(false);
+    let tally: PollTally | null = untrack(() => (initial ? tallyOf(initial) : null));
+
+    const viewerDid = $derived<string | undefined>(_agent?.did?.() || undefined);
+    const endsAt = $derived(pollData?.poll.endsAt);
+    const isLive = $derived(!!pollData && !pollData.isEnded && !isGone);
+    const liveAttachment = $derived(pollLive(pollInfo.uri, viewerDid, onLive));
+    const endAttachment = $derived(endsAt ? endTimer(endsAt) : undefined);
 
     const isAuthor = $derived(_agent?.did?.() === pollInfo.did);
     const hasVoted = $derived(pollData?.myVote !== undefined);
@@ -60,6 +71,65 @@
 
     if (!untrack(() => initial)) {
         fetchPoll();
+    }
+
+    function tallyOf(data: PollData): PollTally {
+        return createTally(data.options.map((option) => option.count), data.myVote, data.myVoteUri);
+    }
+
+    function showTally() {
+        if (!pollData || !tally) return;
+
+        const counts = displayCounts(tally);
+        const myVote = tally.local?.index;
+        const myVoteUri = tally.local?.uri;
+        if (pollData.myVote === myVote && pollData.myVoteUri === myVoteUri && pollData.options.every((option, index) => option.count === counts[index])) {
+            return;
+        }
+
+        pollData = {
+            ...pollData,
+            myVote,
+            myVoteUri,
+            totalVotes: counts.reduce((sum, count) => sum + count, 0),
+            options: pollData.options.map((option, index) => ({ ...option, count: counts[index] ?? 0 }))
+        };
+    }
+
+    function onLive(update: PollLiveUpdate) {
+        if (!pollData || !tally) return;
+
+        if (update.gone) {
+            isGone = true;
+            return;
+        }
+        if (update.counts.length !== pollData.options.length) return;
+
+        const votedUri = tally.local?.uri;
+        applyServer(tally, update.counts, update.mine);
+        if (tally.local?.uri !== votedUri) {
+            selectedOption = tally.local?.index ?? null;
+        }
+        showTally();
+
+        if (update.ended && !pollData.isEnded) {
+            pollData = { ...pollData, isEnded: true };
+        }
+    }
+
+    function endTimer(endsAt: string): Attachment {
+        return () => {
+            const remaining = Date.parse(endsAt) - Date.now();
+            if (!(remaining > 0)) return;
+
+            const timer = setTimeout(() => {
+                if (pollData && !pollData.isEnded) {
+                    pollData = { ...pollData, isEnded: true };
+                }
+            }, remaining);
+
+            return () => clearTimeout(timer);
+        };
     }
 
     async function fetchPoll() {
@@ -76,6 +146,7 @@
             }
 
             pollData = await res.json();
+            tally = pollData ? tallyOf(pollData) : null;
 
             if (pollData?.myVote !== undefined) {
                 selectedOption = pollData.myVote;
@@ -119,22 +190,15 @@
     }
 
     async function submitVote() {
-        if (selectedOption === null || isSubmitting || !pollData || pollData.myVote !== undefined || pollData.isEnded) {
+        if (selectedOption === null || isSubmitting || !pollData || !tally || pollData.myVote !== undefined || pollData.isEnded) {
             return;
         }
 
         isSubmitting = true;
         const votedOption = selectedOption;
 
-        pollData = {
-            ...pollData,
-            myVote: votedOption,
-            myVoteUri: 'pending',
-            totalVotes: pollData.totalVotes + 1,
-            options: pollData.options.map((opt, idx) =>
-                idx === votedOption ? { ...opt, count: opt.count + 1 } : opt
-            )
-        };
+        castVote(tally, votedOption);
+        showTally();
 
         try {
             const record = {
@@ -153,10 +217,10 @@
                 record: record
             });
 
-            pollData = {
-                ...pollData,
-                myVoteUri: result.uri
-            };
+            if (tally) {
+                confirmVote(tally, result.uri);
+                showTally();
+            }
 
             toast.success($_('poll_vote_success'));
         } catch (e: any) {
@@ -169,22 +233,14 @@
     }
 
     async function deleteVote() {
-        if (!pollData?.myVoteUri || pollData.myVoteUri === 'pending' || isSubmitting) return;
+        if (!pollData?.myVoteUri || pollData.myVoteUri === PENDING_VOTE_URI || isSubmitting || !tally) return;
 
         isSubmitting = true;
-        const previousVote = pollData.myVote;
         const previousVoteUri = pollData.myVoteUri;
 
-        pollData = {
-            ...pollData,
-            myVote: undefined,
-            myVoteUri: undefined,
-            totalVotes: Math.max(0, pollData.totalVotes - 1),
-            options: pollData.options.map((opt, idx) =>
-                idx === previousVote ? { ...opt, count: Math.max(0, opt.count - 1) } : opt
-            )
-        };
+        removeVote(tally);
         selectedOption = null;
+        showTally();
 
         try {
             const rkey = previousVoteUri.split('/').pop();
@@ -206,7 +262,12 @@
     }
 </script>
 
-<div class={['embed-poll', compact && 'embed-poll--compact']} style:min-height={minHeight ? `${minHeight}px` : undefined}>
+<div
+    class={['embed-poll', compact && 'embed-poll--compact']}
+    style:min-height={minHeight ? `${minHeight}px` : undefined}
+    {@attach isLive && liveAttachment}
+    {@attach isLive && endAttachment}
+>
     {#if isLoading}
         <div class="poll-loading">
             <LoadingSpinner></LoadingSpinner>
