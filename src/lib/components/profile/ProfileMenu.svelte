@@ -13,10 +13,15 @@
   import ShieldBan from '@lucide/svelte/icons/shield-ban';
   import VolumeX from '@lucide/svelte/icons/volume-x';
   import {getPostState} from "$lib/classes/postState.svelte";
+  import UserPlus from '@lucide/svelte/icons/user-plus';
+  import UserMinus from '@lucide/svelte/icons/user-minus';
+  import LoadingSpinner from '../ui/LoadingSpinner.svelte';
 
   let { profile, handle, onrefresh } = $props();
   let isMenuOpen = $state(false);
   const postState = getPostState();
+  let followingRkey = $state(profile.viewer?.following?.split('/')?.pop());
+  let isFollowingBusy = $state(false);
 
   async function mute() {
       try {
@@ -43,6 +48,46 @@
   async function getDidByHandle(handle) {
       const res = await $agent.xrpc.get('com.atproto.identity.resolveHandle', { handle: handle });
       return res.did;
+  }
+
+  async function follow() {
+    if (isFollowingBusy) {
+      return;
+    }
+    isFollowingBusy = true;
+    try {
+      const follow = await $agent.xrpc.post('com.atproto.repo.createRecord', {
+        repo: $agent.did(),
+        collection: 'app.bsky.graph.follow',
+        record: {
+          $type: 'app.bsky.graph.follow',
+          subject: profile.did,
+          createdAt: new Date().toISOString(),
+        },
+      });
+      followingRkey = follow.uri.split('/').pop();
+    }
+    finally {
+      isFollowingBusy = false;
+    }
+  }
+
+  async function unfollow() {
+    if (isFollowingBusy) {
+      return;
+    }
+    isFollowingBusy = true;
+    try {
+      const deleted = await $agent.xrpc.post('com.atproto.repo.deleteRecord', {
+        repo: $agent.did(),
+        collection: 'app.bsky.graph.follow',
+        rkey: followingRkey,
+      });
+      followingRkey = null;
+    }
+    finally {
+      isFollowingBusy = false;
+    }
   }
 
   async function block() {
@@ -129,6 +174,34 @@
     {#snippet content()}
         <ul  class="timeline-menu-list">
         {#if (profile.did !== $agent.did())}
+
+          {#if (profile.associated?.labeler) }
+            {#if (followingRkey) }
+              <li class="timeline-menu-list__item timeline-menu-list__item--follow">
+                <button class="timeline-menu-list__button" onclick={unfollow} aria-busy={isFollowingBusy}>
+                  {#if (isFollowingBusy)}
+                    <LoadingSpinner padding={0} size={18} />
+                  {:else}
+                    <UserMinus />
+                  {/if}
+                  <span>{$_('unfollow_button')}</span>
+                </button>
+              </li>
+
+            {:else if (!profile.viewer?.blocked && !profile.viewer?.blocking)}
+              <li class="timeline-menu-list__item timeline-menu-list__item--follow">
+                <button class="timeline-menu-list__button" onclick={follow} aria-busy={isFollowingBusy}>
+                  {#if (isFollowingBusy)}
+                    <LoadingSpinner padding={0} size={18} />
+                  {:else}
+                    <UserPlus />
+                  {/if}
+                  <span>{$_('follow_button')}</span>
+                </button>
+              </li>
+            {/if}
+          {/if}
+
           {#if (!profile.viewer?.muted)}
             <li class="timeline-menu-list__item timeline-menu-list__item--mute">
               <button class="timeline-menu-list__button" onclick={mute}>

@@ -6,6 +6,7 @@
   import LabelSelector from "$lib/components/labeler/LabelSelector.svelte";
   import {appState} from "$lib/classes/appState.svelte";
   import {BADGE_LABELER_DIDS} from "$lib/labeler/badgeLabelers";
+  import LoadingSpinner from '../ui/LoadingSpinner.svelte';
 
   interface Props {
     did: any;
@@ -14,7 +15,7 @@
 
   let { did, isOfficial = false }: Props = $props();
   let defs = $state([]);
-  let labels = $state([]);
+  let labels = $state(undefined);
   let renderLabels = $state({});
   let ready = false;
   const badgeSelections = $derived(BADGE_LABELER_DIDS.includes(did) ? [
@@ -78,26 +79,32 @@
   });
 </script>
 
-{#each labels as label, index}
-  <div class="moderation-settings-group">
-    <h3 class="moderation-settings-group__title">
-      {#if (isOfficial)}
-        {$_('labeling_' + label[0])}
-      {:else}
-      {defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? defs[index].locales[0]?.name}
+{#if (labels)}
+
+  {#each labels as label, index}
+    <div class="moderation-settings-group">
+      <h3 class="moderation-settings-group__title">
+        {#if (isOfficial)}
+          {$_('labeling_' + label[0])}
+        {:else}
+        {defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.name ?? defs[index].locales[0]?.name}
+        {/if}
+      </h3>
+
+      <p class="moderation-settings-group__text">{defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.description ?? defs[index].locales[0]?.description}</p>
+
+      {#if (appState.subscribedLabelers.current.includes(did))}
+        <div class="moderation-settings-group__content">
+          <LabelSelector
+            name={did + '_' + label[0]}
+            bind:value={renderLabels[label[0]]}
+            contentLabelsSelections={badgeSelections}
+          ></LabelSelector>
+        </div>
       {/if}
-    </h3>
+    </div>
+  {/each}
 
-    <p class="moderation-settings-group__text">{defs[index].locales.find(locale => locale.lang === $settings.general.userLanguage)?.description ?? defs[index].locales[0]?.description}</p>
-
-    {#if (appState.subscribedLabelers.current.includes(did))}
-      <div class="moderation-settings-group__content">
-        <LabelSelector
-          name={did + '_' + label[0]}
-          bind:value={renderLabels[label[0]]}
-          contentLabelsSelections={badgeSelections}
-        ></LabelSelector>
-      </div>
-    {/if}
-  </div>
-{/each}
+{:else}
+  <LoadingSpinner />
+{/if}

@@ -14,6 +14,8 @@ import type {
     ThreadItemV2,
     ThreadSort,
     BlobRef,
+    LabelerView,
+    LabelerViewDetailed,
 } from "$lib/types/atproto";
 import type {ChatMessageView, ConvoView} from "$lib/components/chat/chatTypes";
 import type {NotificationView} from "$lib/components/notification/notificationPipeline";
@@ -122,6 +124,13 @@ export interface XrpcGetMap {
     'chat.bsky.convo.getLog': {
         params: { cursor?: string };
         output: { logs: Extensible[]; cursor?: string };
+    };
+    'app.bsky.labeler.getServices': {
+        params: { dids: string[], detailed: false };
+        output: { views: LabelerView[] };
+    } | {
+        params: { dids: string[], detailed: true };
+        output: { views: LabelerViewDetailed[] };
     };
 }
 

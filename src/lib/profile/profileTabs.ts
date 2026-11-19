@@ -25,7 +25,7 @@ export interface ProfileTabItem {
     menu?: ProfileTabMenu;
 }
 
-export type ProfileTabKey = 'posts' | 'follow' | 'media' | 'blog' | 'likes' | 'feed' | 'lists' | 'starterpack';
+export type ProfileTabKey = 'posts' | 'follow' | 'media' | 'blog' | 'likes' | 'feed' | 'lists' | 'starterpack' | 'label';
 
 interface TabSource {
     associated?: { feedgens?: number; lists?: number; starterPacks?: number };
@@ -50,7 +50,7 @@ export function profileTabOf(page: string): string {
 
 export function profileTabKeys({ profile, current, isLabeler, isMe, hasBlog }: TabOptions): ProfileTabKey[] {
     if (isLabeler) {
-        return ['posts'];
+        return ['posts', 'label'];
     }
 
     const tab = profileTabOf(current);

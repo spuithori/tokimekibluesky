@@ -134,6 +134,7 @@
     "url_app_password": "https://tokimekibluesky-docs.vercel.app/apppassword",
     "unfollow_button": "Unfollow",
     "liked_users": "Liked users",
+    "liked_count": "{count} liked",
     "blocking_this_user": "You are blocking this user",
     "blocked_by_this_user": "You are blocked by this user",
     "block_user": "Block",
