@@ -4,6 +4,8 @@
     import Check from '@lucide/svelte/icons/check';
     import Pin from '@lucide/svelte/icons/pin';
     import CloudUpload from '@lucide/svelte/icons/cloud-upload';
+    import Trash2 from '@lucide/svelte/icons/trash-2';
+    import { iconMap } from "$lib/columnIcons";
     import IconColumnsEdit from "$lib/icons/columns/IconColumnsEdit.svelte";
     import ColumnIcon from "$lib/components/column/ColumnIcon.svelte";
     import type { CatalogItem } from "./columnCatalog";
@@ -14,10 +16,13 @@
         onadd: (item: CatalogItem) => void;
         onedit?: (item: CatalogItem) => void;
         onmigrate?: (item: CatalogItem) => void;
+        onremove?: (item: CatalogItem) => void;
         migrating?: boolean;
     }
 
-    let { item, added, onadd, onedit, onmigrate, migrating = false }: Props = $props();
+    let { item, added, onadd, onedit, onmigrate, onremove, migrating = false }: Props = $props();
+
+    const Icon = $derived(item.icon ? iconMap.get(item.icon) : undefined);
 
     let flashing = $state(false);
 
@@ -35,6 +40,8 @@
         <span class="catalog-row__icon" class:catalog-row__icon--avatar={Boolean(item.avatar)}>
             {#if item.avatar}
                 <img src={item.avatar} alt="" loading="lazy" decoding="async" width="36" height="36">
+            {:else if Icon}
+                <Icon color="var(--text-color-1)" strokeWidth="var(--icon-stroke-width, 2px)"></Icon>
             {:else}
                 <ColumnIcon type={item.column.algorithm.type} color="var(--text-color-1)"></ColumnIcon>
             {/if}
@@ -65,6 +72,12 @@
         {#if item.editable && onedit}
             <button class="catalog-row__tool" type="button" onclick={() => onedit?.(item)} aria-label={$_('edit')} title={$_('edit')}>
                 <IconColumnsEdit></IconColumnsEdit>
+            </button>
+        {/if}
+
+        {#if item.removable && onremove}
+            <button class="catalog-row__tool" type="button" onclick={() => onremove?.(item)} aria-label={$_('delete')} title={$_('delete')}>
+                <Trash2 size={18} color="var(--text-color-3)" />
             </button>
         {/if}
 

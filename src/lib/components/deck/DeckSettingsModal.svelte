@@ -32,6 +32,8 @@
         SINGLE_WIDTH_MIN, SINGLE_WIDTH_MAX, SINGLE_WIDTH_DEFAULT,
     } from "$lib/deckWidth";
     import {notificationSourceMode, resetNotificationColumnData} from "$lib/components/notification/notificationPipeline";
+    import {isHomePlusColumn, releaseHomePlusUri, renameHomePlus} from "$lib/homeplus/lifecycle";
+    import {toast} from "svelte-sonner";
 
     interface Props {
         index: any;
@@ -88,6 +90,24 @@
         mediaColumns: 3,
     };
     column.settings = {...defaultSettings, ...column.settings};
+
+    const isHomePlus = isHomePlusColumn(column);
+
+    async function handleHomePlusRename(event: Event & { currentTarget: HTMLInputElement }) {
+        const input = event.currentTarget;
+        try {
+            await renameHomePlus(_agent, column, input.value, () => columnState.columns);
+        } catch (e) {
+            console.error(e);
+            toast.error($_('homeplus_error_save'));
+        }
+        input.value = column.algorithm.name ?? '';
+    }
+
+    function handleRemoveMergeSource(source: { id: string, algorithm?: string }) {
+        removeMergeSource(columnState, column.id, source.id);
+        releaseHomePlusUri(source.algorithm, columnState.columns);
+    }
 
     const playSoundSettings = [
         {
@@ -340,6 +360,20 @@
             <p class="deck-settings-description">{$_('deck_settings_description')}</p>
 
             <div class="deck-settings-groups">
+                {#if isHomePlus && column.algorithm.homePlus?.recipe}
+                    <dl class="settings-group">
+                        <dt class="settings-group__name">
+                            {$_('homeplus_name')}
+                        </dt>
+
+                        <dd class="settings-group__content">
+                            <div class="input-text">
+                                <input class="input-text__input" type="text" maxlength="64" value={column.algorithm.name} onchange={handleHomePlusRename} aria-label={$_('homeplus_name')}>
+                            </div>
+                        </dd>
+                    </dl>
+                {/if}
+
                 {#if (column.algorithm?.type === 'search')}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
@@ -642,6 +676,7 @@
                 {/if}
 
                 {#if (column.algorithm?.type !== 'notification' && column.algorithm?.type !== 'thread' && column.algorithm?.type !== 'search' && column.algorithm?.type !== 'chat' && column.algorithm?.type !== 'chatList' && column.algorithm?.type !== 'mochottTimeline' && column.algorithm?.type !== 'networkFeed')}
+                    {#if !isHomePlus}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('hide_repost_frequency')}
@@ -689,6 +724,7 @@
                             </div>
                         </dd>
                     </dl>
+                    {/if}
 
                     <dl class="settings-group">
                         <dt class="settings-group__name">
@@ -702,6 +738,7 @@
                         </dd>
                     </dl>
 
+                    {#if !isHomePlus}
                     <dl class="settings-group">
                         <dt class="settings-group__name">
                             {$_('lang_filter_overwritten')}
@@ -732,9 +769,10 @@
                             </div>
                         </div>
                     {/if}
+                    {/if}
                 {/if}
 
-                {#if (column.algorithm?.type === 'custom')}
+                {#if (column.algorithm?.type === 'custom' && !isHomePlus)}
                     <a
                         class="deck-column-delete-button deck-column-delete-button--info"
                         href="/profile/{column.algorithm.algorithm.split('/')[2]}/feed/{column.algorithm.algorithm.split('/').slice(-1)[0]}"
@@ -773,7 +811,7 @@
                                             class="merge-sources-settings__remove"
                                             aria-label={$_('merge_remove_source')}
                                             title={$_('merge_remove_source')}
-                                            onclick={() => {removeMergeSource(columnState, column.id, source.id)}}
+                                            onclick={() => {handleRemoveMergeSource(source)}}
                                     >
                                         <X size="16" color="var(--text-color-3)"></X>
                                     </button>

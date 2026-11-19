@@ -107,7 +107,7 @@ class CustomFeedsStore {
         const a = toBlobJson(r.value.avatar);
         if (a) avatars.set(rkey, a);
       }
-      this.items = definitions.map((r) => {
+      this.items = definitions.filter((r) => !rkeyOf(r.uri).startsWith('homeplus-')).map((r) => {
         const rkey = rkeyOf(r.uri);
         return {
           uri: r.uri,

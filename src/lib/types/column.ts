@@ -1,6 +1,7 @@
 import type { searchFilters } from '$lib/search/filterSpec';
 import type { ScrollState } from '$lib/components/virtual/types';
 import type { MergeSource } from '$lib/merge/mergeEngine';
+import type { HomePlusRecipe } from '$lib/homeplus/recipe';
 export type { searchFilters };
 export type { MergeSource };
 
@@ -13,6 +14,7 @@ export type currentAlgorithm = {
     sort?: 'top' | 'latest',
     searchFilters?: searchFilters,
     sources?: MergeSource[],
+    homePlus?: { recipe: HomePlusRecipe | null, createdAt: string, customName?: boolean },
 }
 
 export type deckSettings = {

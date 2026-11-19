@@ -19,6 +19,7 @@
   import {soloFeedKey} from "$lib/merge/mergeSolo";
   import {getTimelineItemHeightEstimate, reportTimelineItemHeight} from "$lib/components/timeline/timelineHeightEstimate";
   import FeedLoadError from "$lib/components/timeline/FeedLoadError.svelte";
+  import {isHomePlusColumn} from "$lib/homeplus/lifecycle";
 
   let {
     column,
@@ -329,6 +330,7 @@
     <FeedLoadError
       error={loadError}
       feedUri={column.algorithm?.type === 'custom' ? column.algorithm.algorithm : undefined}
+      homePlus={isHomePlusColumn(column)}
       onretry={handleRetry}
       onremove={isJunk ? undefined : () => columnState.remove(column.id)}
     ></FeedLoadError>

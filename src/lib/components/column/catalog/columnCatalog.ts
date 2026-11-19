@@ -1,7 +1,9 @@
 import type { Column } from "$lib/types/column";
 import { defaultDeckSettings } from "$lib/components/deck/defaultDeckSettings";
+import { recipeKey, type HomePlusRecipe } from "$lib/homeplus/recipe";
+import type { HomePlusFeed } from "$lib/homeplus/feeds";
 
-export type CatalogSectionId = 'basic' | 'feeds' | 'lists' | 'bookmarks' | 'merge' | 'atmosphere' | 'local';
+export type CatalogSectionId = 'basic' | 'homeplus' | 'feeds' | 'lists' | 'bookmarks' | 'merge' | 'atmosphere' | 'local';
 
 export type CatalogEditable = 'list' | 'cloudList' | 'officialList' | 'bookmark' | 'cloudBookmark';
 
@@ -14,6 +16,10 @@ export interface CatalogItem {
     migratable?: boolean;
     avatar?: string;
     description?: string;
+    icon?: string;
+    search?: string;
+    removable?: boolean;
+    homePlus?: { recipe: HomePlusRecipe | null; feed?: HomePlusFeed; custom?: boolean };
 }
 
 export interface CatalogSection {
@@ -59,6 +65,7 @@ export interface CatalogSources {
     localLists: CatalogLocalEntry[];
     localBookmarks: CatalogLocalEntry[];
     migratableLocalListIds: Set<string>;
+    homePlus: CatalogItem[];
     atmosphereEnabled: boolean;
     labels: {
         notifications: string;
@@ -74,13 +81,17 @@ export interface CatalogSources {
     };
 }
 
-export function columnKey(column: { algorithm?: { type?: string; algorithm?: string | number } }): string {
+export function columnKey(column: { algorithm?: { type?: string; algorithm?: string | number; homePlus?: { recipe: HomePlusRecipe | null } } }): string {
+    const recipe = column.algorithm?.type === 'custom' ? column.algorithm.homePlus?.recipe : undefined;
+    if (recipe) {
+        return `homeplus:${recipeKey(recipe)}`;
+    }
     const type = column.algorithm?.type ?? '';
     const algorithm = column.algorithm?.algorithm;
     return `${type}:${algorithm === undefined || algorithm === null ? '' : String(algorithm)}`;
 }
 
-export function countAddedByKey(columns: Array<{ did?: string; algorithm?: { type?: string; algorithm?: string | number } }>, did: string): Map<string, number> {
+export function countAddedByKey(columns: Array<{ did?: string; algorithm?: { type?: string; algorithm?: string | number; homePlus?: { recipe: HomePlusRecipe | null } } }>, did: string): Map<string, number> {
     const counts = new Map<string, number>();
     for (const column of columns) {
         if (column.did !== did) {
@@ -179,6 +190,7 @@ export function buildCatalog(sources: CatalogSources): CatalogSection[] {
 
     return [
         { id: 'basic', items: basic },
+        { id: 'homeplus', items: sources.homePlus },
         { id: 'feeds', items: feeds },
         { id: 'lists', items: lists },
         { id: 'bookmarks', items: bookmarks },
@@ -198,7 +210,7 @@ export function matchesQuery(item: CatalogItem, normalized: string): boolean {
     if (!normalized) {
         return true;
     }
-    const haystack = `${item.column.algorithm?.name ?? ''} ${item.subtitle ?? ''}`.toLocaleLowerCase();
+    const haystack = `${item.column.algorithm?.name ?? ''} ${item.subtitle ?? ''} ${item.search ?? ''}`.toLocaleLowerCase();
     if (!ASCII_QUERY.test(normalized)) {
         return haystack.includes(normalized);
     }

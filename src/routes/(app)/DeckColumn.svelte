@@ -41,6 +41,11 @@
     import {DECK_SLOT_SELECTOR, deckSlotElements, insertionIndexAt, quadrantZone, type DropPreview, type Quad} from "$lib/attachments/sortable.svelte";
     import {normalizeThreadSort, THREAD_SORTS} from "$lib/components/thread/threadV2";
     import type {ThreadSort} from "$lib/types/atproto";
+    import ListFilter from '@lucide/svelte/icons/list-filter';
+    import HomePlusStrip from "$lib/components/homeplus/HomePlusStrip.svelte";
+    import {commitHomePlus, followHomePlusIcon, isHomePlusAutoNamed, isHomePlusColumn, prepareHomePlusColumn, syncHomePlusColumns} from "$lib/homeplus/lifecycle";
+    import {recipeSummary, type HomePlusRecipe} from "$lib/homeplus/recipe";
+    import {homePlusStrip} from "$lib/homeplus/stripState.svelte";
 
     interface Props {
         index: number;
@@ -89,6 +94,14 @@
             : 'all');
 
     const threadSort = $derived(normalizeThreadSort($settings.timeline?.threadSort));
+
+    const homePlus = $derived(!isJunk && isHomePlusColumn(column) ? column.algorithm.homePlus : undefined);
+    const homePlusRecipe = $derived(homePlus?.recipe ?? null);
+    const homePlusSummary = $derived(homePlusRecipe ? recipeSummary(homePlusRecipe, $_) : []);
+    const homePlusTitle = $derived(isHomePlusAutoNamed(column) ? 'HOME+' : column?.algorithm?.name);
+    const isHomePlusStripOpen = $derived(!!homePlusRecipe && homePlusStrip.has(column.id));
+    let isHomePlusSaving = $state(false);
+    let homePlusHidden = $state(0);
 
     if (column && !column.data) {
         column.data = {
@@ -317,6 +330,71 @@
         });
     }
 
+    function toggleHomePlusStrip() {
+        const el = $settings.design?.layout === 'decks' ? scrollEl : (document.querySelector(':root') as HTMLElement | null);
+        if (el) {
+            el.scrollTop = 0;
+        }
+
+        if (!homePlusStrip.delete(column.id)) {
+            homePlusStrip.add(column.id);
+        }
+    }
+
+    async function applyHomePlusRecipe(next: HomePlusRecipe) {
+        const agent = _agent;
+        const target = column;
+        if (!agent || !target?.algorithm?.homePlus || isHomePlusSaving) {
+            return;
+        }
+
+        const columns = () => fixedColumnState.columns;
+        isHomePlusSaving = true;
+
+        try {
+            await prepareHomePlusColumn(agent, target, columns);
+            const copy = target.algorithm.homePlus;
+            if (!copy) {
+                return;
+            }
+
+            const previous = copy.recipe;
+            target.algorithm.homePlus = {...copy, recipe: next};
+            try {
+                await commitHomePlus(agent, target, previous, next, columns);
+            } catch (e) {
+                if (target.algorithm.homePlus) {
+                    target.algorithm.homePlus = {...target.algorithm.homePlus, recipe: previous};
+                }
+                throw e;
+            }
+
+            followHomePlusIcon(target, previous);
+            resetColumnForRefresh(target, columnState);
+            unique = Symbol();
+        } catch (e) {
+            console.error(e);
+            toast.error($_('homeplus_error_save'));
+        } finally {
+            isHomePlusSaving = false;
+        }
+    }
+
+    function countHiddenChips(node: HTMLElement) {
+        const total = homePlusSummary.length;
+        const observer = new ResizeObserver(() => {
+            const chips = Array.from(node.children) as HTMLElement[];
+            const top = chips[0]?.offsetTop ?? 0;
+            homePlusHidden = total ? chips.filter(chip => chip.offsetTop > top).length : 0;
+        });
+        observer.observe(node);
+        return () => observer.disconnect();
+    }
+
+    function syncHomePlus() {
+        syncHomePlusColumns(_agent, () => fixedColumnState.columns);
+    }
+
     function forceRefresh() {
         isRefreshing = true;
         resetColumnForRefresh(column, columnState);
@@ -500,7 +578,7 @@
                     aria-label="Back to top."
             >
                 <div class="deck-heading__title">
-                    {column?.algorithm?.name}
+                    {homePlus ? homePlusTitle : column?.algorithm?.name}
                     {#if (column?.algorithm?.type === 'merge' && column?.algorithm?.sources?.length)}
                         <span class="merge-chips" role="group" aria-label={$_('merge_sources')}>
                             {#each column.algorithm.sources as source, sourceIndex (source.id)}
@@ -516,6 +594,19 @@
                                         onpointerdown={(e) => {handleMergeChipPointerDown(e, source.id)}}
                                 >{source.name}</button>
                             {/each}
+                        </span>
+                    {:else if homePlusRecipe}
+                        <span class="homeplus-summary" title={homePlusSummary.join($_('homeplus_sep'))} {@attach syncHomePlus}>
+                            <span class="homeplus-summary__chips" {@attach countHiddenChips}>
+                                {#each homePlusSummary as label, labelIndex (labelIndex)}
+                                    <span class="homeplus-summary__chip">{label}</span>
+                                {:else}
+                                    <span class="homeplus-summary__empty">{$_('homeplus_no_cond')}</span>
+                                {/each}
+                            </span>
+                            {#if homePlusHidden > 0}
+                                <span class="homeplus-summary__chip homeplus-summary__chip--more">+{homePlusHidden}</span>
+                            {/if}
                         </span>
                     {:else}
                         <span class="deck-heading__subhead">{column?.handle}</span>
@@ -584,6 +675,18 @@
                     {isRefreshing}
             ></ColumnRefreshButton>
 
+            {#if homePlusRecipe}
+                <button
+                        class="deck-row-settings-button homeplus-toggle"
+                        class:deck-row-settings-button--open={isHomePlusStripOpen}
+                        aria-label={$_('homeplus_edit')}
+                        aria-expanded={isHomePlusStripOpen}
+                        onclick={toggleHomePlusStrip}
+                >
+                    <ListFilter color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></ListFilter>
+                </button>
+            {/if}
+
             {#if (!isJunk)}
                 <button class="deck-row-settings-button" class:deck-row-settings-button--open={isSettingsOpen} aria-label="Settings" onclick={() => {isSettingsOpen = !isSettingsOpen}}>
                     <Settings2 color="var(--deck-row-settings-button-color, var(--text-color-3))" strokeWidth="var(--icon-stroke-width, 2px)"></Settings2>
@@ -621,6 +724,10 @@
             disabled={column?.algorithm?.type === 'chat' || column?.algorithm?.type === 'chatList' || $settings.design?.layout === 'default' || !!profileRefreshContext}
     >
         <div class="deck-row__content">
+            {#if isHomePlusStripOpen && homePlusRecipe}
+                <HomePlusStrip recipe={homePlusRecipe} saving={isHomePlusSaving} onchange={applyHomePlusRecipe} onclose={toggleHomePlusStrip}></HomePlusStrip>
+            {/if}
+
             {#if !isContentDeferred}
                 <ColumnContent {index} {_agent} {isJunk} {unique} {isTopScrolling} onrefresh={handleRefresh}></ColumnContent>
             {/if}
@@ -785,6 +892,10 @@
                     }
                 }
 
+                .deck-row-settings-button--open:hover {
+                    background-color: var(--primary-color);
+                }
+
                 .deck-heading-side-button {
                     display: grid;
                     width: 44px;
@@ -890,6 +1001,50 @@
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
+        }
+
+        .homeplus-summary {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-width: 0;
+            height: 20px;
+            font-weight: normal;
+            letter-spacing: 0;
+
+            &__chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                min-width: 0;
+                height: 18px;
+                overflow: hidden;
+            }
+
+            &__chip {
+                flex-shrink: 0;
+                max-width: 100%;
+                height: 18px;
+                padding: 0 7px;
+                border-radius: 9px;
+                font-size: 11px;
+                line-height: 18px;
+                color: var(--deck-heading-subhead-color);
+                background-color: color-mix(in srgb, var(--primary-color) 16%, transparent);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+
+                &--more {
+                    padding: 0 6px;
+                }
+            }
+
+            &__empty {
+                font-size: 12px;
+                color: var(--deck-heading-subhead-color);
+                white-space: nowrap;
+            }
         }
 
         .merge-chips {

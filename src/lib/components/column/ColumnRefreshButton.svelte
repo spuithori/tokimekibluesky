@@ -16,6 +16,7 @@
     import {CHAT_PROXY} from "$lib/components/chat/chatConst";
     import {getColumnState} from "$lib/classes/columnState.svelte";
     import {toFeedLoadError} from "$lib/components/timeline/feedLoadError";
+    import {isHomePlusColumn, isHomePlusPending, prepareHomePlusColumn, restoreHomePlusColumn} from "$lib/homeplus/lifecycle";
 
     interface Props {
         index: any;
@@ -109,6 +110,15 @@
     }
 
     async function doRefresh(isAutoRefresh: boolean) {
+        if (isHomePlusColumn(column) && (column.algorithm.homePlus?.recipe?.sort ?? 'new') !== 'new') {
+            if (isAutoRefresh && getScrollElement().scrollTop > 0) {
+                return false;
+            }
+            resetColumnForRefresh(column, columnState);
+            unique = Symbol();
+            return true;
+        }
+
         if (column.style === 'video') {
             columnState.clearFeed(column.id);
             column.data.cursor = undefined;
@@ -128,13 +138,28 @@
             const scrollEl: HTMLElement = getScrollElement();
 
             let res;
+            const epoch = unique;
             try {
-                res = await _agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
+                const agent = _agent;
+                if (isHomePlusPending(column)) {
+                    await prepareHomePlusColumn(agent, column, () => columnState.columns);
+                }
+                const request = () => agent.getTimeline({limit: 20, cursor: '', algorithm: column.algorithm});
+                res = await request().catch(async (e: unknown) => {
+                    if (!(await restoreHomePlusColumn(agent, column, e))) {
+                        throw e;
+                    }
+                    return await request();
+                });
             } catch (e) {
                 console.error(e);
                 if (columnState.getFeed(column.id).length === 0) {
                     columnState.setFeedError(column.id, toFeedLoadError(column.algorithm.type, e));
                 }
+                return false;
+            }
+
+            if (unique !== epoch) {
                 return false;
             }
 

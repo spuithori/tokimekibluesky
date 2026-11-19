@@ -8,6 +8,7 @@
     isMenuOpen?: boolean;
     buttonClassName?: string;
     position?: Placement;
+    label?: string;
     ref?: import('svelte').Snippet;
     sub?: import('svelte').Snippet;
     content?: import('svelte').Snippet;
@@ -17,6 +18,7 @@
     isMenuOpen = $bindable(false),
     buttonClassName = 'timeline-menu-toggle',
     position = 'bottom-end',
+    label = 'Open menu.',
     ref,
     sub,
     content,
@@ -69,7 +71,7 @@
 
 <button
   class={buttonClassName}
-  aria-label="Open menu."
+  aria-label={label}
   onclick={menuOpen}
   use:floatingRef
 >

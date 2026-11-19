@@ -12,6 +12,7 @@ function sources(overrides: Partial<CatalogSources> = {}): CatalogSources {
         localLists: [],
         localBookmarks: [],
         migratableLocalListIds: new Set(),
+        homePlus: [],
         atmosphereEnabled: true,
         labels: {
             notifications: 'Notifications',
@@ -52,9 +53,9 @@ describe('countAddedByKey', () => {
 });
 
 describe('buildCatalog', () => {
-    it('orders sections basic, feeds, lists, bookmarks, merge, atmosphere, local', () => {
+    it('orders sections basic, homeplus, feeds, lists, bookmarks, merge, atmosphere, local', () => {
         expect(buildCatalog(sources()).map(section => section.id)).toEqual([
-            'basic', 'feeds', 'lists', 'bookmarks', 'merge', 'atmosphere', 'local',
+            'basic', 'homeplus', 'feeds', 'lists', 'bookmarks', 'merge', 'atmosphere', 'local',
         ]);
     });
 

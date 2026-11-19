@@ -14,6 +14,7 @@
   import AcpAppViewProxyModal from "$lib/components/acp/AcpAppViewProxyModal.svelte";
   import Waypoints from '@lucide/svelte/icons/waypoints';
   import {appState} from "$lib/classes/appState.svelte";
+  import {forgetHomePlusProfiles, releaseHomePlus} from "$lib/homeplus/lifecycle";
 
   const columnState = getColumnState();
 
@@ -57,6 +58,10 @@
   async function deleteProfile(id) {
       try {
           const pid = await accountsDb.profiles.delete(id);
+          forgetHomePlusProfiles();
+          for (const column of profile.columns ?? []) {
+              releaseHomePlus(column, columnState.columns);
+          }
 
           toast.success($_('profile_delete_success'));
       } catch (e) {

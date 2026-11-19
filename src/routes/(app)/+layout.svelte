@@ -36,7 +36,8 @@
     import { isMobile } from "$lib/detectDevice";
     import BluefeedAddObserver from "$lib/components/list/BluefeedAddObserver.svelte";
     import ChatUpdateObserver from "$lib/components/utils/ChatUpdateObserver.svelte";
-    import { getColumnState, initColumns } from "$lib/classes/columnState.svelte";
+    import { getColumnState, initColumns, setColumnRemoveListener } from "$lib/classes/columnState.svelte";
+    import { releaseHomePlus } from "$lib/homeplus/lifecycle";
     import { onboardingState } from "$lib/onboarding/onboardingState.svelte";
     import { on } from "svelte/events";
     import { attachCompositorHeartbeat } from "$lib/compositorHeartbeat";
@@ -232,6 +233,9 @@
     viewPortSetting();
     setPostState();
     initColumns();
+    setColumnRemoveListener((column, remaining) => {
+        releaseHomePlus(column, remaining);
+    });
 
     const columnState = getColumnState();
     const wizardVisible = $derived(

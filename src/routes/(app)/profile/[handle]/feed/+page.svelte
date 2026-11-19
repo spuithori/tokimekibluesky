@@ -5,6 +5,7 @@
     import FeedsItem from "$lib/components/feeds/FeedsItem.svelte";
     import {onMount} from "svelte";
     import Infinite from "$lib/components/utils/Infinite.svelte";
+    import {isHomePlusUri} from "$lib/homeplus/feeds";
     let feeds = $state([]);
     let cursor: string | undefined = '';
     let savedFeeds = [];
@@ -30,7 +31,7 @@
         try {
             let raw = await $agent.xrpc.get('app.bsky.feed.getActorFeeds', {actor: data.params.handle, limit: 20, cursor: cursor});
             cursor = raw.cursor;
-            feeds = [...feeds, ...raw.feeds];
+            feeds = [...feeds, ...raw.feeds.filter(feed => !isHomePlusUri(feed.uri))];
 
             if (cursor) {
                 loaded();

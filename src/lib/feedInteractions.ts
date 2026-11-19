@@ -1,5 +1,6 @@
 import type { Attachment } from 'svelte/attachments';
 import type { Agent } from '$lib/agent';
+import { isHomePlusUri } from '$lib/homeplus/feeds';
 
 const EVENT_NS = 'app.bsky.feed.defs#';
 const FLUSH_DELAY = 10_000;
@@ -61,14 +62,14 @@ export function interactionFeedUri(column: ColumnLike | undefined, item: FeedIte
     if (!algorithm) {
         return undefined;
     }
+    let uri: string | undefined;
     if (algorithm.type === 'custom') {
-        return algorithm.algorithm || undefined;
-    }
-    if (algorithm.type === 'merge' && item?.__sourceId) {
+        uri = algorithm.algorithm;
+    } else if (algorithm.type === 'merge' && item?.__sourceId) {
         const source = algorithm.sources?.find(s => s.id === item.__sourceId);
-        return source?.type === 'custom' ? source.algorithm || undefined : undefined;
+        uri = source?.type === 'custom' ? source.algorithm : undefined;
     }
-    return undefined;
+    return uri && !isHomePlusUri(uri) ? uri : undefined;
 }
 
 export function resolveInteractionTarget(agent: Agent, feedUri: string): Promise<string | null> {

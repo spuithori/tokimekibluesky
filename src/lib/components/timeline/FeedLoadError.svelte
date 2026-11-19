@@ -5,11 +5,13 @@
   let {
     error,
     feedUri = undefined,
+    homePlus = false,
     onretry = undefined,
     onremove = undefined,
   }: {
     error: FeedLoadError;
     feedUri?: string;
+    homePlus?: boolean;
     onretry?: () => void;
     onremove?: () => void;
   } = $props();
@@ -25,13 +27,14 @@
   };
 
   const isMissing = $derived(error.kind === 'feedgenDoesNotExist');
-  const ownerDid = $derived(error.kind === 'unknown' ? '' : feedOwnerDid(feedUri));
-  const canRetry = $derived(!!onretry && !isMissing);
+  const ownerDid = $derived(error.kind === 'unknown' || homePlus ? '' : feedOwnerDid(feedUri));
+  const canRetry = $derived(!!onretry && (!isMissing || homePlus));
+  const messageKey = $derived(homePlus && isMissing ? 'homeplus_error_load' : MESSAGE_KEYS[error.kind]);
   const canRemove = $derived(!!onremove && isMissing);
 </script>
 
 <div class="feed-load-error">
-  <p>{$_(MESSAGE_KEYS[error.kind])}</p>
+  <p>{$_(messageKey)}</p>
 
   {#if error.serverMessage}
     <p class="feed-load-error__server">{$_('feed_error_server_message', {message: error.serverMessage})}</p>

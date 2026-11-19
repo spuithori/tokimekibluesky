@@ -15,18 +15,23 @@
         helpUrl?: string;
         description?: string;
         ontoggle: (open: boolean) => void;
+        label?: Snippet;
         actions?: Snippet;
         children: Snippet;
     }
 
-    let { id, title, count = undefined, open, loading = false, helpUrl = undefined, description = undefined, ontoggle, actions, children }: Props = $props();
+    let { id, title, count = undefined, open, loading = false, helpUrl = undefined, description = undefined, ontoggle, label, actions, children }: Props = $props();
 </script>
 
 <section class="catalog-section" class:catalog-section--open={open}>
     <div class="catalog-section__head">
         <button class="catalog-section__toggle" type="button" aria-expanded={open} aria-controls="catalog-section-{id}" onclick={() => ontoggle(!open)}>
             <span class="catalog-section__chevron"><ChevronDown size={16} color="currentColor" strokeWidth={2.5} /></span>
-            <span class="catalog-section__title">{title}</span>
+            {#if label}
+                {@render label()}
+            {:else}
+                <span class="catalog-section__title">{title}</span>
+            {/if}
             {#if count !== undefined}
                 <span class="catalog-section__count">{count}</span>
             {/if}

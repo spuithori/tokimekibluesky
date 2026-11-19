@@ -6,6 +6,7 @@
     import SearchResultList from "$lib/components/search/SearchResultList.svelte";
     import { SAVED_FEEDS_CONTEXT, type SavedFeedsContext } from "../savedFeedsContext";
     import type { FeedGenerator } from "$lib/search/types";
+    import { isHomePlusUri } from "$lib/homeplus/feeds";
 
     let q = $derived($page.url.searchParams.get('q') ?? '');
 
@@ -14,7 +15,7 @@
 
     async function load(cursor: string | undefined, signal: AbortSignal) {
         const res = await $agent.xrpc.get<{ feeds: FeedGenerator[]; cursor?: string }>('app.bsky.unspecced.getPopularFeedGenerators', { query: q, limit: 20, cursor }, { signal });
-        return { items: res.feeds ?? [], cursor: res.cursor };
+        return { items: (res.feeds ?? []).filter(feed => !isHomePlusUri(feed.uri)), cursor: res.cursor };
     }
 </script>
 

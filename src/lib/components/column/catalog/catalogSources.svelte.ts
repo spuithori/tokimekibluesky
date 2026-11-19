@@ -1,5 +1,7 @@
 import { accountsDb } from "$lib/db";
 import type { CatalogCloudEntry, CatalogFeed, CatalogList } from "./columnCatalog";
+import type { HomePlusFeed } from "$lib/homeplus/feeds";
+import { loadHomePlusFeeds } from "$lib/homeplus/lifecycle";
 
 type PinnedItem = { type: 'feed' | 'list' | 'timeline'; value: string; pinned?: boolean };
 
@@ -36,6 +38,8 @@ export class CatalogSourcesState {
     lists = $state.raw<CatalogList[]>([]);
     cloudLists = $state.raw<CatalogCloudEntry[]>([]);
     cloudBookmarks = $state.raw<CatalogCloudEntry[]>([]);
+    homePlusFeeds = $state.raw<HomePlusFeed[]>([]);
+    homePlusLoading = $state(true);
     feedsLoading = $state(true);
     listsLoading = $state(true);
     cloudListsLoading = $state(true);
@@ -79,7 +83,26 @@ export class CatalogSourcesState {
             this.#loadFeedsAndLists(epoch),
             this.#loadCloudLists(epoch),
             this.#loadCloudBookmarks(epoch),
+            this.#loadHomePlus(epoch),
         ]);
+    }
+
+    removeHomePlusFeed(rkey: string): void {
+        this.homePlusFeeds = this.homePlusFeeds.filter(entry => entry.rkey !== rkey);
+    }
+
+    async #loadHomePlus(epoch: number): Promise<void> {
+        try {
+            const feeds = await loadHomePlusFeeds(this.#agent, true);
+            if (epoch === this.#epoch) {
+                this.homePlusFeeds = feeds;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        if (epoch === this.#epoch) {
+            this.homePlusLoading = false;
+        }
     }
 
     async reloadCloudLists(): Promise<void> {

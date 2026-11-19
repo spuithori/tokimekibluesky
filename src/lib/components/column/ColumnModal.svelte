@@ -12,6 +12,7 @@
     import {isMobileViewport} from "$lib/viewportQuery.svelte";
     import type {Column} from "$lib/types/column";
     import {addColumnWithIcon} from "$lib/addColumnWithIcon";
+    import {homePlusStrip} from "$lib/homeplus/stripState.svelte";
 
     let { onclose } = $props();
 
@@ -66,6 +67,12 @@
             id,
         }, description);
         addedIds = [...addedIds, id];
+
+        const recipe = column.algorithm?.type === 'custom' ? column.algorithm.homePlus?.recipe : undefined;
+        if (recipe && !recipe.conds.length && recipe.sort === 'new') {
+            homePlusStrip.add(id);
+            close();
+        }
     }
 </script>
 

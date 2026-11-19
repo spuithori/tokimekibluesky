@@ -20,6 +20,9 @@
     import { CatalogSourcesState } from './catalogSources.svelte';
     import { buildCatalog, countAddedByKey, filterCatalog, normalizeQuery, type CatalogItem, type CatalogSectionId } from './columnCatalog';
     import type { Column } from '$lib/types/column';
+    import { buildHomePlusItems } from '$lib/homeplus/catalog';
+    import { applyHomePlusFeeds, countHomePlusFeedUses, homePlusAlgorithm, removeUnusedHomePlusFeed } from '$lib/homeplus/lifecycle';
+    import { recipeName } from '$lib/homeplus/recipe';
 
     interface Props {
         _agent: any;
@@ -31,7 +34,7 @@
 
     const columnState = getColumnState();
     const sources = new CatalogSourcesState(_agent);
-    sources.load();
+    sources.load().then(() => applyHomePlusFeeds(sources.homePlusFeeds, columnState.columns));
 
     const bookmarks = liveQuery(() => db.bookmarks.toArray());
 
@@ -54,6 +57,7 @@
         localLists: $userLists ?? [],
         localBookmarks: $bookmarks ?? [],
         migratableLocalListIds: migratableListIds,
+        homePlus: buildHomePlusItems(did, handle, sources.homePlusFeeds, $_),
         atmosphereEnabled: !settingsStore.general.disableAtmosphere,
         labels: {
             notifications: $_('notifications'),
@@ -72,9 +76,21 @@
     const searching = $derived(normalizeQuery(query) !== '');
     const visible = $derived(filterCatalog(catalog, query));
     const addedCounts = $derived(countAddedByKey(columnState.columns, did));
+    const homePlusUses = $derived(countHomePlusFeedUses(columnState.columns));
+
+    function addedOf(item: CatalogItem): number {
+        const feed = item.homePlus?.feed;
+        return item.key.startsWith('homeplus-feed:') && feed ? (homePlusUses.get(feed.uri) ?? 0) : (addedCounts.get(item.key) ?? 0);
+    }
+
+    function isUnusedHomePlus(item: CatalogItem): boolean {
+        const feed = item.homePlus?.feed;
+        return !!feed && !homePlusUses.has(feed.uri);
+    }
 
     const titles: Record<CatalogSectionId, string> = $derived({
         basic: $_('basic_columns'),
+        homeplus: 'HOME+',
         feeds: $_('feed_columns'),
         lists: $_('official_list_columns'),
         bookmarks: $_('bookmark_cloud'),
@@ -106,6 +122,8 @@
         switch (id) {
             case 'feeds':
                 return sources.feedsLoading;
+            case 'homeplus':
+                return sources.homePlusLoading;
             case 'lists':
                 return sources.listsLoading || sources.cloudListsLoading;
             case 'bookmarks':
@@ -131,7 +149,32 @@
     }
 
     function handleAdd(item: CatalogItem) {
-        onadd(structuredClone($state.snapshot(item.column)) as Column, item.description);
+        const column = structuredClone($state.snapshot(item.column)) as Column;
+        const recipe = item.homePlus?.recipe;
+        const feed = item.homePlus?.feed;
+        if (feed) {
+            column.algorithm = homePlusAlgorithm(feed);
+        } else if (recipe) {
+            column.algorithm.name = recipeName(recipe, $_);
+        }
+        onadd(column, item.description);
+    }
+
+    async function handleHomePlusRemove(item: CatalogItem) {
+        const feed = item.homePlus?.feed;
+        if (!feed) {
+            return;
+        }
+        try {
+            if (await removeUnusedHomePlusFeed(_agent, feed, columnState.columns)) {
+                sources.removeHomePlusFeed(feed.rkey);
+            } else {
+                toast.error($_('homeplus_in_use'));
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error('Error: ' + e);
+        }
     }
 
     function handleEdit(item: CatalogItem) {
@@ -265,6 +308,10 @@
         <p class="catalog__nothing">{$_('catalog_no_results')}</p>
     {/if}
 
+    {#snippet homePlusLabel()}
+        <span class="catalog__homeplus">HOME+<span class="catalog__beta">Beta</span></span>
+    {/snippet}
+
     <div class="catalog__sections">
         {#each visible as section (section.id)}
             {#if section.id === 'merge'}
@@ -283,7 +330,8 @@
                     open={isOpen(section.id)}
                     loading={loadingOf(section.id)}
                     helpUrl={helpUrls[section.id]}
-                    description={section.id === 'local' ? $_('catalog_local_description') : undefined}
+                    description={section.id === 'local' ? $_('catalog_local_description') : section.id === 'homeplus' ? $_('homeplus_catalog_description') : undefined}
+                    label={section.id === 'homeplus' ? homePlusLabel : undefined}
                     ontoggle={(open) => toggle(section.id, open)}
                 >
                     {#snippet actions()}
@@ -309,10 +357,11 @@
                             {#each section.items as item (item.key)}
                                 <CatalogRow
                                     {item}
-                                    added={addedCounts.get(item.key) ?? 0}
+                                    added={addedOf(item)}
                                     onadd={handleAdd}
                                     onedit={item.editable ? handleEdit : undefined}
                                     onmigrate={item.migratable ? handleMigrateOne : undefined}
+                                    onremove={item.removable && isUnusedHomePlus(item) ? handleHomePlusRemove : undefined}
                                     {migrating}
                                 ></CatalogRow>
                             {/each}
@@ -416,6 +465,24 @@
         @media (max-width: 767px) {
             grid-template-columns: minmax(0, 1fr);
         }
+    }
+
+    .catalog__homeplus {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 24px;
+        padding: 0 10px;
+        border-radius: var(--radius-round, 12px);
+        background: linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 28%, var(--bg-color-1)), color-mix(in srgb, var(--primary-color) 12%, var(--bg-color-1)));
+        color: var(--text-color-1);
+    }
+
+    .catalog__beta {
+        color: var(--text-color-2);
+        font-size: 11px;
+        font-weight: bold;
+        letter-spacing: .04em;
     }
 
     .catalog__action {

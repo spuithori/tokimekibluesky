@@ -58,6 +58,9 @@ export function canMergeColumns(target: Column | undefined, source: Column | und
     if (target.did !== source.did) {
         return false;
     }
+    if ((target.algorithm.type === 'custom' && !target.algorithm.algorithm) || (source.algorithm.type === 'custom' && !source.algorithm.algorithm)) {
+        return false;
+    }
     if (target.settings?.isPopup || source.settings?.isPopup) {
         return false;
     }

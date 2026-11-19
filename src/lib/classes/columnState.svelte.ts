@@ -13,6 +13,14 @@ import {SOLO_FEED_SUFFIX, soloFeedKey} from "$lib/merge/mergeSolo";
 import {probeFeedRender} from "$lib/debug/renderProbe";
 import type {FeedLoadError} from "$lib/components/timeline/feedLoadError";
 
+type ColumnRemoveListener = (column: Column, remaining: Column[]) => void;
+
+let columnRemoveListener: ColumnRemoveListener | undefined;
+
+export function setColumnRemoveListener(listener: ColumnRemoveListener | undefined): void {
+    columnRemoveListener = listener;
+}
+
 export class ColumnState {
     columns = $state<Column[]>([]);
     slots = $state<Slot[]>([]);
@@ -330,7 +338,19 @@ export class ColumnState {
         }
     }
 
+    private removalNotice(id: string): (() => void) | undefined {
+        const listener = this.isJunk ? undefined : columnRemoveListener;
+        const removed = listener ? this.columns.find(column => column.id === id) : undefined;
+        if (!listener || !removed) {
+            return undefined;
+        }
+        const snapshot = $state.snapshot(removed) as Column;
+        return () => listener(snapshot, this.columns);
+    }
+
     remove(id: string) {
+        const notify = this.removalNotice(id);
+
         this._deferredContent.delete(id);
         this.deleteFeed(id);
         this.deleteFeed(soloFeedKey(id));
@@ -340,11 +360,13 @@ export class ColumnState {
         const slotIndex = slotIndexOfColumn(this.slots, id);
         if (slotIndex === -1) {
             this.columns = this.columns.filter(column => column.id !== id);
+            notify?.();
             return;
         }
         const next = unsplitAt({ columns: this.columns, slots: this.slots }, slotIndex, id, false, () => self.crypto.randomUUID());
         this.columns = next.columns;
         this.slots = next.slots;
+        notify?.();
     }
 
     removeAll() {
@@ -429,6 +451,7 @@ export class ColumnState {
     unsplitColumnAt(leafColumnId: string, keepAsSeparate: boolean) {
         const slotIndex = slotIndexOfColumn(this.slots, leafColumnId);
         if (slotIndex === -1) return;
+        const notify = keepAsSeparate ? undefined : this.removalNotice(leafColumnId);
         if (!keepAsSeparate) {
             this.deleteFeed(leafColumnId);
             this.deleteFeed(soloFeedKey(leafColumnId));
@@ -438,6 +461,7 @@ export class ColumnState {
         const next = unsplitAt({ columns: this.columns, slots: this.slots }, slotIndex, leafColumnId, keepAsSeparate, () => self.crypto.randomUUID());
         this.columns = next.columns;
         this.slots = next.slots;
+        notify?.();
     }
 
     swapSplitColumn(leafColumnId: string) {

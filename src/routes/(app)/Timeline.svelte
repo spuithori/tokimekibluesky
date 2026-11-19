@@ -20,6 +20,7 @@
   import {appendSoloPage, soloFeedKey, visibleSoloKeys} from "$lib/merge/mergeSolo";
   import FeedLoadError from "$lib/components/timeline/FeedLoadError.svelte";
   import {toFeedLoadError} from "$lib/components/timeline/feedLoadError";
+  import {isHomePlusColumn, isHomePlusPending, markHomePlusLoaded, prepareHomePlusColumn, restoreHomePlusColumn} from "$lib/homeplus/lifecycle";
 
   let { index, _agent = $agent, isJunk, unique, column: columnProp = undefined, isTopScrolling = false } = $props();
 
@@ -320,7 +321,18 @@
       try {
         controller = new AbortController();
         const epoch = unique;
-        const res = await _agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, controller.signal);
+        const agent = _agent;
+        const signal = controller.signal;
+        if (isHomePlusPending(column)) {
+            await prepareHomePlusColumn(agent, column, () => columnState.columns);
+        }
+        const request = () => agent.getTimeline({limit: 20, cursor: column.data.cursor, algorithm: column.algorithm, lang: $settings?.general?.userLanguage}, signal);
+        const res = await request().catch(async (e) => {
+            if (signal.aborted || !(await restoreHomePlusColumn(agent, column, e))) {
+                throw e;
+            }
+            return await request();
+        });
 
         if (unique !== epoch) {
             return;
@@ -328,6 +340,7 @@
 
           column.data.cursor = res.cursor;
           columnState.clearFeedError(column.id);
+          markHomePlusLoaded(column.id);
 
         if (res.hitsTotal !== undefined) {
             column.data.hitsTotal = res.hitsTotal;
@@ -496,6 +509,7 @@
       <FeedLoadError
         error={loadError}
         feedUri={column.algorithm?.type === 'custom' ? column.algorithm.algorithm : undefined}
+        homePlus={isHomePlusColumn(column)}
         onretry={() => columnState.clearFeedError(column.id)}
         onremove={isJunk ? undefined : () => columnState.remove(column.id)}
       ></FeedLoadError>
