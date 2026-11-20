@@ -19,6 +19,7 @@ export const atmospherePresets: AtmospherePreset[] = [
     { id: 'tomarigi', name: 'tomarigi', taglineKey: 'atmosphere_preset_tomarigi', descriptionKey: 'atmosphere_preset_tomarigi_long', url: 'https://tomarigi.app/', icon: '/atmosphere/tomarigi.webp', category: 'social' },
     { id: 'poll', name: 'TOKIMEKI Poll', taglineKey: 'atmosphere_preset_poll', descriptionKey: 'atmosphere_preset_poll_long', url: 'https://poll.tokimeki.tech/', icon: '/atmosphere/poll.webp', category: 'polls' },
     { id: 'kaku', name: 'KAKU TOKIMEKI', taglineKey: 'atmosphere_preset_kaku', descriptionKey: 'atmosphere_preset_kaku_long', url: 'https://kaku.tokimeki.tech/', icon: '/atmosphere/kaku.webp', category: 'art' },
+    { id: 'feeds', name: 'TOKIMEKI Feeds', taglineKey: 'atmosphere_preset_feeds', descriptionKey: 'atmosphere_preset_feeds_long', url: 'https://feeds.tokimeki.blue/', icon: '/atmosphere/feeds.webp', category: 'feeds' },
 ];
 
 export function presetPath(id: string): string {

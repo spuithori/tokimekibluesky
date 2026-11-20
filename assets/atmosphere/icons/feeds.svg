@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="88 50 374 374">
+  <!-- マーク「波」（deploy/brand/mark.svg）を余白を詰めて切り出したもの -->
+  <defs>
+    <linearGradient id="tf-g" gradientUnits="userSpaceOnUse" x1="100" y1="62" x2="450" y2="412"><stop offset="0" stop-color="#B4B1E7"/><stop offset=".25" stop-color="#A7DCE0"/><stop offset=".5" stop-color="#A8F0BA"/><stop offset=".74" stop-color="#EDB5E6"/><stop offset="1" stop-color="#FFC5D2"/></linearGradient>
+    <radialGradient id="tf-k0" gradientUnits="userSpaceOnUse" cx="100" cy="412" r="282"><stop offset="0.8" stop-color="#D4F0FF"/><stop offset="1" stop-color="#B3E4FF"/></radialGradient>
+    <radialGradient id="tf-k1" gradientUnits="userSpaceOnUse" cx="100" cy="412" r="221"><stop offset="0.7" stop-color="#E2F5FF"/><stop offset="1" stop-color="#B9E6FF"/></radialGradient>
+    <linearGradient id="tf-d" gradientUnits="userSpaceOnUse" x1="100" y1="312" x2="200" y2="412"><stop offset="0" stop-color="#C9C6F0"/><stop offset="1" stop-color="#FFD3DE"/></linearGradient>
+  </defs>
+  <path d="M100 76.3 A14 14 0 0 1 114.6 62.3 A350 350 0 0 1 449.7 397.4 A14 14 0 0 1 435.7 412 L395.7 412 A14 14 0 0 1 381.7 398.7 A282 282 0 0 0 113.3 130.3 A14 14 0 0 1 100 116.3 Z" fill="url(#tf-g)"/>
+  <path d="M100 144.4 A14 14 0 0 1 114.7 130.4 A282 282 0 0 1 381.6 397.3 A14 14 0 0 1 367.6 412 L334.6 412 A14 14 0 0 1 320.6 398.8 A221 221 0 0 0 113.2 191.4 A14 14 0 0 1 100 177.4 Z" fill="url(#tf-k0)"/>
+  <path d="M100 205.5 A14 14 0 0 1 114.9 191.5 A221 221 0 0 1 320.5 397.1 A14 14 0 0 1 306.5 412 L273.4 412 A14 14 0 0 1 259.5 399.1 A160 160 0 0 0 112.9 252.5 A14 14 0 0 1 100 238.6 Z" fill="url(#tf-k1)"/>
+  <path d="M100 327.1 A14 14 0 0 1 116.3 313.3 A100 100 0 0 1 198.7 395.7 A14 14 0 0 1 184.9 412 L114 412 A14 14 0 0 1 100 398 Z" fill="url(#tf-d)"/>
+</svg>

@@ -9,6 +9,9 @@ export const presetScreenshots: Record<string, PresetScreenshot[]> = {
     diary: [
         { src: '/atmosphere/diary/01.webp', width: 1600, height: 1000 },
     ],
+    feeds: [
+        { src: '/atmosphere/feeds/01.webp', width: 1600, height: 1000 },
+    ],
     kaku: [
         { src: '/atmosphere/kaku/01.webp', width: 1600, height: 1000 },
     ],

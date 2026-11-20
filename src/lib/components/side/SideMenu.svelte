@@ -31,6 +31,8 @@
     import { publishState } from '$lib/classes/publishState.svelte';
     import {ALL_ITEMS, sideState} from "$lib/classes/sideState.svelte";
 
+    const fanPresets = atmospherePresets.slice(0, 5);
+
     let { onclose, onaction, footer = false } = $props();
     let el = $state();
     let placement = $derived.by(() => {
@@ -104,7 +106,7 @@
 {#snippet appsBanner()}
   <a class="apps-banner" href="/atmosphere" onclick={onclose}>
     <div class="apps-banner__fan">
-      {#each atmospherePresets as preset (preset.id)}
+      {#each fanPresets as preset (preset.id)}
         <img class="apps-banner__icon" src={preset.icon} alt="" width="34" height="34" decoding="async">
       {/each}
     </div>
@@ -440,7 +442,6 @@
           &:nth-child(3) { --x: 54px; --r: 0deg; --y: 0; z-index: 1; }
           &:nth-child(4) { --x: 81px; --r: 9deg; --y: 2px; }
           &:nth-child(5) { --x: 108px; --r: 18deg; --y: 8px; }
-          &:nth-child(n + 6) { display: none; }
 
           @media (max-width: 767px) {
               top: 0;
