@@ -335,6 +335,8 @@
     "tfeeds_preview_missing": "{n} posts cannot be shown because they were deleted or are private.",
     "tfeeds_preview_loading": "Loading",
     "tfeeds_preview_empty": "No matching posts (only posts since indexing began are covered)",
+    "tfeeds_preview_empty_since": "No matching posts (only posts since {date} are covered)",
+    "tfeeds_preview_data_since": "covers posts since {date}",
     "tfeeds_preview_not_yet": "No preview yet",
     "tfeeds_preview_pinned": "Pinned post",
     "tfeeds_preview_someone": "Someone",

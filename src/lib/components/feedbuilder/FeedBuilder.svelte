@@ -17,7 +17,6 @@
   import FilterCard from './cards/FilterCard.svelte';
   import SortVisibilityCard from './cards/SortVisibilityCard.svelte';
   import PreviewPanel from './PreviewPanel.svelte';
-  import ExplainPanel from './ExplainPanel.svelte';
   import JsonModeEditor from './JsonModeEditor.svelte';
   import HistoryModal from './HistoryModal.svelte';
 
@@ -229,7 +228,6 @@
 
     <div class="fb__preview" id="fb-preview" tabindex="-1">
       <PreviewPanel />
-      <ExplainPanel />
     </div>
   </div>
 
@@ -469,6 +467,14 @@
       scroll-margin-top: calc(var(--app-bar-height) + 72px);
 
       &:focus { outline: 0; }
+
+      :global(.explain) {
+        scroll-margin-top: calc(var(--app-bar-height) + 128px + var(--space-3));
+
+        @media (min-width: 1100px) {
+          scroll-margin-top: calc(var(--space-6) + var(--space-3) * 2 + 48px);
+        }
+      }
     }
 
     &__jump {

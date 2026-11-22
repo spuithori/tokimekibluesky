@@ -68,6 +68,7 @@ export interface PreviewStats {
   truncated: boolean;
   elapsedMs: number;
   notes: string[];
+  dataSince?: string;
 }
 
 export interface PreviewResult {

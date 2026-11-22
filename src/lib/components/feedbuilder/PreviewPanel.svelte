@@ -16,8 +16,10 @@
   import { primeProfile } from '$lib/feedbuilder/profileResolver.svelte';
   import type { ProfileViewDetailed } from '$lib/feedbuilder/types';
   import TimelineItem from '../../../routes/(app)/TimelineItem.svelte';
+  import ExplainPanel from './ExplainPanel.svelte';
 
   const preview = $derived(feedBuilder.preview);
+  const dataSince = $derived(preview.stats?.dataSince);
   const canRun = $derived(!preview.loading && feedBuilder.canPreview);
   const pinnedSet = $derived(new Set(feedBuilder.draft.pinnedPosts ?? []));
   const nf = new Intl.NumberFormat(getLocale() ?? 'en');
@@ -74,11 +76,16 @@
     </button>
   </header>
 
+  <ExplainPanel />
+
   {#if preview.stats && !preview.loading}
     <div class="preview-panel__stats" aria-live="polite">
       <span>{$_('tfeeds_preview_count', { n: nf.format(preview.feed.length) })}</span>
       <span>{$_('tfeeds_preview_scanned', { n: nf.format(preview.stats.scanned) })}</span>
       <span>{nf.format(preview.stats.elapsedMs)} ms</span>
+      {#if dataSince}
+        <span>{$_('tfeeds_preview_data_since', { date: dataSince })}</span>
+      {/if}
     </div>
     {#if preview.stats.truncated || preview.stats.notes.length > 0 || preview.missing > 0}
       <ul class="preview-panel__notes">
@@ -105,7 +112,13 @@
     <p class="preview-panel__error">{preview.error}</p>
   {:else if preview.feed.length === 0}
     <p class="preview-panel__empty">
-      {preview.ranAt ? $_('tfeeds_preview_empty') : $_('tfeeds_preview_not_yet')}
+      {#if !preview.ranAt}
+        {$_('tfeeds_preview_not_yet')}
+      {:else if dataSince}
+        {$_('tfeeds_preview_empty_since', { date: dataSince })}
+      {:else}
+        {$_('tfeeds_preview_empty')}
+      {/if}
     </p>
   {:else}
     <ul class="preview-panel__list">

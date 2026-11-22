@@ -335,6 +335,8 @@
     "tfeeds_preview_missing": "{n} 件は削除済みか非公開のため表示できません。",
     "tfeeds_preview_loading": "読み込み中",
     "tfeeds_preview_empty": "一致する投稿はありません（取り込み開始後の投稿が対象）",
+    "tfeeds_preview_empty_since": "一致する投稿はありません（{date} 以降の投稿が対象）",
+    "tfeeds_preview_data_since": "{date} 以降の投稿が対象",
     "tfeeds_preview_not_yet": "まだプレビューしていません",
     "tfeeds_preview_pinned": "固定された投稿",
     "tfeeds_preview_someone": "だれか",

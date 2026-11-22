@@ -224,7 +224,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    margin-top: var(--space-4);
     padding: var(--space-4);
     border: 1px solid var(--border-color-2);
     border-radius: var(--radius-4);
