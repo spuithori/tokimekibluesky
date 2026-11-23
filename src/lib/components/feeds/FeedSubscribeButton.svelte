@@ -1,14 +1,17 @@
 <script lang="ts">
-    import { _ } from 'tokimeki-i18n';
-    import { agent } from "$lib/stores";
+import { _ } from 'tokimeki-i18n';
+import { agent } from "$lib/stores";
+import SearchCheck from '@lucide/svelte/icons/search-check';
 
   interface Props {
     _agent?: any;
     feed: any;
+    size?: string;
     subscribed?: boolean;
+    withIcon?: boolean;
   }
 
-  let { _agent = $agent, feed, subscribed = $bindable(false) }: Props = $props();
+  let { _agent = $agent, feed, size, subscribed = $bindable(false), withIcon, }: Props = $props();
 
     let isProcessing = $state(false);
 
@@ -70,14 +73,25 @@
     }
 </script>
 
-<div>
-  {#if subscribed}
-    <button class="button button--ss button--following" disabled={isProcessing} onclick={unsubscribe} data-unfollow-name="{$_('unsubscribe_button')}">
-      {$_('subscribed_button')}
-    </button>
-  {:else}
-    <button class="button button--ss" disabled={isProcessing} onclick={subscribe}>
-      {$_('subscribe_button')}
-    </button>
-  {/if}
-</div>
+{#if subscribed}
+  <button class="button {size && `button--${size}`} button--following button--unsubscribe" disabled={isProcessing} onclick={unsubscribe} data-unfollow-name="{$_('unsubscribe_button')}">
+    {#if withIcon}
+      <SearchCheck />
+    {/if}
+    {$_('subscribed_button')}
+  </button>
+{:else}
+  <button class="button {size && `button--${size}`} button--subscribe" disabled={isProcessing} onclick={subscribe}>
+    {#if withIcon}
+      <SearchCheck />
+    {/if}
+    {$_('subscribe_button')}
+  </button>
+{/if}
+
+<style>
+  .button--subscribe, .button--unsubscribe {
+    display: flex;
+    column-gap: 4px;
+  }
+</style>

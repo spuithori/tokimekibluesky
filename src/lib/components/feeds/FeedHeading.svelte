@@ -53,7 +53,7 @@
 
   <div class="feed-heading__buttons">
     {#if savedFeeds}
-      <FeedSubscribeButton {feed} {_agent} subscribed={isSaved(feed)}></FeedSubscribeButton>
+      <FeedSubscribeButton {feed} {_agent} subscribed={isSaved(feed)} size='ss'></FeedSubscribeButton>
     {/if}
   </div>
 

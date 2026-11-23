@@ -90,7 +90,7 @@
 
       <div class="feed__buttons">
         {#if (layout !== 'embed' && layout !== 'publish')}
-          <FeedSubscribeButton feed={feed} subscribed={subscribed} {_agent}></FeedSubscribeButton>
+          <FeedSubscribeButton feed={feed} subscribed={subscribed} {_agent} size='ss'></FeedSubscribeButton>
         {/if}
 
         {#if (layout === 'default' || layout === 'embed')}
