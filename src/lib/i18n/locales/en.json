@@ -608,6 +608,7 @@
     "theme_store_supporter_recommend_2": "!",
     "no_results_search": "No search result.",
     "settings_design_in_themes": "Design settings",
+    "about_this_feed": "About This Feed",
     "column_feed_info": "About this feed",
     "column_list_info": "About this list",
     "open_social_app": "Open official app",
@@ -1624,5 +1625,6 @@
     "homeplus_sort_new": "Latest",
     "homeplus_sort_likes": "Most liked",
     "homeplus_sort_hot": "Hot",
-    "homeplus_sort_window": "24h"
+    "homeplus_sort_window": "24h",
+    "share": "Share"
 }

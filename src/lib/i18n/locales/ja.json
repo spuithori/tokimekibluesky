@@ -608,6 +608,7 @@
     "theme_store_supporter_recommend_2": "にて、サポーター向け限定テーマを配布しています！",
     "no_results_search": "検索結果がありません。",
     "settings_design_in_themes": "デザイン設定",
+    "about_this_feed": "フィードについて",
     "column_feed_info": "このフィードについて",
     "column_list_info": "このリストについて",
     "open_social_app": "公式クライアントで開く",
@@ -1624,5 +1625,6 @@
     "homeplus_sort_new": "新しい順",
     "homeplus_sort_likes": "いいね順",
     "homeplus_sort_hot": "話題順",
-    "homeplus_sort_window": "24時間"
+    "homeplus_sort_window": "24時間",
+    "share": "共有"
 }
