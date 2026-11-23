@@ -43,7 +43,8 @@
     import ProfileTabs from "$lib/components/profile/ProfileTabs.svelte";
     import {profileTabKeys, profileTabOf, type ProfileTabKey, type ProfileTabMenu} from "$lib/profile/profileTabs";
     import {findPageScrollRoot, smoothScrollToTopGuarded} from "$lib/components/virtual/scroll-helpers";
-    import LabelerLikeButton from "$lib/components/labeler/LabelerLikeButton.svelte";
+    import RecordLikeButton from '$lib/components/record/RecordLikeButton.svelte';
+    import type { LabelerViewDetailed } from '$lib/types/atproto';
 
     const junkColumnState = getColumnState(true);
 
@@ -54,7 +55,13 @@
     let { data, children }: Props = $props();
 
     let profile = $state<any>();
-    let isLabeler = $state(false);
+    let labeler = $state<{
+        isLabeler: boolean,
+        service: LabelerViewDetailed | undefined,
+    }>({
+        isLabeler: false,
+        service: undefined,
+    });
     let handle = $derived($page.params.handle);
     let _agent = $state($agent);
     let agentContext = setAgentContext(_agent);
@@ -100,7 +107,7 @@
     let searchText = $state('');
     const SPLIT_LEFT_MIN = 350;
     let canSplit = $state(false);
-    const isSplit = $derived(canSplit && $settings.design?.layout === 'decks' && $settings.design?.profileLayout !== 'stacked' && !isLabeler);
+    const isSplit = $derived(canSplit && $settings.design?.layout === 'decks' && $settings.design?.profileLayout !== 'stacked' && !labeler.isLabeler);
     const isMiniShown = $derived(isProfileOut && !isSplit && !!profile);
     const isSearching = $derived(isSearchOpen || currentPage === 'search');
     const showBlogTab = $derived(currentPage === 'blog' || !!$settings?.general?.disableAtmosphere || !!atmosphere?.has('site.mochott.article'));
@@ -172,7 +179,7 @@
     const tabs = $derived(profileTabKeys({
         profile,
         current: currentPage,
-        isLabeler,
+        isLabeler: labeler.isLabeler,
         isMe: !!profile && profile.did === _agent.did(),
         hasBlog: showBlogTab,
     }).map((key) => ({
@@ -214,11 +221,11 @@
             if (profileHintState.hasProfile(handle)) {
                 profile = $state.snapshot(profileHintState.profile);
                 profileHintState.clear();
-                isLabeler = !!profile?.associated?.labeler;
+                labeler.isLabeler = !!profile?.associated?.labeler;
                 ensureAtmosphere(profile);
             } else if (clear && profile && profile.handle !== handle && profile.did !== handle) {
                 profile = undefined;
-                isLabeler = false;
+                labeler.isLabeler = false;
                 atmosphere = profileAtmosphereStore.find(_agent.did(), handle, !$settings?.general?.disableAtmosphere);
             }
         })
@@ -226,7 +233,12 @@
         return _agent.xrpc.get('app.bsky.actor.getProfile', {actor: handle})
             .then(res => {
                 profile = res
-                isLabeler = !!profile?.associated?.labeler;
+                labeler.isLabeler = !!profile?.associated?.labeler;
+                if (labeler.isLabeler) {
+                    _agent.getLabelerServiceViewDetailed(profile.did).then(service => {
+                        labeler.service = service ?? undefined;
+                    });
+                }
                 ensureAtmosphere(res);
 
                 if (savedOverlay && savedOverlay.did === res.did && isSavedOverlaySettled(res, savedOverlay.result)) {
@@ -502,20 +514,20 @@
 
             <span class="profile-mini__name">{shownProfile.displayName || shownProfile.handle}</span>
 
-            {#if (profile.did !== _agent.did() && !isLabeler && !profile.viewer?.following)}
+            {#if (profile.did !== _agent.did() && !labeler.isLabeler && !profile.viewer?.following)}
               <UserFollowButton following={profile.viewer?.following} user={profile} {_agent} style="tiny"></UserFollowButton>
             {/if}
           </div>
 
           <div class="column-heading__buttons column-heading__buttons--right">
-            {#if (profile.did !== _agent.did() && !isLabeler)}
+            {#if (profile.did !== _agent.did() && !labeler.isLabeler)}
               {#if !$settings?.general?.disableChat}
                 <button class="profile-heading-button" onclick={chatBegin}>
                   <MessageCirclePlus size={20} color="var(--text-color-1)" />
                 </button>
               {/if}
 
-            {:else if (isLabeler && profile?.did)}
+            {:else if (labeler.isLabeler && profile?.did)}
 
             {:else}
               <div class="profile-follow-button profile-follow-button--me">
@@ -553,14 +565,26 @@
         <div class="profile-split__left">
         <div class="user-profile-wrap" {@attach observeProfileCard}>
         {#if profile}
-          <UserProfile profile={shownProfile} {isLabeler} {_agent} {edit} {atmosphere} stacked={isSplit}>
+          <UserProfile profile={shownProfile} isLabeler={labeler.isLabeler} {_agent} {edit} {atmosphere} stacked={isSplit}>
             <div class="user-profile-buttons">
-              {#if (profile.did !== _agent.did() && !isLabeler)}
+              {#if (profile.did !== _agent.did() && !labeler.isLabeler)}
                 <UserFollowButton following={profile.viewer?.following} user={profile} {_agent}></UserFollowButton>
                 <UserNotification {_agent} {profile} onupdate={(v) => {profile.viewer.activitySubscription = v}}></UserNotification>
-              {:else if (isLabeler && profile?.did)}
+              {:else if (labeler.isLabeler && profile?.did)}
                 <LabelerSubscribeButton did={profile.did}></LabelerSubscribeButton>
-                <LabelerLikeButton _agent={_agent} did={profile.did} />
+                <RecordLikeButton
+                    {_agent}
+                    subject={labeler.service
+                        ? {
+                            strongRef: {
+                                cid: labeler.service.cid,
+                                uri: labeler.service.uri,
+                            },
+                            haveLikedUri: labeler.service.viewer?.like ?? null,
+                            haveLikedCount: labeler.service.likeCount,
+                        }
+                        : undefined}
+                />
               {/if}
             </div>
           </UserProfile>
