@@ -169,14 +169,16 @@ export type ListItemView = {
 
 export type GeneratorView = {
     uri: string;
-    cid?: string;
+    cid: string;
     did?: string;
-    creator?: ProfileView;
+    creator: ProfileView;
     displayName: string;
     description?: string;
     avatar?: string;
     likeCount?: number;
-    viewer?: Extensible;
+    viewer?: {
+        like?: string;
+    };
 } & Extensible;
 
 export type StarterPackRecord = {
