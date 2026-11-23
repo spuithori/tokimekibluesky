@@ -1,19 +1,13 @@
 <script lang="ts">
   import { _ } from 'tokimeki-i18n';
   import FeedSubscribeButton from "$lib/components/feeds/FeedSubscribeButton.svelte";
-  import Menu from "$lib/components/ui/Menu.svelte";
-  import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
-  import ExternalLink from '@lucide/svelte/icons/external-link';
-  import Flag from '@lucide/svelte/icons/flag';
-  import Quote from '@lucide/svelte/icons/quote';
-  import {reportModal} from "$lib/stores";
   import {onMount} from "svelte";
-  import {getPostState} from "$lib/classes/postState.svelte";
+  import Info from '@lucide/svelte/icons/info';
+  import AboutFeedModal from './AboutFeedModal.svelte';
 
   let { _agent, feed } = $props();
-  let isMenuOpen = $state(false);
+  let isAboutOpen = $state(false);
   let savedFeeds = $state();
-  const postState = getPostState();
 
   async function getSavedFeeds () {
     const preferenceRes = await _agent.xrpc.get('app.bsky.actor.getPreferences')
@@ -24,11 +18,6 @@
   function isSaved(feed) {
     const uri = feed.uri;
     return savedFeeds.includes(uri);
-  }
-
-  function handleEmbedClick() {
-    postState.posts[postState.index].quotePost = feed;
-    postState.requestOpen();
   }
 
   onMount(async () => {
@@ -55,38 +44,25 @@
     {#if savedFeeds}
       <FeedSubscribeButton {feed} {_agent} subscribed={isSaved(feed)} size='ss'></FeedSubscribeButton>
     {/if}
+
+    <button
+      class="feed-heading__about-button"
+      onclick={() => isAboutOpen = true}
+    >
+      <Info aria-label={$_('about_this_feed')} />
+    </button>
   </div>
 
-  <Menu bind:isMenuOpen={isMenuOpen} buttonClassName="profile-menu-toggle">
-    {#snippet ref()}
-      <EllipsisVertical color="var(--text-color-3)" size="20"></EllipsisVertical>
-    {/snippet}
-
-    {#snippet content()}
-      <ul class="timeline-menu-list" >
-        <li class="timeline-menu-list__item">
-          <a class="timeline-menu-list__button" href="https://bsky.app/profile/{feed.creator.did}/feed/{feed.uri.split('/').slice(-1)[0]}" target="_blank">
-            <ExternalLink color="var(--text-color-1)" size="20"></ExternalLink>
-            <span>{$_('open_social_app')}</span>
-          </a>
-        </li>
-
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" onclick={handleEmbedClick}>
-            <Quote color="var(--text-color-1)" size="20"></Quote>
-            <span>{$_('embed_feed_button')}</span>
-          </button>
-        </li>
-
-        <li class="timeline-menu-list__item">
-          <button class="timeline-menu-list__button" onclick={() => { isMenuOpen = false; $reportModal = { open: true, data: { type: 'feed', uri: feed.uri, cid: feed.cid || '' } } }}>
-            <Flag color="var(--danger-color)" size="20"></Flag>
-            <span class="text-danger">{$_('report')}</span>
-          </button>
-        </li>
-      </ul>
-    {/snippet}
-  </Menu>
+  {#if isAboutOpen && savedFeeds}
+    <AboutFeedModal
+      {_agent}
+      feed={feed}
+      onClose={()=> {
+        isAboutOpen = false;
+      }}
+      subscribed={isSaved(feed)}
+    />
+  {/if}
 </div>
 
 <style lang="postcss">
@@ -130,8 +106,25 @@
       }
 
       &__buttons {
+          display: flex;
+          column-gap: 8px;
           margin-left: auto;
           flex-shrink: 0;
+      }
+
+      &__about-button {
+          display: flex;
+          align-items: center;
+          align-self: center;
+          padding: 2px;
+          color: var(--text-color-3);
+          font-size: 12px;
+          border-radius: 100lvmax;
+          transition: background-color var(--motion-duration-hover, .2s) var(--motion-easing-hover, ease-in-out);
+
+          &:hover {
+              background-color: var(--bg-color-3);
+          }
       }
 
       &__heading {
