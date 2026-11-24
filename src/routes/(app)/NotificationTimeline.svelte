@@ -153,7 +153,7 @@
             <NotificationFollowItem {_agent} item={item.notifications[0]}></NotificationFollowItem>
           {:else if (item.reason === 'starterpack-joined')}
             <NotificationStarterpackItem {_agent} item={item.notifications[0]}></NotificationStarterpackItem>
-          {:else if item.post}
+          {:else if item.post || item.reason === 'like'}
             <NotificationReactionItem {_agent} {item} post={item.post}></NotificationReactionItem>
           {/if}
         {/if}
